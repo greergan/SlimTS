@@ -5,10 +5,6 @@
 bool slim::common::network::address::AddressSet::empty() {
 	return (!port && address.empty()) ? true : false;
 }
-slim::common::network::address::AddressSet slim::common::network::address::string_to_address_set(char* address_string) {
-	std::string new_string(address_string);
-	return string_to_address_set(new_string);
-};
 slim::common::network::address::AddressSet slim::common::network::address::string_to_address_set(std::string& address_string) {
 	AddressSet address_set;
 	if(!address_string.empty()) {
@@ -23,5 +19,5 @@ slim::common::network::address::AddressSet slim::common::network::address::strin
 			}
 		}
 	}
-	return address_set;
+	return std::move(address_set);
 }

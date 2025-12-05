@@ -5,18 +5,21 @@
 #include <regex>
 #include <slim/common/exception.h>
 #include <slim/common/fetch.h>
+#include <slim/common/http/response.h>
+#include <slim/common/http/request.h>
 #include <slim/common/log.h>
+#include <slim/common/network/client/tcp.h>
+#include <slim/common/web_file.h>
 namespace slim::common::fetch {
     using namespace slim;
     using namespace slim::common;
-    const std::regex url_pattern("((http|https)://)[a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)");
 }
 std::unique_ptr<std::string> slim::common::fetch::string(std::string& file_name_string) {
     log::trace(log::Message("slim::common::fetch::string()",std::string("begins, file name => " + file_name_string).c_str(),__FILE__, __LINE__));
-    auto a = stream(file_name_string)->get();
-    auto return_string = std::make_unique<std::string>("");
+    auto file_content_pointer = stream(file_name_string);
+    auto return_string_pointer = std::make_unique<std::string>(file_content_pointer.get()->str());
     log::trace(log::Message("slim::common::fetch::string()",std::string("ends, file name => " + file_name_string).c_str(),__FILE__, __LINE__));
-    return return_string;
+    return std::move(return_string_pointer);
 }
 std::unique_ptr<std::stringstream> slim::common::fetch::stream(std::string& file_name_string) {
     log::trace(log::Message("slim::common::fetch::stream()",std::string("begins" + file_name_string).c_str(),__FILE__, __LINE__));
@@ -38,32 +41,40 @@ std::unique_ptr<std::stringstream> slim::common::fetch::stream(std::string& file
         throw slim::common::SlimFileException("slim::common::fetch::stream()", error_message.c_str(), file_name_string.c_str(), errno);
     }
     log::trace(log::Message("slim::common::fetch::stream()",std::string("ends" + file_name_string).c_str(),__FILE__, __LINE__));
-    return file_contents_stringstream;
+    return std::move(file_contents_stringstream);
 }
-/* void slim::common::fetch::fetch(const v8::FunctionCallbackInfo<v8::Value>& args) {
-    v8::Isolate* isolate = args.GetIsolate();
-    auto context = isolate->GetCurrentContext();
-    v8::Isolate::Scope isolate_scope(isolate);
-    v8::HandleScope handle_scope(isolate);
-    v8::Context::Scope context_scope(context);
-    const std::regex url_pattern("((http|https)://)[a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)");
-    if(args.Length() == 0) {
-        isolate->ThrowException(slim::utilities::StringToString(isolate, "fetch requires at least 1 argument"));
-    }
-    if(!args[0]->IsObject() && !args[0]->IsString()) {
-        isolate->ThrowException(slim::utilities::StringToValue(isolate, "argument 1 of fetch must be a valid url string or a valid Request object"));
-    }
-    if(args[0]->IsString()) {
-        std::string passed_url = slim::utilities::v8ValueToString(isolate, args[0]);
-        if(!std::regex_match(passed_url, url_pattern)) {
-            isolate->ThrowException(slim::utilities::StringToValue(isolate, "argument 1 of fetch must be a valid url string or a valid Request object"));
+void slim::common::fetch::web_file(slim::common::WebFile* web_file_pointer) {
+    log::trace(log::Message("slim::common::fetch::web_file()","begins url => " + web_file_pointer->request().url(),__FILE__, __LINE__));
+    if(web_file_pointer->request().url().starts_with("file://")) {
+        log::debug(log::Message("slim::common::fetch::web_file()","fetching disk file => " + web_file_pointer->request().url(),__FILE__, __LINE__));
+        std::ifstream input_file_stream(web_file_pointer->request().url().substr(7), std::ios::in|std::ios::binary);
+        if(input_file_stream.is_open()) {
+            log::debug(log::Message("slim::common::fetch::web_file()","fetching disk file => " + web_file_pointer->request().url(),__FILE__, __LINE__));
+            input_file_stream.seekg(0, std::ios::end);
+            long long bytes_to_read = input_file_stream.tellg();
+            input_file_stream.seekg(0, std::ios::beg);
+            web_file_pointer->data().get()->resize(bytes_to_read);
+            log::debug(log::Message("slim::common::fetch::web_file()","reading disk file => " + web_file_pointer->request().url(),__FILE__, __LINE__));
+            input_file_stream.read(reinterpret_cast<char*>(web_file_pointer->data().get()->data()), bytes_to_read);
+            if(input_file_stream.gcount() != bytes_to_read) {
+                web_file_pointer->error("slim::common::fetch::web_file()|unknown file access error while reading => " + web_file_pointer->request().url());
+            }
+            input_file_stream.close();
+        }
+        else {
+            log::error(log::Message("slim::common::fetch::web_file()","file access error => " + std::string(strerror(errno)),__FILE__, __LINE__));
+            std::string error_string = "slim::common::fetch::web_file()|file access error => " + std::string(strerror(errno));
+            std::string error_message(strerror(errno));
+            error_string += " " + error_message + " opening file";
+            web_file_pointer->error_number((int)errno);
+            web_file_pointer->error(error_string);
         }
     }
-    else if(args[0]->IsObject()) {
-
+    else {
+        log::debug(log::Message("slim::common::fetch::web_file()","fetching file from internet => " + web_file_pointer->request().url(),__FILE__, __LINE__));
+        log::debug(log::Message("slim::common::fetch::web_file()","fetching file from internet => " + web_file_pointer->request().address_set().address ,__FILE__, __LINE__));
+        log::debug(log::Message("slim::common::fetch::web_file()","fetching file from internet => " + std::to_string(web_file_pointer->request().address_set().port) ,__FILE__, __LINE__));
+        auto connection = slim::common::network::client::tcp::Connection(web_file_pointer);
     }
-
-    auto resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
-    auto result = resolver->Resolve(context, slim::utilities::StringToValue(isolate, "hello world"));
-    args.GetReturnValue().Set(resolver->GetPromise());
-} */
+    log::trace(log::Message("slim::common::fetch::web_file()","ends url => " + web_file_pointer->request().url(),__FILE__, __LINE__));
+}
