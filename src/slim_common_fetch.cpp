@@ -45,7 +45,7 @@ std::unique_ptr<std::stringstream> slim::common::fetch::stream(std::string& file
 }
 void slim::common::fetch::web_file(slim::common::WebFile* web_file_pointer) {
     log::trace(log::Message("slim::common::fetch::web_file()","begins url => " + web_file_pointer->request().url(),__FILE__, __LINE__));
-    if(web_file_pointer->request().url().starts_with("file://")) {
+    if(web_file_pointer->request().protocol() == "file://") {
         log::debug(log::Message("slim::common::fetch::web_file()","fetching disk file => " + web_file_pointer->request().url(),__FILE__, __LINE__));
         std::ifstream input_file_stream(web_file_pointer->request().url().substr(7), std::ios::in|std::ios::binary);
         if(input_file_stream.is_open()) {
