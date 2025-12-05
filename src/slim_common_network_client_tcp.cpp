@@ -5,14 +5,15 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <memory>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include <slim/common/http/request.h>
 #include <slim/common/log.h>
 #include <slim/common/network/client/tcp.h>
-
-#include <mutex>
-#include <iostream>
+#include <slim/common/web_file.h>
 slim::common::network::client::tcp::Connection::Connection(slim::common::WebFile* web_file_pointer) {
 	log::trace(log::Message("slim::common::network::client::tcp::Connection::Connection()","begins url => " + web_file_pointer->request().address_set().address,__FILE__, __LINE__));
+	bool is_tls = web_file_pointer->request().protocol() == "https://" ? true : false;
 	socket_handle = socket(AF_INET, SOCK_STREAM, 0);
 	if(socket_handle < 0) {
 		std::string error_string = "Socket creation error";
@@ -50,15 +51,49 @@ slim::common::network::client::tcp::Connection::Connection(slim::common::WebFile
 					else {
 						log::debug(log::Message("slim::common::network::client::tcp::Connection::Connection()","connected to => " + web_file_pointer->request().address_set().address,__FILE__, __LINE__));
 						auto request_string = web_file_pointer->request().to_string();
-						send(socket_handle, request_string.c_str(), request_string.size(), 0);
+
 						//log::debug(log::Message("slim::common::network::client::tcp::Connection::Connection()","sent request to => " + web_file_pointer->request().address_set().address,__FILE__, __LINE__));
 						int bytes_read = 0;
 						long total_bytes_read = 0;
 						int index = 0;
+						SSL* ssl_socket_handle = nullptr;
+						if(is_tls) {
+							const SSL_METHOD* method =SSLv23_client_method();
+							SSL_CTX* ctx = SSL_CTX_new(method);
+							if(ctx == nullptr) {
+								log::error(log::Message("slim::common::network::client::tcp::Connection::Connection()","unable to create SSL context",__FILE__, __LINE__));
+								return;
+							}
+							ssl_socket_handle = SSL_new(ctx);
+							SSL_set_fd(ssl_socket_handle, socket_handle);
+							SSL_set_connect_state(ssl_socket_handle);
+							if(SSL_connect(ssl_socket_handle) <= 0) {
+								int ssl_error_number = SSL_get_error(ssl_socket_handle, -1);
+        						SSL_free(ssl_socket_handle);
+        						SSL_CTX_free(ctx);
+								close(socket_handle);
+								log::error(log::Message("slim::common::network::client::tcp::Connection::Connection()","unable to establish SSL connection",__FILE__, __LINE__));
+								return;
+							}
+							else {
+								log::debug(log::Message("slim::common::network::client::tcp::Connection::Connection()","SSL connection established to => " 
+									+ web_file_pointer->request().address_set().address + " using cipher => " + SSL_get_cipher(ssl_socket_handle),__FILE__, __LINE__));
+								int ret = SSL_write(ssl_socket_handle, request_string.c_str(), strlen(request_string.c_str()));
+							}
+						}
+						else {
+							log::debug(log::Message("slim::common::network::client::tcp::Connection::Connection()","not using TLS for => " + web_file_pointer->request().address_set().address,__FILE__, __LINE__));
+							send(socket_handle, request_string.c_str(), request_string.size(), 0);
+						}
 						looper:
 						web_file_pointer->data()->resize(total_bytes_read + BUFFER_SIZE);
-						memset(&(web_file_pointer->data().get()->data())[total_bytes_read], 0, web_file_pointer->data()->size() - total_bytes_read);		
-						bytes_read = read(socket_handle, &(web_file_pointer->data().get()->data())[total_bytes_read], BUFFER_SIZE);
+						memset(&(web_file_pointer->data().get()->data())[total_bytes_read], 0, web_file_pointer->data()->size() - total_bytes_read);
+						if(is_tls) {
+							bytes_read = SSL_read(ssl_socket_handle, &(web_file_pointer->data().get()->data())[total_bytes_read], BUFFER_SIZE);
+						}
+						else {
+							bytes_read = read(socket_handle, &(web_file_pointer->data().get()->data())[total_bytes_read], BUFFER_SIZE);
+						}
 						auto error_number = errno;
 						if(bytes_read > 0) {
 							log::debug(log::Message("slim::common::network::client::tcp::Connection::Connection()","read bytes => " + std::to_string(bytes_read),__FILE__, __LINE__));

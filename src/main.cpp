@@ -1,5 +1,7 @@
 #include "config.h"
 #include <iostream>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include <slim/slim.h>
 #include <slim/common/exception.h>
 #include <slim/common/log.h>
@@ -8,6 +10,9 @@ int main(int argc, char *argv[]) {
     try {
         log::trace(log::Message("main()", "begins",__FILE__, __LINE__));
         log::debug(log::Message("main()", "top of try",__FILE__, __LINE__));
+        SSL_library_init();
+		SSL_load_error_strings();
+		OpenSSL_add_all_algorithms();
         slim::start(argc, argv);
         log::debug(log::Message("main()", "bottom of try",__FILE__, __LINE__));
     }
