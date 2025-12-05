@@ -1,6 +1,7 @@
 import console from 'console'
 import process from 'process'
-console.info("fetching file ");
 slim.load("http_package");
-console.log(process);
-
+const url = process.argv[2];
+console.info("fetching file =>", url);
+const response = await fetch(url);
+console.debug(response.statusText);

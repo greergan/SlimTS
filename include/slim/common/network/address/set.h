@@ -7,7 +7,6 @@ namespace slim::common::network::address {
 		std::string address;
 		bool empty(void);
 	};
-	AddressSet string_to_address_set(char* address_string);
 	AddressSet string_to_address_set(std::string& address_string);
 }
 #endif

@@ -66,7 +66,7 @@ void slim::plugin::queue::listen(const v8::FunctionCallbackInfo<v8::Value>& args
 	result_of_set = v8_job_object->Set(context, utilities::StringToV8String(isolate, "errors"), v8::Array::New(isolate));
 	result_of_set = v8_job_object->Set(context, utilities::StringToV8String(isolate, "queue_name_string"), utilities::StringToV8String(isolate, job->queue_name_string));
 	//v8_job_object->Set(context, utilities::StringToV8String(isolate, "errored"), v8::Boolean::New(isolate, true));
-	v8_job_object->Set(context, utilities::StringToV8String(isolate, "ticket_id"), v8::Integer::New(isolate, job->get_ticket_id()));
+	result_of_set = v8_job_object->Set(context, utilities::StringToV8String(isolate, "ticket_id"), v8::Integer::New(isolate, job->get_ticket_id()));
 	auto job_complete_function_template = v8::FunctionTemplate::New(isolate, job::complete);
 	auto job_complete_function = job_complete_function_template->GetFunction(context).ToLocalChecked();
 	result_of_set = v8_job_object->Set(context, utilities::StringToV8String(isolate, "complete"), job_complete_function);

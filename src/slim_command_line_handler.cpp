@@ -174,11 +174,11 @@ std::vector<std::string> slim::command_line::set_argv(int argc, char *argv[]) {
 		typescript_configuration_string.pop_back();
 	}
 	typescript_configuration_string += "}";
-	memory_mapper::write("configurations", "typescript", std::make_shared<std::string>(typescript_configuration_string));
+	memory_mapper::write("configurations", "typescript", typescript_configuration_string);
 	if(script_argvs.ends_with(",")) {
 		script_argvs.pop_back();
 	}
-	memory_mapper::write("configurations", "script.argv", std::make_shared<std::string>(script_argvs));
+	memory_mapper::write("configurations", "script.argv", script_argvs);
 	log::debug(log::Message("slim::command_line::set_argv()","typescript arguments => " + typescript_configuration_string,__FILE__,__LINE__));
 	log::debug(log::Message("slim::command_line::set_argv()","script arguments => " + script_argvs,__FILE__,__LINE__));
 	log::trace(log::Message("slim::command_line::set_argv()","ends",__FILE__, __LINE__));

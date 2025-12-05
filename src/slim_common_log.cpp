@@ -102,6 +102,11 @@ void slim::common::log::info(character_types value) {
 	std::cout << value_t << "\n";
 }
 void slim::common::log::print(std::string label, Message message, bool is_error) {
+/* 	if(!message.call.starts_with("slim::package::http")
+		&& !message.call.starts_with("slim::common::WebFile")
+		&& !message.call.starts_with("slim::common::fetch::web_file")
+		&& !message.call.starts_with("slim::common::network::client::tcp")
+		&& !message.call.starts_with("slim::common::http::parser::parse_http_response")) return; */
 	std::stringstream print_text;
 	int width = allow_color_print ? 16 : 4;
 	print_text << label << std::setw(width) << magenta(std::to_string(message.line_number)) << field_separator

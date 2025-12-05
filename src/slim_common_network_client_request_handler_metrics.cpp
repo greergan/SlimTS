@@ -81,7 +81,7 @@ std::string slim::common::network::client::request::handler::metrics::handle_req
 		response.response_code(505);
 	}
 	std::stringstream response_stream;
-	response_stream << response.version() << " " << response.response_code() << " " << response.response_code_string() << "\r\n";
+	response_stream << response.version() << " " << response.response_code() << " " << response.response_code_text() << "\r\n";
 	for(auto& [key, value] : response.headers().get()) {
 		response_stream << key << ": " << value << "\r\n";
 	}
