@@ -102,7 +102,6 @@ void slim::common::http::parser::parse_http_response(std::stringstream& header_s
 	std::string line_string;
 	while(getline(header_string_stream, line_string)) {
 		if(!is_first_line) {
-			log::info("line_string: " + line_string);
 			if(line_string.empty() || line_string == "\r") {
 				break;;
 			}
