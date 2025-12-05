@@ -43,6 +43,12 @@ int main(int argc, char *argv[]) {
         log::trace(log::Message("main()","exiting early",__FILE__, __LINE__));
         exit(1);
     }
+    catch (const std::exception& error) {
+        log::error(log::Message("main()", error.what(),__FILE__, __LINE__));
+        slim::stop();
+        log::trace(log::Message("main()","exiting early",__FILE__, __LINE__));
+        exit(1);
+    }
     catch(...) {
         log::error(log::Message("main()", "caught unknown exception",__FILE__, __LINE__));
         slim::stop();
