@@ -115,27 +115,27 @@ std::shared_ptr<std::string> slim::common::memory_mapper::read(std::string map_n
 	log::trace(log::Message("slim::common::memory_mapper::read()", "ends file => " + file_name_string + " from map => " + map_name_string + " found => " + file_found_string, __FILE__, __LINE__));
 	return content_pointer;
 }
-std::string slim::common::memory_mapper::read_string(std::string map_name_string, std::string file_name_string) {
-	log::trace(log::Message("slim::common::memory_mapper::read()", "begins for map name => " + map_name_string + " file name => " + file_name_string, __FILE__, __LINE__));
+std::string slim::common::memory_mapper::read_string(std::string map_name_string, std::string variable_name_string) {
+	log::trace(log::Message("slim::common::memory_mapper::read()", "begins for map name => " + map_name_string + " variable name => " + variable_name_string, __FILE__, __LINE__));
 	std::string content_string;
 	if(exists(map_name_string)) {
 		std::unique_lock<std::mutex> lock(read_mutex);
-		auto content_iterator = maps[map_name_string].get()->find(file_name_string);
+		auto content_iterator = maps[map_name_string].get()->find(variable_name_string);
 		if(content_iterator != maps[map_name_string].get()->end()) {
 			if(std::holds_alternative<std::string>(content_iterator->second)) {
 				content_string = std::get<std::string>(content_iterator->second);
 			}
-			else if(std::holds_alternative<std::string>(content_iterator->second)) {
+			else if(std::holds_alternative<std::shared_ptr<std::string>>(content_iterator->second)) {
 				content_string = *std::get<std::shared_ptr<std::string>>(content_iterator->second).get();
 			}
 		}
 		else {
-			log::debug(log::Message("slim::common::memory_mapper::read()", "file not found => " + file_name_string + " in map => " + map_name_string, __FILE__, __LINE__));
+			log::debug(log::Message("slim::common::memory_mapper::read()", "file not found => " + variable_name_string + " in map => " + map_name_string, __FILE__, __LINE__));
 		}
 	}
 	log::debug(log::Message("slim::common::memory_mapper::read()", "read "
-		+ std::to_string(content_string.length()) + " bytes from map name => " + map_name_string + " file name => " + file_name_string, __FILE__, __LINE__));
-	log::trace(log::Message("slim::common::memory_mapper::read()", "ends for map name => " + map_name_string + " file name => " + file_name_string, __FILE__, __LINE__));
+		+ std::to_string(content_string.length()) + " bytes from map name => " + map_name_string + " variable name => " + variable_name_string, __FILE__, __LINE__));
+	log::trace(log::Message("slim::common::memory_mapper::read()", "ends for map name => " + map_name_string + " variable name => " + variable_name_string, __FILE__, __LINE__));
 	return content_string;
 }
 void slim::common::memory_mapper::write(std::string map_name_string, std::string file_name_string, content_variant content_string_or_pointer) {
