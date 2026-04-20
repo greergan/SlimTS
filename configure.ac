@@ -11,79 +11,46 @@ AM_PROG_AR
 
 AC_LANG_PUSH([C++])
 
-dnl ------------------------------------------------------------------
-dnl Force C++23 required
-dnl ------------------------------------------------------------------
 CXXFLAGS="$CXXFLAGS -std=c++23"
 
-dnl ------------------------------------------------------------------
-dnl Google V8 (header + library checks, required)
-dnl ------------------------------------------------------------------
-AC_ARG_WITH([google-v8-dir],
-    [AS_HELP_STRING([--with-google-v8-dir=DIR], [path to installed Google V8 directory])],
-    [],
-    [with_google_v8_dir=""]
+dnl ------------------------------------------------------------
+dnl V8
+dnl ------------------------------------------------------------
+AC_ARG_WITH([v8],
+    [AS_HELP_STRING([--with-v8=DIR], [path to V8 root directory])],
+    [v8_root="$withval"],
+    [AC_MSG_ERROR([--with-v8=DIR is required])]
 )
 
-if test -z "$with_google_v8_dir"; then
-    AC_MSG_ERROR([--with-google-v8-dir=DIR is required])
+v8_include="$v8_root/include"
+
+dnl GN build variants
+v8_obj_candidates="
+$v8_root/out.gn/x64.release.sample/obj"
+
+v8_obj=""
+for d in $v8_obj_candidates; do
+    if test -d "$d"; then
+        v8_obj="$d"
+        break
+    fi
+done
+
+if test -z "$v8_obj"; then
+    AC_MSG_ERROR([unable to locate V8 object directory under $v8_root])
 fi
 
-v8_root="$with_google_v8_dir"
-v8_obj="$v8_root/out.gn/x64.release.sample/obj"
-
-CPPFLAGS="-I$v8_root/include $CPPFLAGS"
+CPPFLAGS="-I$v8_include $CPPFLAGS"
 LDFLAGS="-L$v8_obj $LDFLAGS"
 
-AC_CHECK_HEADER([v8.h], [],
-    [AC_MSG_ERROR([missing v8.h])]
-)
+AC_CHECK_HEADER([v8.h], [], [AC_MSG_ERROR([missing v8.h])])
+AC_CHECK_HEADER([libplatform/libplatform.h], [], [AC_MSG_ERROR([missing libplatform headers])])
 
-AC_CHECK_HEADER([libplatform/libplatform.h], [],
-    [AC_MSG_ERROR([missing libplatform header])]
-)
+AC_CHECK_FILE([$v8_obj/libv8_monolith.a], [], [AC_MSG_ERROR([missing libv8_monolith.a])])
+AC_CHECK_FILE([$v8_obj/libv8_libbase.a], [], [AC_MSG_ERROR([missing libv8_libbase.a])])
+AC_CHECK_FILE([$v8_obj/libv8_libplatform.a], [], [AC_MSG_ERROR([missing libv8_libplatform.a])])
 
-AC_CHECK_FILE([$v8_obj/libv8_libbase.a], [],
-    [AC_MSG_ERROR([missing libv8_libbase.a])]
-)
-
-AC_CHECK_FILE([$v8_obj/libv8_monolith.a], [],
-    [AC_MSG_ERROR([missing libv8_monolith.a])]
-)
-
-AC_CHECK_FILE([$v8_obj/libv8_libplatform.a], [],
-    [AC_MSG_ERROR([missing libv8_libplatform.a])]
-)
-
-dnl ------------------------------------------------------------------
-dnl librdkafka auto-detection
-dnl ------------------------------------------------------------------
 PKG_PROG_PKG_CONFIG
-
-found_librdkafka="no"
-
-if test -n "$PKG_CONFIG"; then
-    PKG_CHECK_MODULES([RDKAFKA], [rdkafka++], [
-        CPPFLAGS="$CPPFLAGS $RDKAFKA_CFLAGS"
-        LIBS="$LIBS $RDKAFKA_LIBS"
-        found_librdkafka="yes"
-    ], [
-        found_librdkafka="no"
-    ])
-fi
-
-if test "$found_librdkafka" = "no"; then
-    AC_CHECK_HEADER([librdkafka/rdkafkacpp.h], [
-        AC_CHECK_LIB([rdkafka++], [main], [
-            LIBS="$LIBS -lrdkafka++ -lrdkafka"
-            found_librdkafka="yes"
-        ])
-    ])
-fi
-
-if test "$found_librdkafka" = "no"; then
-    AC_MSG_ERROR([librdkafka not found])
-fi
 
 dnl ------------------------------------------------------------------
 dnl OpenSSL (STATIC ONLY + --with-openssl=DIR)
@@ -147,27 +114,25 @@ fi
 AC_CHECK_HEADER([openssl/ssl.h], [], [AC_MSG_ERROR([missing OpenSSL headers])])
 AC_CHECK_HEADER([openssl/crypto.h], [], [AC_MSG_ERROR([missing OpenSSL crypto headers])])
 
-dnl ------------------------------------------------------------------
-dnl project include path
-dnl ------------------------------------------------------------------
+dnl ------------------------------------------------------------
+dnl project include
+dnl ------------------------------------------------------------
 cwd=`pwd`
 CPPFLAGS="-I$cwd/include $CPPFLAGS"
 
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
 
-dnl ------------------------------------------------------------------
-dnl output files
-dnl ------------------------------------------------------------------
+dnl ------------------------------------------------------------
+dnl output
+dnl ------------------------------------------------------------
 AC_CONFIG_FILES([
     Makefile
     src/Makefile
     src/plugins/console/Makefile
-    src/plugins/csv/Makefile
     src/plugins/fs/Makefile
     src/plugins/http_package/Makefile
     src/plugins/http_server/Makefile
-    src/plugins/kafka/Makefile
     src/plugins/memoryAdaptor/Makefile
     src/plugins/os/Makefile
     src/plugins/path/Makefile
@@ -175,9 +140,9 @@ AC_CONFIG_FILES([
     src/plugins/queue/Makefile
 ])
 
-dnl ------------------------------------------------------------------
-dnl node bundle step
-dnl ------------------------------------------------------------------
+dnl ------------------------------------------------------------
+dnl node step
+dnl ------------------------------------------------------------
 (cd bin && node bundle_lib_files.mjs)
 
 AC_OUTPUT
