@@ -1,7 +1,5 @@
 #include <string>
-#include <slim/common/http/headers.h>
-#include <slim/common/http/parser.h>
-#include <slim/common/http/response.h>
+#include <slim/common/http.h>
 slim::common::http::Response::Response() {
 	headers_map = Headers();
 }

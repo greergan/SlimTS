@@ -37,7 +37,7 @@ namespace slim::common::log {
 void slim::common::log::debug(Message _message) {
 	_message.log_level = "debug";
 
-	if(slim::configuration_handler::can_log(_message)) {
+	if(slim::configuration_handler::can_log(_message.consumer, _message.log_level, _message.file, _message.function)) {
 		_message.label = "DEBUG";
 		print(_message);
 	}
@@ -46,7 +46,7 @@ void slim::common::log::debug(Message _message) {
 void slim::common::log::error(Message _message) {
 	_message.log_level = "error";
 	
-	if(slim::configuration_handler::can_log(_message)) {
+	if(slim::configuration_handler::can_log(_message.consumer, _message.log_level, _message.file, _message.function)) {
 		_message.label = "ERROR";
 		print(_message);
 	}
@@ -60,7 +60,7 @@ void slim::common::log::info(std::string_view _value) {
 void slim::common::log::trace(Message _message) {
 	_message.log_level = "trace";
 
-	if(slim::configuration_handler::can_log(_message)) {
+	if(slim::configuration_handler::can_log(_message.consumer, _message.log_level, _message.file, _message.function)) {
 		_message.label = "TRACE";
 		print(_message);
 	}

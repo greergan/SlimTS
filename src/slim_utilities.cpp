@@ -81,6 +81,15 @@ template <typename Thing>
 v8::Local<v8::Object> slim::utilities::GetObject(v8::Isolate* isolate, Thing thingy) {
 	return (thingy->IsObject()) ? thingy->ToObject(isolate->GetCurrentContext()).ToLocalChecked() : v8::Object::New(isolate);
 }
+v8::Local<v8::Object> slim::utilities::GetObject(v8::Isolate* isolate, v8::Local<v8::Array> array, int array_index) {
+	if(array->IsArray() && array_index >= 0 && array_index <= array->Length()) {
+		auto maybe_local_value = array->Get(isolate->GetCurrentContext(), array_index);
+		if(!maybe_local_value.IsEmpty() && maybe_local_value.ToLocalChecked()->IsObject()) {
+			return v8::Local<v8::Object>::Cast(maybe_local_value.ToLocalChecked());
+		}
+	}
+	return v8::Object::New(isolate);
+}
 v8::Local<v8::Object> slim::utilities::GetObject(v8::Isolate* isolate, v8::Local<v8::Value> object) {
 	return (object->IsObject()) ? object->ToObject(isolate->GetCurrentContext()).ToLocalChecked() : v8::Object::New(isolate);
 }
@@ -246,6 +255,9 @@ v8::Local<v8::Name> slim::utilities::StringToV8Name(v8::Isolate* isolate, const 
 }
 v8::Local<v8::String> slim::utilities::StringToV8String(v8::Isolate* isolate, std::string string) {
 	return v8::String::NewFromUtf8(isolate, string.c_str()).ToLocalChecked();
+}
+v8::Local<v8::String> slim::utilities::StringViewToV8String(v8::Isolate* isolate, std::string_view _string) {
+	return StringToV8String(isolate, std::string(_string));
 }
 v8::Local<v8::Value> slim::utilities::StringToV8Value(v8::Isolate* isolate, const std::string value) {
 	return v8::String::NewFromUtf8(isolate, value.c_str()).ToLocalChecked().As<v8::Value>();

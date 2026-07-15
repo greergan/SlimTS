@@ -14,15 +14,14 @@
 #include <sstream>
 #include <unordered_map>
 #include <slim/common/network/client/request/handler/metrics.h>
-#include <slim/common/http/response.h>
-#include <slim/common/http/request.h>
+#include <slim/common/http.h>
 #include <slim/common/metrics.h>
 #include <slim/common/metrics/counter.h>
 
 #include <iostream>
 
 static std::string slim::common::network::client::request::handler::metrics::get_metrics(slim::common::Metrics& metrics) {
-	metrics.counters["metrics_requests"].inc();
+/* 	metrics.counters["metrics_requests"].inc();
 	std::stringstream metrics_stream;
 	std::ifstream filestat("/proc/self/stat");
 	std::string line;
@@ -45,14 +44,15 @@ static std::string slim::common::network::client::request::handler::metrics::get
 		metrics_stream << "# " << metric.type << std::endl;
 		metrics_stream << metric.format << " " << metric.count << std::endl;
 	}
-	return metrics_stream.str();
+	return metrics_stream.str(); */
+	return std::string();
 }
 std::string slim::common::network::client::request::handler::metrics::handle_request(char* request_pointer,
 		const slim::common::network::client::connection::Information& client_connection_information, slim::common::Metrics& metrics) {
-	std::cout << "tendril::client::request::handler::metrics::handle_request\n";
+/*	std::cout << "tendril::client::request::handler::metrics::handle_request\n";
 	slim::common::http::Request request(request_pointer);
 	slim::common::http::Response response;
-	if(request.version() == "HTTP/1.1") {
+ 	if(request.version() == "HTTP/1.1") {
 		response.version(request.version());
 		if(request.method() == "GET") {
 			if(request.path() == "/") {
@@ -87,5 +87,6 @@ std::string slim::common::network::client::request::handler::metrics::handle_req
 	}
 	response_stream << "\r\n\r\n" << response.body() << "\r\n";
 	std::cout << "tendril::client::request::handler::metrics::handle_request done\n";
-	return response_stream.str();
+	return response_stream.str(); */
+	return std::string();
 }

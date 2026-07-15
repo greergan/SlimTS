@@ -36,9 +36,9 @@ void slim::common::network::listener::standard(std::shared_ptr<network::listener
         exit(1);
     }
     memset(&listener_socket_address, 0, sizeof(listener_socket_address));
-	log::info(std::string("Binding server to tcp://" + listener_information->address_set.address + ":" + std::to_string(listener_information->address_set.port)));
-	listener_socket_address.sin_addr.s_addr = inet_addr(listener_information->address_set.address.c_str());
-    listener_socket_address.sin_port = htons(listener_information->address_set.port);
+	log::info(std::string("Binding server to tcp://" + listener_information->address_set.address() + ":" + std::to_string(listener_information->address_set.port())));
+	listener_socket_address.sin_addr.s_addr = inet_addr(listener_information->address_set.address().c_str());
+    listener_socket_address.sin_port = htons(listener_information->address_set.port());
     listener_socket_address.sin_family = AF_INET;
     if(bind(server_socket, (struct sockaddr *) &listener_socket_address, sizeof(listener_socket_address)) == -1) {
         perror("bind");

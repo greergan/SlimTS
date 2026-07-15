@@ -2,7 +2,7 @@
 #include <string>
 #include <slim/common/memory_mapper.h>
 namespace slim::system::libraries {
-slim::common::memory_mapper::map_container typescript_map_container = {{"lib.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+slim::common::memory_mapper::map_container typescript_map_container = {{"lib.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -24,7 +24,7 @@ and limitations under the License.
 /// <reference lib="dom" />
 /// <reference lib="webworker.importscripts" />
 /// <reference lib="scripthost" />
-)+++")},{"lib.decorators.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.decorators.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -408,7 +408,7 @@ interface ClassFieldDecoratorContext<
 
     readonly metadata: DecoratorMetadata;
 }
-)+++")},{"lib.decorators.legacy.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.decorators.legacy.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -430,7 +430,7 @@ declare type ClassDecorator = <TFunction extends Function>(target: TFunction) =>
 declare type PropertyDecorator = (target: Object, propertyKey: string | symbol) => void;
 declare type MethodDecorator = <T>(target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T> | void;
 declare type ParameterDecorator = (target: Object, propertyKey: string | symbol | undefined, parameterIndex: number) => void;
-)+++")},{"lib.dom.asynciterable.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.dom.asynciterable.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -471,7 +471,7 @@ interface ReadableStream<R = any> {
     [Symbol.asyncIterator](options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
     values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
 }
-)+++")},{"lib.dom.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.dom.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -30081,7 +30081,7 @@ type WebTransportErrorSource = "session" | "stream";
 type WorkerType = "classic" | "module";
 type WriteCommandType = "seek" | "truncate" | "write";
 type XMLHttpRequestResponseType = "" | "arraybuffer" | "blob" | "document" | "json" | "text";
-)+++")},{"lib.dom.iterable.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.dom.iterable.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -30574,7 +30574,7 @@ interface WebGLRenderingContextOverloads {
     /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/WebGLRenderingContext/uniformMatrix) */
     uniformMatrix4fv(location: WebGLUniformLocation | null, transpose: GLboolean, value: Iterable<GLfloat>): void;
 }
-)+++")},{"lib.es2015.collection.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2015.collection.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -30721,7 +30721,7 @@ interface WeakSetConstructor {
     readonly prototype: WeakSet<WeakKey>;
 }
 declare var WeakSet: WeakSetConstructor;
-)+++")},{"lib.es2015.core.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2015.core.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -31318,7 +31318,7 @@ interface Float32Array<TArrayBuffer extends ArrayBufferLike> {
 interface Float64Array<TArrayBuffer extends ArrayBufferLike> {
     toLocaleString(locales: string | string[], options?: Intl.NumberFormatOptions): string;
 }
-)+++")},{"lib.es2015.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2015.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -31346,7 +31346,7 @@ and limitations under the License.
 /// <reference lib="es2015.reflect" />
 /// <reference lib="es2015.symbol" />
 /// <reference lib="es2015.symbol.wellknown" />
-)+++")},{"lib.es2015.generator.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2015.generator.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -31423,7 +31423,7 @@ interface GeneratorFunctionConstructor {
      */
     readonly prototype: GeneratorFunction;
 }
-)+++")},{"lib.es2015.iterable.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2015.iterable.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -32028,7 +32028,7 @@ interface Float64ArrayConstructor {
      */
     from<T>(elements: Iterable<T>, mapfn?: (v: T, k: number) => number, thisArg?: any): Float64Array<ArrayBuffer>;
 }
-)+++")},{"lib.es2015.promise.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2015.promise.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -32109,7 +32109,7 @@ interface PromiseConstructor {
 }
 
 declare var Promise: PromiseConstructor;
-)+++")},{"lib.es2015.proxy.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2015.proxy.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -32237,7 +32237,7 @@ interface ProxyConstructor {
     new <T extends object>(target: T, handler: ProxyHandler<T>): T;
 }
 declare var Proxy: ProxyConstructor;
-)+++")},{"lib.es2015.reflect.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2015.reflect.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -32381,7 +32381,7 @@ declare namespace Reflect {
      */
     function setPrototypeOf(target: object, proto: object | null): boolean;
 }
-)+++")},{"lib.es2015.symbol.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2015.symbol.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -32427,7 +32427,7 @@ interface SymbolConstructor {
 }
 
 declare var Symbol: SymbolConstructor;
-)+++")},{"lib.es2015.symbol.wellknown.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2015.symbol.wellknown.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -32753,7 +32753,7 @@ interface SetConstructor {
 interface ArrayBufferConstructor {
     readonly [Symbol.species]: ArrayBufferConstructor;
 }
-)+++")},{"lib.es2016.array.include.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2016.array.include.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -32869,7 +32869,7 @@ interface Float64Array<TArrayBuffer extends ArrayBufferLike> {
      */
     includes(searchElement: number, fromIndex?: number): boolean;
 }
-)+++")},{"lib.es2016.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2016.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -32890,7 +32890,7 @@ and limitations under the License.
 /// <reference lib="es2015" />
 /// <reference lib="es2016.array.include" />
 /// <reference lib="es2016.intl" />
-)+++")},{"lib.es2016.full.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2016.full.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -32913,7 +32913,7 @@ and limitations under the License.
 /// <reference lib="webworker.importscripts" />
 /// <reference lib="scripthost" />
 /// <reference lib="dom.iterable" />
-)+++")},{"lib.es2016.intl.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2016.intl.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -32944,7 +32944,7 @@ declare namespace Intl {
      */
     function getCanonicalLocales(locale?: string | readonly string[]): string[];
 }
-)+++")},{"lib.es2017.arraybuffer.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2017.arraybuffer.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -32965,7 +32965,7 @@ and limitations under the License.
 interface ArrayBufferConstructor {
     new (): ArrayBuffer;
 }
-)+++")},{"lib.es2017.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2017.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -32991,7 +32991,7 @@ and limitations under the License.
 /// <reference lib="es2017.sharedmemory" />
 /// <reference lib="es2017.string" />
 /// <reference lib="es2017.typedarrays" />
-)+++")},{"lib.es2017.date.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2017.date.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33022,7 +33022,7 @@ interface DateConstructor {
      */
     UTC(year: number, monthIndex?: number, date?: number, hours?: number, minutes?: number, seconds?: number, ms?: number): number;
 }
-)+++")},{"lib.es2017.full.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2017.full.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33045,7 +33045,7 @@ and limitations under the License.
 /// <reference lib="webworker.importscripts" />
 /// <reference lib="scripthost" />
 /// <reference lib="dom.iterable" />
-)+++")},{"lib.es2017.intl.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2017.intl.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33089,7 +33089,7 @@ declare namespace Intl {
         formatToParts(date?: Date | number): DateTimeFormatPart[];
     }
 }
-)+++")},{"lib.es2017.object.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2017.object.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33138,7 +33138,7 @@ interface ObjectConstructor {
      */
     getOwnPropertyDescriptors<T>(o: T): { [P in keyof T]: TypedPropertyDescriptor<T[P]>; } & { [x: string]: PropertyDescriptor; };
 }
-)+++")},{"lib.es2017.sharedmemory.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2017.sharedmemory.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33273,7 +33273,7 @@ interface Atomics {
 }
 
 declare var Atomics: Atomics;
-)+++")},{"lib.es2017.string.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2017.string.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33318,7 +33318,7 @@ interface String {
      */
     padEnd(maxLength: number, fillString?: string): string;
 }
-)+++")},{"lib.es2017.typedarrays.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2017.typedarrays.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33371,7 +33371,7 @@ interface Float32ArrayConstructor {
 interface Float64ArrayConstructor {
     new (): Float64Array<ArrayBuffer>;
 }
-)+++")},{"lib.es2018.asyncgenerator.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2018.asyncgenerator.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33448,7 +33448,7 @@ interface AsyncGeneratorFunctionConstructor {
      */
     readonly prototype: AsyncGeneratorFunction;
 }
-)+++")},{"lib.es2018.asynciterable.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2018.asynciterable.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33501,7 +33501,7 @@ interface AsyncIterableIterator<T, TReturn = any, TNext = any> extends AsyncIter
 interface AsyncIteratorObject<T, TReturn = unknown, TNext = unknown> extends AsyncIterator<T, TReturn, TNext> {
     [Symbol.asyncIterator](): AsyncIteratorObject<T, TReturn, TNext>;
 }
-)+++")},{"lib.es2018.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2018.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33525,7 +33525,7 @@ and limitations under the License.
 /// <reference lib="es2018.promise" />
 /// <reference lib="es2018.regexp" />
 /// <reference lib="es2018.intl" />
-)+++")},{"lib.es2018.full.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2018.full.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33549,7 +33549,7 @@ and limitations under the License.
 /// <reference lib="scripthost" />
 /// <reference lib="dom.iterable" />
 /// <reference lib="dom.asynciterable" />
-)+++")},{"lib.es2018.intl.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2018.intl.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33632,7 +33632,7 @@ declare namespace Intl {
         formatToParts(number?: number | bigint): NumberFormatPart[];
     }
 }
-)+++")},{"lib.es2018.promise.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2018.promise.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33662,7 +33662,7 @@ interface Promise<T> {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
 }
-)+++")},{"lib.es2018.regexp.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2018.regexp.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33699,7 +33699,7 @@ interface RegExp {
      */
     readonly dotAll: boolean;
 }
-)+++")},{"lib.es2019.array.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2019.array.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33778,7 +33778,7 @@ interface Array<T> {
         depth?: D,
     ): FlatArray<A, D>[];
 }
-)+++")},{"lib.es2019.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2019.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33802,7 +33802,7 @@ and limitations under the License.
 /// <reference lib="es2019.string" />
 /// <reference lib="es2019.symbol" />
 /// <reference lib="es2019.intl" />
-)+++")},{"lib.es2019.full.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2019.full.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33826,7 +33826,7 @@ and limitations under the License.
 /// <reference lib="scripthost" />
 /// <reference lib="dom.iterable" />
 /// <reference lib="dom.asynciterable" />
-)+++")},{"lib.es2019.intl.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2019.intl.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33849,7 +33849,7 @@ declare namespace Intl {
         unknown: never;
     }
 }
-)+++")},{"lib.es2019.object.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2019.object.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33882,7 +33882,7 @@ interface ObjectConstructor {
      */
     fromEntries(entries: Iterable<readonly any[]>): any;
 }
-)+++")},{"lib.es2019.string.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2019.string.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33919,7 +33919,7 @@ interface String {
      */
     trimRight(): string;
 }
-)+++")},{"lib.es2019.symbol.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2019.symbol.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -33943,7 +33943,7 @@ interface Symbol {
      */
     readonly description: string | undefined;
 }
-)+++")},{"lib.es2020.bigint.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2020.bigint.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -34708,7 +34708,7 @@ declare namespace Intl {
         format(value: number | bigint): string;
     }
 }
-)+++")},{"lib.es2020.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2020.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -34735,7 +34735,7 @@ and limitations under the License.
 /// <reference lib="es2020.string" />
 /// <reference lib="es2020.symbol.wellknown" />
 /// <reference lib="es2020.intl" />
-)+++")},{"lib.es2020.date.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2020.date.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -34777,7 +34777,7 @@ interface Date {
      */
     toLocaleTimeString(locales?: Intl.LocalesArgument, options?: Intl.DateTimeFormatOptions): string;
 }
-)+++")},{"lib.es2020.full.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2020.full.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -34801,7 +34801,7 @@ and limitations under the License.
 /// <reference lib="scripthost" />
 /// <reference lib="dom.iterable" />
 /// <reference lib="dom.asynciterable" />
-)+++")},{"lib.es2020.intl.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2020.intl.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -35275,7 +35275,7 @@ declare namespace Intl {
         supportedLocalesOf(locales: LocalesArgument, options?: { localeMatcher?: "lookup" | "best fit"; }): string[];
     }
 }
-)+++")},{"lib.es2020.number.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2020.number.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -35303,7 +35303,7 @@ interface Number {
      */
     toLocaleString(locales?: Intl.LocalesArgument, options?: Intl.NumberFormatOptions): string;
 }
-)+++")},{"lib.es2020.promise.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2020.promise.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -35350,7 +35350,7 @@ interface PromiseConstructor {
      */
     allSettled<T>(values: Iterable<T | PromiseLike<T>>): Promise<PromiseSettledResult<Awaited<T>>[]>;
 }
-)+++")},{"lib.es2020.sharedmemory.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2020.sharedmemory.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -35449,7 +35449,7 @@ interface Atomics {
      */
     xor(typedArray: BigInt64Array<ArrayBufferLike> | BigUint64Array<ArrayBufferLike>, index: number, value: bigint): bigint;
 }
-)+++")},{"lib.es2020.string.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2020.string.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -35493,7 +35493,7 @@ interface String {
      */
     localeCompare(that: string, locales?: Intl.LocalesArgument, options?: Intl.CollatorOptions): number;
 }
-)+++")},{"lib.es2020.symbol.wellknown.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2020.symbol.wellknown.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -35534,7 +35534,7 @@ interface RegExp {
      */
     [Symbol.matchAll](str: string): RegExpStringIterator<RegExpMatchArray>;
 }
-)+++")},{"lib.es2021.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2021.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -35557,7 +35557,7 @@ and limitations under the License.
 /// <reference lib="es2021.string" />
 /// <reference lib="es2021.weakref" />
 /// <reference lib="es2021.intl" />
-)+++")},{"lib.es2021.full.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2021.full.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -35581,7 +35581,7 @@ and limitations under the License.
 /// <reference lib="scripthost" />
 /// <reference lib="dom.iterable" />
 /// <reference lib="dom.asynciterable" />
-)+++")},{"lib.es2021.intl.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2021.intl.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -35747,7 +35747,7 @@ declare namespace Intl {
         supportedLocalesOf(locales: LocalesArgument, options?: Pick<ListFormatOptions, "localeMatcher">): UnicodeBCP47LocaleIdentifier[];
     };
 }
-)+++")},{"lib.es2021.promise.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2021.promise.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -35795,7 +35795,7 @@ interface PromiseConstructor {
      */
     any<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>>;
 }
-)+++")},{"lib.es2021.string.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2021.string.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -35828,7 +35828,7 @@ interface String {
      */
     replaceAll(searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string;
 }
-)+++")},{"lib.es2021.weakref.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2021.weakref.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -35906,7 +35906,7 @@ interface FinalizationRegistryConstructor {
 }
 
 declare var FinalizationRegistry: FinalizationRegistryConstructor;
-)+++")},{"lib.es2022.array.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2022.array.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -36027,7 +36027,7 @@ interface BigUint64Array<TArrayBuffer extends ArrayBufferLike> {
      */
     at(index: number): bigint | undefined;
 }
-)+++")},{"lib.es2022.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2022.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -36052,7 +36052,7 @@ and limitations under the License.
 /// <reference lib="es2022.object" />
 /// <reference lib="es2022.regexp" />
 /// <reference lib="es2022.string" />
-)+++")},{"lib.es2022.error.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2022.error.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -36127,7 +36127,7 @@ interface AggregateErrorConstructor {
         options?: ErrorOptions,
     ): AggregateError;
 }
-)+++")},{"lib.es2022.full.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2022.full.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -36151,7 +36151,7 @@ and limitations under the License.
 /// <reference lib="scripthost" />
 /// <reference lib="dom.iterable" />
 /// <reference lib="dom.asynciterable" />
-)+++")},{"lib.es2022.intl.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2022.intl.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -36272,7 +36272,7 @@ declare namespace Intl {
      */
     function supportedValuesOf(key: "calendar" | "collation" | "currency" | "numberingSystem" | "timeZone" | "unit"): string[];
 }
-)+++")},{"lib.es2022.object.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2022.object.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -36298,7 +36298,7 @@ interface ObjectConstructor {
      */
     hasOwn(o: object, v: PropertyKey): boolean;
 }
-)+++")},{"lib.es2022.regexp.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2022.regexp.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -36337,7 +36337,7 @@ interface RegExp {
      */
     readonly hasIndices: boolean;
 }
-)+++")},{"lib.es2022.string.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2022.string.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -36362,7 +36362,7 @@ interface String {
      */
     at(index: number): string | undefined;
 }
-)+++")},{"lib.es2023.array.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2023.array.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37286,7 +37286,7 @@ interface BigUint64Array<TArrayBuffer extends ArrayBufferLike> {
      */
     with(index: number, value: bigint): BigUint64Array<ArrayBuffer>;
 }
-)+++")},{"lib.es2023.collection.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2023.collection.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37307,7 +37307,7 @@ and limitations under the License.
 interface WeakKeyTypes {
     symbol: symbol;
 }
-)+++")},{"lib.es2023.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2023.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37329,7 +37329,7 @@ and limitations under the License.
 /// <reference lib="es2023.array" />
 /// <reference lib="es2023.collection" />
 /// <reference lib="es2023.intl" />
-)+++")},{"lib.es2023.full.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2023.full.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37353,7 +37353,7 @@ and limitations under the License.
 /// <reference lib="scripthost" />
 /// <reference lib="dom.iterable" />
 /// <reference lib="dom.asynciterable" />
-)+++")},{"lib.es2023.intl.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2023.intl.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37409,7 +37409,7 @@ declare namespace Intl {
         formatRangeToParts(start: number | bigint | StringNumericLiteral, end: number | bigint | StringNumericLiteral): NumberRangeFormatPart[];
     }
 }
-)+++")},{"lib.es2024.arraybuffer.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2024.arraybuffer.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37474,7 +37474,7 @@ interface ArrayBuffer {
 interface ArrayBufferConstructor {
     new (byteLength: number, options?: { maxByteLength?: number; }): ArrayBuffer;
 }
-)+++")},{"lib.es2024.collection.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2024.collection.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37503,7 +37503,7 @@ interface MapConstructor {
         keySelector: (item: T, index: number) => K,
     ): Map<K, T[]>;
 }
-)+++")},{"lib.es2024.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2024.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37529,7 +37529,7 @@ and limitations under the License.
 /// <reference lib="es2024.regexp" />
 /// <reference lib="es2024.sharedmemory" />
 /// <reference lib="es2024.string" />
-)+++")},{"lib.es2024.full.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2024.full.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37553,7 +37553,7 @@ and limitations under the License.
 /// <reference lib="scripthost" />
 /// <reference lib="dom.iterable" />
 /// <reference lib="dom.asynciterable" />
-)+++")},{"lib.es2024.object.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2024.object.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37582,7 +37582,7 @@ interface ObjectConstructor {
         keySelector: (item: T, index: number) => K,
     ): Partial<Record<K, T[]>>;
 }
-)+++")},{"lib.es2024.promise.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2024.promise.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37617,7 +37617,7 @@ interface PromiseConstructor {
      */
     withResolvers<T>(): PromiseWithResolvers<T>;
 }
-)+++")},{"lib.es2024.regexp.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2024.regexp.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37642,7 +37642,7 @@ interface RegExp {
      */
     readonly unicodeSets: boolean;
 }
-)+++")},{"lib.es2024.sharedmemory.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2024.sharedmemory.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37710,7 +37710,7 @@ interface SharedArrayBuffer {
 interface SharedArrayBufferConstructor {
     new (byteLength: number, options?: { maxByteLength?: number; }): SharedArrayBuffer;
 }
-)+++")},{"lib.es2024.string.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es2024.string.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -37739,7 +37739,7 @@ interface String {
      */
     toWellFormed(): string;
 }
-)+++")},{"lib.es5.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es5.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -42333,7 +42333,7 @@ interface Date {
      */
     toLocaleTimeString(locales?: string | string[], options?: Intl.DateTimeFormatOptions): string;
 }
-)+++")},{"lib.es6.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.es6.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -42356,7 +42356,7 @@ and limitations under the License.
 /// <reference lib="dom.iterable" />
 /// <reference lib="webworker.importscripts" />
 /// <reference lib="scripthost" />
-)+++")},{"lib.esnext.array.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.esnext.array.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -42391,7 +42391,7 @@ interface ArrayConstructor {
      */
     fromAsync<T, U>(iterableOrArrayLike: AsyncIterable<T> | Iterable<T> | ArrayLike<T>, mapFn: (value: Awaited<T>, index: number) => U, thisArg?: any): Promise<Awaited<U>[]>;
 }
-)+++")},{"lib.esnext.collection.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.esnext.collection.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -42487,7 +42487,7 @@ interface ReadonlySet<T> {
      */
     isDisjointFrom(other: ReadonlySetLike<unknown>): boolean;
 }
-)+++")},{"lib.esnext.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.esnext.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -42514,7 +42514,7 @@ and limitations under the License.
 /// <reference lib="esnext.iterator" />
 /// <reference lib="esnext.promise" />
 /// <reference lib="esnext.float16" />
-)+++")},{"lib.esnext.decorators.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.esnext.decorators.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -42542,7 +42542,7 @@ interface SymbolConstructor {
 interface Function {
     [Symbol.metadata]: DecoratorMetadata | null;
 }
-)+++")},{"lib.esnext.disposable.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.esnext.disposable.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -42735,7 +42735,7 @@ interface IteratorObject<T, TReturn, TNext> extends Disposable {
 
 interface AsyncIteratorObject<T, TReturn, TNext> extends AsyncDisposable {
 }
-)+++")},{"lib.esnext.float16.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.esnext.float16.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -43178,7 +43178,7 @@ interface DataView<TArrayBuffer extends ArrayBufferLike> {
      */
     setFloat16(byteOffset: number, value: number, littleEndian?: boolean): void;
 }
-)+++")},{"lib.esnext.full.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.esnext.full.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -43202,7 +43202,7 @@ and limitations under the License.
 /// <reference lib="scripthost" />
 /// <reference lib="dom.iterable" />
 /// <reference lib="dom.asynciterable" />
-)+++")},{"lib.esnext.intl.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.esnext.intl.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -43223,7 +43223,7 @@ and limitations under the License.
 declare namespace Intl {
     // Empty
 }
-)+++")},{"lib.esnext.iterator.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.esnext.iterator.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -43371,7 +43371,7 @@ declare global {
 
     var Iterator: IteratorConstructor;
 }
-)+++")},{"lib.esnext.promise.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.esnext.promise.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -43405,7 +43405,7 @@ interface PromiseConstructor {
      */
     try<T, U extends unknown[]>(callbackFn: (...args: U) => T | PromiseLike<T>, ...args: U): Promise<Awaited<T>>;
 }
-)+++")},{"lib.scripthost.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.scripthost.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -43727,7 +43727,7 @@ interface DateConstructor {
 interface Date {
     getVarDate: () => VarDate;
 }
-)+++")},{"lib.webworker.asynciterable.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.webworker.asynciterable.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -43768,7 +43768,7 @@ interface ReadableStream<R = any> {
     [Symbol.asyncIterator](options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
     values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
 }
-)+++")},{"lib.webworker.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.webworker.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -53662,7 +53662,7 @@ type WebTransportErrorSource = "session" | "stream";
 type WorkerType = "classic" | "module";
 type WriteCommandType = "seek" | "truncate" | "write";
 type XMLHttpRequestResponseType = "" | "arraybuffer" | "blob" | "document" | "json" | "text";
-)+++")},{"lib.webworker.importscripts.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.webworker.importscripts.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -53685,7 +53685,7 @@ and limitations under the License.
 /////////////////////////////
 // These are only available in a Web Worker
 declare function importScripts(...urls: string[]): void;
-)+++")},{"lib.webworker.iterable.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"lib.webworker.iterable.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -53972,7 +53972,7 @@ interface WebGLRenderingContextOverloads {
     /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/WebGLRenderingContext/uniformMatrix) */
     uniformMatrix4fv(location: WebGLUniformLocation | null, transpose: GLboolean, value: Iterable<GLfloat>): void;
 }
-)+++")},{"tsserverlibrary.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"tsserverlibrary.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -53989,7 +53989,7 @@ and limitations under the License.
 
 import ts = require("./typescript.js");
 export = ts;
-)+++")},{"tsserverlibrary.internal.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"tsserverlibrary.internal.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -54006,7 +54006,7 @@ and limitations under the License.
 
 import ts = require("./typescript.internal.js");
 export = ts;
-)+++")},{"typescript.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"typescript.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -65417,7 +65417,7 @@ declare namespace ts {
     function transform<T extends Node>(source: T | T[], transformers: TransformerFactory<T>[], compilerOptions?: CompilerOptions): TransformationResult<T>;
 }
 export = ts;
-)+++")},{"typescript.internal.d.ts", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+)+++")},{"typescript.internal.d.ts", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
@@ -93983,9 +93983,9 @@ declare namespace ts {
     }
 }
 export = ts;
-)+++")},{"/lib/slim.console.d.ts", std::make_shared<std::string>(R"+++(interface Console {
+)+++")},{"/lib/slim.console.d.ts", std::make_shared<const std::string>(R"+++(interface Console {
 	configuration(any:any): void;
-})+++")},{"file:///bin/typescript.mjs", std::make_shared<std::string>(R"+++(/*! *****************************************************************************
+})+++")},{"file:///bin/typescript.mjs", std::make_shared<const std::string>(R"+++(/*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the

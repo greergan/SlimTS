@@ -8,7 +8,7 @@
 #include <slim/plugin/loader.h>
 namespace slim::plugin::loader {
     using namespace slim::common;
-    std::string plugin_library_path = slim::path::getExecutableDir() + "/../lib/slimTS/";
+    std::string plugin_library_path = slim::path::getExecutableDir() + "/../lib/SlimTS/";
     std::unordered_map<std::string, void*> loaded_plugins;
 }
 void slim::plugin::loader::destroy() {

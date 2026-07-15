@@ -1,56 +1,61 @@
+#include <cstdlib>
 #include <filesystem>
 #include <future>
 #include <string>
 #include "config.h"
 #include <v8.h>
-#include <slim/slim.h>
+
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include <slim/command_line_handler.h>
 #include <slim/common/log.h>
 #include <slim/common/memory_mapper.h>
+#include <slim/configuration_handler.h>
 #include <slim/module/import_specifier.h>
-#include <slim/servers/servers.h>
 #include <slim/service/launcher.h>
+#include <slim/slim.h>
+#include <slim/slim_v8.h>
 #include <slim/utilities.h>
-namespace {
+namespace slim {
 	using namespace slim::common;
-	using namespace slim::utilities;
+	static void initialize_ssl();
 }
-void slim::start(int argc, char* argv[]) {
-	log::trace(log::Message("slim::start()","begins",__FILE__, __LINE__));
-	auto v8_command_line_arguments = slim::command_line::set_argv(argc, argv);
-	auto& script_name_string = slim::command_line::get_script_name();
-	for(auto&& argument_string : v8_command_line_arguments) {
-		log::debug(log::Message("slim::start()","v8 commandline arguments => " + argument_string,__FILE__,__LINE__));	
-	}
-	log::debug(log::Message("slim::start()","preparing to run script => " + script_name_string,__FILE__,__LINE__));
-	slim::service::launcher::marshal_resources(v8_command_line_arguments);
-	slim::module::specifier_definition typescript_specifier_definition_struct{"file:///bin/typescript.mjs", memory_mapper::read("typescript_library", "file:///bin/typescript.mjs")};
-	auto launch_typescript_future = std::async(std::launch::async, slim::service::launcher::launch, typescript_specifier_definition_struct);
-	//slim::servers::start::less();
-	//slim::servers::start::prometheus();
-	//slim::servers::start::typescript();
-			
-	if(script_name_string.length() >= 4) {
-		log::debug(log::Message("slim::start()","script => " + script_name_string,__FILE__, __LINE__));
-		log::debug(log::Message("slim::start()","launching => " + script_name_string,__FILE__, __LINE__));
-		auto launch_future = std::async(std::launch::async, slim::service::launcher::launch, script_name_string);
-		if(launch_future.valid()) {
-			log::debug(log::Message("slim::start()","script future is valid",__FILE__, __LINE__));
-			launch_future.get();
-			log::debug(log::Message("slim::start()","resolved script future",__FILE__, __LINE__));
-		}
-		else {
-			log::debug(log::Message("slim::start()","future is not valid",__FILE__, __LINE__));
-		}
-		log::debug(log::Message("slim::start()","called launch",__FILE__, __LINE__));
-	}
-	log::trace(log::Message("slim::start()","ends, creating artificial exit",__FILE__, __LINE__));
-	exit(1);
+static void slim::initialize_ssl() {
+	SSL_library_init();
+	SSL_load_error_strings();
+	OpenSSL_add_all_algorithms();
 }
-void slim::stop() {
-	log::trace(log::Message("slim::stop()","begins",__FILE__, __LINE__));
-	slim::service::launcher::tear_down();
-	log::trace(log::Message("slim::stop()","ends",__FILE__, __LINE__));
+void slim::start() {
+	auto& script = slim::command_line::get_script_name();
+	initialize_ssl();
+	log::trace(log::Message(__func__,"begins => " + script,__FILE__, __LINE__));
+	slim::service::launcher::marshal_resources();
+
+	log::debug(log::Message(__func__,"creating => typescript_launch_stub",__FILE__, __LINE__));
+	slim::module::specifier_stub typescript_launch_stub {
+		"file:///slim/launchable_service/bin/typescript.mjs",
+		slim::common::memory_mapper::read("launchable_service_bin", "file:///slim/launchable_service/bin/typescript.mjs"),
+		true
+	};
+	log::debug(log::Message(__func__,"created => typescript_launch_stub",__FILE__, __LINE__));
+
+	auto launch_typescript_future = std::async(std::launch::async, slim::service::launcher::launch, typescript_launch_stub);
+	log::debug(log::Message(__func__,"launched => launch_typescript_future",__FILE__, __LINE__));
+
+	auto launch_script_future = std::async(std::launch::async, slim::service::launcher::launch, script);
+	log::debug(log::Message(__func__,std::format("launched => {}", script),__FILE__, __LINE__));
+
+	if(launch_script_future.valid()) {
+		log::debug(log::Message(__func__,"script future is valid",__FILE__, __LINE__));
+		launch_script_future.get();
+		log::debug(log::Message(__func__,std::format("script => {} => completed", script),__FILE__, __LINE__));
+	}
+	else {
+		log::debug(log::Message(__func__,"future is not valid",__FILE__, __LINE__));
+	}
+	
+
+	log::trace(log::Message(__func__,"ends => " + script,__FILE__, __LINE__));
 }
 void slim::version() {
 	log::info("slim:  " VERSION);

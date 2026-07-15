@@ -1,17 +1,60 @@
 AC_COPYRIGHT([[Copyright 2022-2026 Jeff Greer. All rights reserved. Restrictions apply, see COPYRIGHT and LICENSE files.]])
-AC_INIT([slimTS], [0.2.0])
-
+AC_INIT([SlimTS], [0.3.0])
+AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([include/config.h])
-
 AM_INIT_AUTOMAKE
+
+dnl ------------------------------------------------------------
+dnl enforce minimual c++ standard
+dnl ------------------------------------------------------------
+CXXFLAGS="$CXXFLAGS -std=c++23"
+
+AC_ARG_ENABLE([debug],
+    [AS_HELP_STRING([--enable-debug], [enable debug build flags])],
+    [enable_debug="$enableval"],
+    [enable_debug="no"]
+)
+
+if test "$enable_debug" = "yes"; then
+    CXXFLAGS="$CXXFLAGS -g -O2"
+fi
+
+AC_ARG_ENABLE([release],
+    [AS_HELP_STRING([--enable-release], [enable release build flags])],
+    [enable_release="$enableval"],
+    [enable_release="no"]
+)
+
+if test "$enable_release" = "yes"; then
+    CXXFLAGS="$CXXFLAGS -O2 -DNDEBUG"
+fi
+
+AC_ARG_ENABLE([compact],
+    [AS_HELP_STRING([--enable-compact], [enable compact build optimizations])],
+    [enable_compact="$enableval"],
+    [enable_compact="no"]
+)
+
+if test "$enable_compact" = "yes"; then
+    CXXFLAGS="$CXXFLAGS -Os"
+fi
+
 AC_PROG_CXX
-LT_INIT
 AM_PROG_AR
+LT_INIT
 
 AC_LANG_PUSH([C++])
 
-CXXFLAGS="$CXXFLAGS -std=c++23"
+AC_ARG_ENABLE([logging],
+    [AS_HELP_STRING([--enable-logging], [enable logging support])],
+    [enable_logging="$enableval"],
+    [enable_logging="no"]
+)
+
+if test "$enable_logging" = "yes"; then
+    AC_DEFINE([ENABLE_LOGGING], [1], [Define if logging is enabled])
+fi
 
 dnl ------------------------------------------------------------
 dnl V8
@@ -124,12 +167,33 @@ AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
 
 dnl ------------------------------------------------------------
+dnl module install information
+dnl ------------------------------------------------------------
+
+AC_PROG_AWK
+SLIMTS_VERSION_MAJOR=`echo $PACKAGE_VERSION | $AWK -F"." '{print $1}'`
+SLIMTS_VERSION_MINOR=`echo $PACKAGE_VERSION | $AWK -F"." '{print $2}'`
+SLIMTS_VERSION_MICRO=`echo $PACKAGE_VERSION | $AWK -F"." '{print $3}'`
+MODULE_VERSION_INFO="$SLIMTS_VERSION_MAJOR:$SLIMTS_VERSION_MINOR:$SLIMTS_VERSION_MICRO"
+AC_SUBST([MODULE_VERSION_INFO])
+
+moduledir="$libdir/SlimTS"
+AC_SUBST([moduledir])
+
+AC_MSG_NOTICE([MODULE_VERSION_INFO = $MODULE_VERSION_INFO])
+AC_MSG_NOTICE([MODULE_INSTALL_DIR = $moduledir])
+
+PKG_INSTALLDIR
+
+dnl ------------------------------------------------------------
 dnl output
 dnl ------------------------------------------------------------
 AC_CONFIG_FILES([
     Makefile
     src/Makefile
+    src/plugins/Makefile
     src/plugins/console/Makefile
+    src/plugins/color-console/Makefile
     src/plugins/fs/Makefile
     src/plugins/http_package/Makefile
     src/plugins/http_server/Makefile
@@ -138,6 +202,7 @@ AC_CONFIG_FILES([
     src/plugins/path/Makefile
     src/plugins/process/Makefile
     src/plugins/queue/Makefile
+    slimts.pc:slimts.pc.in
 ])
 
 dnl ------------------------------------------------------------

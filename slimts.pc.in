@@ -1,0 +1,19 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+bindir=@bindir@
+moduledir=@moduledir@
+
+Name: @PACKAGE_NAME@
+Description: SlimTS runtime
+Version: @PACKAGE_VERSION@
+
+Libs: -L${libdir} -lSlimTS
+Cflags: -I${includedir}
+
+# Optional private dependencies (uncomment if needed)
+# Requires.private: openssl
+
+# Nonstandard metadata (consumer must read manually)
+#slimts_moduledir=${moduledir}

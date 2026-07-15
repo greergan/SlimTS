@@ -1,0 +1,15 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+#libdir=@libdir@
+#includedir=@includedir@
+moduledir=@moduledir@
+
+Name: @PACKAGE_NAME@
+Description: SlimTS CLI
+Version: @PACKAGE_VERSION@
+#Libs: -L${libdir} -lmylib
+#Cflags: -I${includedir}
+Modules: ${moduledir}
+
+# Private dependencies (only used for static linking)
+Requires.private: ssl >= 1.1.1

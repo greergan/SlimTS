@@ -1,12 +1,11 @@
 #ifndef __SLIM__H
 #define __SLIM__H
-#include <unordered_map>
+#include <functional>
 #include <string>
-#include <slim/module/resolver.h>
 namespace slim {
-    void run(std::string file_name_string_in);
-    void start(int argc, char* argv[]);
-    void stop(void);
+    using _network_listener_function = std::function<void(char* request_pointer)>;
+
+    void start();
     void version(void);
 }
 #endif

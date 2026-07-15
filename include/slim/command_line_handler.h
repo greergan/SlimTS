@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 namespace slim::command_line {
-	std::vector<std::string> set_argv(int argc, char *argv[]);
+	std::vector<std::string> parse(int argc, char *argv[]);
 	const std::string& get_script_name();
 }
 #endif

@@ -1,0 +1,84 @@
+{
+	"logging": {
+		"file_url": "",
+		"system_logging_enabled": true,
+		"consumers": [
+			{
+				"name":"console",
+				"print_color": false,
+				"debug": true,
+				"error": true,
+				"trace": true,
+				"continue": false,
+				"file_list": [
+					{
+						"name": "main.cpp",
+						"debug": false,
+						"error": true,
+						"trace": false
+					},
+					{
+						"name": "http_package.cpp",
+						"debug": true,
+						"error": true,
+						"trace": true
+					},
+					{
+						"name": "slim.cpp",
+						"debug": false,
+						"error": true,
+						"trace": false
+					},
+					{
+						"name": "slim_common_http_request.cpp",
+						"debug": true,
+						"error": true,
+						"trace": true
+					},
+					{
+						"name": "slim_common_http_response.cpp",
+						"debug": true,
+						"error": true,
+						"trace": true
+					},
+					{
+						"name": "slim_common_http_url.cpp",
+						"debug": true,
+						"error": true,
+						"trace": true
+					},
+					{
+						"name": "slim_common_web_file.cpp",
+						"debug": true,
+						"error": true,
+						"trace": true
+					},
+					{
+						"name": "slim_module_resolver.cpp",
+						"debug": false,
+						"error": true,
+						"trace": false
+					},
+					{
+						"name": "slim_plugin_loader.cpp",
+						"debug": false,
+						"error": true,
+						"trace": false
+					},
+					{
+						"name": "slim_service_launcher.cpp",
+						"debug": false,
+						"error": true,
+						"trace": false
+					},
+					{
+						"name": "slim_v8.cpp",
+						"debug": false,
+						"error": true,
+						"trace": false
+					}
+				]
+			}
+		]
+	}
+}

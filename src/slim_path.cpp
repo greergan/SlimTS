@@ -62,6 +62,6 @@
         return pathA+"/"+pathB;
     }
 #endif
-bool slim::path::checkIfFileExists (const std::string& filePath) {
+bool slim::path::checkIfFileExists(const std::string& filePath) {
 	return access(filePath.c_str(), 0 ) == 0;
 }
