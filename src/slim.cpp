@@ -9,7 +9,7 @@
 #include <openssl/err.h>
 #include <slim/command_line_handler.h>
 #include <slim/common/log.h>
-#include <slim/common/memory_mapper.h>
+#include <slim/common/memory/mapper.h>
 #include <slim/configuration_handler.h>
 #include <slim/module/import_specifier.h>
 #include <slim/service/launcher.h>
@@ -53,7 +53,7 @@ void slim::start() {
 	else {
 		log::debug(log::Message(__func__,"future is not valid",__FILE__, __LINE__));
 	}
-	
+
 
 	log::trace(log::Message(__func__,"ends => " + script,__FILE__, __LINE__));
 }

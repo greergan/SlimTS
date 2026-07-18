@@ -4,7 +4,7 @@
 #include <slim/builtins.h>
 #include <slim/builtins/dummy_console_provider.h>
 #include <slim/common/log.h>
-#include <slim/common/memory_mapper.h>
+#include <slim/common/memory/mapper.h>
 #include <slim/plugin.hpp>
 #include <slim/plugin/loader.h>
 /* look at source file product/google/v8/src/init/bootstrapper.cc */
