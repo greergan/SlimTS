@@ -7,12 +7,9 @@ slimts_SOURCES  = main.cpp \
 				slim_builtins_dummy_console_provider.cpp \
 				slim_configuration_handler.cpp \
 				slim_command_line_handler.cpp \
-				slim_common_web_file.cpp \
+				slim_duckdb.cpp \
 				slim_exception_handler.cpp \
-				slim_launchable_service_bin.cpp \
-				slim_launchable_service_library_typescript.cpp \
 				slim_macros.cpp \
-				slim_metrics_server.cpp \
 				slim_module_import_specifier.cpp \
 				slim_module_resolver.cpp \
 				slim_path.cpp \

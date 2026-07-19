@@ -7,7 +7,7 @@
 #include <vector>
 #include <slim/command_line_handler.h>
 #include <slim/common/log.h>
-#include <slim/common/memory_mapper.h>
+#include <slim/common/memory/mapper.h>
 #include <slim/path.h>
 
 #include <iostream>
@@ -59,7 +59,7 @@ namespace slim::command_line {
 	};
 	auto slim_argument_expects_value = [](std::string& argument)->bool {
 		log::trace(log::Message("slim::command_line::typescript_argument_expects_value()","begins => " + argument, __FILE__,__LINE__));
-		auto answer = slim_command_line_argument_expects_value.find(argument) != slim_command_line_argument_expects_value.end() 
+		auto answer = slim_command_line_argument_expects_value.find(argument) != slim_command_line_argument_expects_value.end()
 			&& slim_command_line_argument_expects_value.find(argument)->second;
 		auto answer_message_string = + answer ? "true" : "false";
 		log::debug(log::Message("slim::command_line::typescript_argument_expects_value()",argument + " expects value => " + answer_message_string, __FILE__,__LINE__));
@@ -76,7 +76,7 @@ namespace slim::command_line {
 	};
 	auto typescript_argument_expects_value = [](std::string& argument)->bool {
 		log::trace(log::Message("slim::command_line::typescript_argument_expects_value()","begins => " + argument, __FILE__,__LINE__));
-		auto answer = typescript_command_line_argument_expects_value.find(argument) != typescript_command_line_argument_expects_value.end() 
+		auto answer = typescript_command_line_argument_expects_value.find(argument) != typescript_command_line_argument_expects_value.end()
 			&& typescript_command_line_argument_expects_value.find(argument)->second;
 		auto answer_message_string = + answer ? "true" : "false";
 		log::debug(log::Message("slim::command_line::typescript_argument_expects_value()",argument + " expects value => " + answer_message_string, __FILE__,__LINE__));
@@ -119,7 +119,7 @@ std::vector<std::string> slim::command_line::parse(int argc, char *argv[]) {
 					if(!std::filesystem::exists(cache_directory_argument)) {
 						std::error_code error_code;
 						if(std::filesystem::create_directories(cache_directory_argument, error_code)) {
-							log::debug(log::Message(__func__,"cache_directory created => " + cache_directory_argument.string(),__FILE__,__LINE__));	
+							log::debug(log::Message(__func__,"cache_directory created => " + cache_directory_argument.string(),__FILE__,__LINE__));
 						}
 						else {
 							const std::string error_string = "could not create cache_directory => " + cache_directory_argument.string() + " => " + error_code.message();
