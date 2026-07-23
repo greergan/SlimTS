@@ -9,9 +9,11 @@ slimts_SOURCES  = main.cpp \
 				slim_command_line_handler.cpp \
 				slim_duckdb.cpp \
 				slim_exception_handler.cpp \
+				slim_isolate_wake.cpp \
 				slim_macros.cpp \
 				slim_module_import_specifier.cpp \
 				slim_module_resolver.cpp \
+				slim_runtime.cpp \
 				slim_path.cpp \
 				slim_plugin_loader.cpp \
 				slim_queue.cpp \
@@ -22,4 +24,5 @@ slimts_SOURCES  = main.cpp \
 
 slimts_CPPFLAGS  = -DV8_COMPRESS_POINTERS -DV8_ENABLE_SANDBOX -fno-rtti
 slimts_LDFLAGS   = -static-libgcc -static-libstdc++ -pthread -rdynamic
-slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lssl -lcrypto
+#slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lssl -lcrypto
+slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lslimcommon -lduckdb -ltsgo -lssl -lcrypto
