@@ -34,14 +34,21 @@ namespace slim::command_line {
 	};
 	auto is_script = [](std::string& argument)->std::string {
 		log::trace(log::Message("slim::command_line::is_script()","begins => " + argument, __FILE__,__LINE__));
-		auto argument_string = std::regex_replace(argument, std::regex("/./|//"), "/");
 		std::string script_name_string;
-		auto script_path = std::filesystem::absolute(argument_string);
-		if(script_path.string().length() > 1) {
-			if(allowed_file_extensions.contains(script_path.extension().string())) {
-				script_name_string = script_path.string();
-				script_arguments +=  script_name_string + ",";
-				slim_configuration_values["script_name"] = script_name_string;
+		if(argument.starts_with("http://") || argument.starts_with("https://")) {
+			script_name_string = argument;
+			script_arguments += script_name_string + ",";
+			slim_configuration_values["script_name"] = script_name_string;
+		}
+		else {
+			auto argument_string = std::regex_replace(argument, std::regex("/./|//"), "/");
+			auto script_path = std::filesystem::absolute(argument_string);
+			if(script_path.string().length() > 1) {
+				if(allowed_file_extensions.contains(script_path.extension().string())) {
+					script_name_string = script_path.string();
+					script_arguments += script_name_string + ",";
+					slim_configuration_values["script_name"] = script_name_string;
+				}
 			}
 		}
 		auto answer_message_string = + script_name_string.length() > 1 ? "true" : "false";
