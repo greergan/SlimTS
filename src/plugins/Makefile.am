@@ -1,1 +1,1 @@
-SUBDIRS = console
+SUBDIRS = console http
