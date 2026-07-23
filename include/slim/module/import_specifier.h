@@ -7,6 +7,7 @@
 #include <tsgo.h>
 namespace slim::module {
 	class import_specifier {
+	    public:
 		import_specifier() = default;
 		import_specifier(v8::Isolate* isolate, std::string_view specifier_string, v8::Local<v8::Module> synthetic_module);
 		import_specifier(v8::Isolate* isolate, std::string_view specifier_string, bool is_entry_point, v8::Local<v8::Module> referrer);
@@ -28,6 +29,6 @@ namespace slim::module {
 			std::filesystem::path specifier_path_;
 			GoStr transpiled_source_code_;
 			void resolve_module_path(std::string_view specifier);
-			void specifier_url(std::string_view s);
+			void specifier_uri(std::string_view s);
 	};
 }

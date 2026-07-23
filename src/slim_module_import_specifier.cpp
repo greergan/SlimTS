@@ -44,7 +44,7 @@ slim::module::import_specifier::import_specifier(v8::Isolate* isolate, std::stri
     log::debug(log::Message(__func__, "slim_library_path => " + slim_library_path_string, __FILE__, __LINE__));
     if(specifier_string.starts_with("http://") || specifier_string.starts_with("https://")) {
         log::debug(log::Message(__func__, "taking http/https path", __FILE__, __LINE__));
-        specifier_url(specifier_string);
+        specifier_uri(specifier_string);
     }
     else if((specifier_string.starts_with("./") || specifier_string.starts_with("../")) && !referrer_.IsEmpty()) {
         log::debug(log::Message(__func__, "taking relative path with referrer", __FILE__, __LINE__));
@@ -61,11 +61,11 @@ slim::module::import_specifier::import_specifier(v8::Isolate* isolate, std::stri
             auto last_slash = referrer_uri.rfind('/');
             std::string base = referrer_uri.substr(0, last_slash + 1);
             if(specifier_string.starts_with("./")) {
-                specifier_url(base + std::string(specifier_string.substr(2)));
+                specifier_uri(base + std::string(specifier_string.substr(2)));
             }
             else {
                 auto second_last = base.rfind('/', base.length() - 2);
-                specifier_url(base.substr(0, second_last + 1) + std::string(specifier_string.substr(3)));
+                specifier_uri(base.substr(0, second_last + 1) + std::string(specifier_string.substr(3)));
             }
         }
         else {
@@ -120,7 +120,7 @@ void slim::module::import_specifier::resolve_module_path(std::string_view specif
                 if(std::filesystem::exists(current_working_search_path)) {
                     module_file_found = true;
                     specifier_path_ = std::filesystem::canonical(current_working_search_path);
-                    specifier_url(specifier_path_.string());
+                    specifier_uri(specifier_path_.string());
                     break;
                 }
             }
@@ -135,7 +135,7 @@ void slim::module::import_specifier::resolve_module_path(std::string_view specif
                         if(std::filesystem::exists(possible_module_file_path)) {
                             module_file_found = true;
                             specifier_path_ = std::filesystem::canonical(possible_module_file_path);
-                            specifier_url(specifier_path_.string());
+                            specifier_uri(specifier_path_.string());
                             break;
                         }
                     }
@@ -151,7 +151,7 @@ void slim::module::import_specifier::resolve_module_path(std::string_view specif
             auto temporary_specifier_path = std::filesystem::absolute(specifier_path_uri);
             if(std::filesystem::exists(temporary_specifier_path)) {
                 specifier_path_ = std::filesystem::canonical(temporary_specifier_path);
-                specifier_url(specifier_path_.string());
+                specifier_uri(specifier_path_.string());
             }
         }
         else {
@@ -169,11 +169,11 @@ void slim::module::import_specifier::resolve_module_path(std::string_view specif
                 temporary_specifier_string = specifier_path_uri.string().substr(1);
             }
             specifier_path_ = std::filesystem::path(ref.specifier_path_.parent_path().string() + temporary_specifier_string);
-            specifier_url(specifier_path_.string());
+            specifier_uri(specifier_path_.string());
         }
         if(specifier_path_.has_extension()) {
             module_file_found = true;
-            specifier_url(specifier_path_.string());
+            specifier_uri(specifier_path_.string());
         }
         else {
             std::unordered_set<std::string> possible_module_names = {
@@ -186,7 +186,7 @@ void slim::module::import_specifier::resolve_module_path(std::string_view specif
                     if(std::filesystem::exists(module_file_path)) {
                         module_file_found = true;
                         specifier_path_ = std::filesystem::canonical(module_file_path);
-                        specifier_url(specifier_path_.string());
+                        specifier_uri(specifier_path_.string());
                         break;
                     }
                 }
@@ -198,9 +198,9 @@ void slim::module::import_specifier::resolve_module_path(std::string_view specif
     }
 }
 
-void slim::module::import_specifier::specifier_url(std::string_view s) {
+void slim::module::import_specifier::specifier_uri(std::string_view s) {
     if(s.length() == 0) {
-        std::string error_message = "slim::module::import_specifier::specifier_url requires a non-zero length string";
+        std::string error_message = "slim::module::import_specifier::specifier_uri requires a non-zero length string";
         throw error_message;
     }
     if(s.find("://") != std::string_view::npos) {
