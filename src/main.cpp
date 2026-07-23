@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
     try {
         slim::configuration_handler::load();
         auto v8_command_line_arguments = slim::command_line::parse(argc, argv);
+        slim::v_8::initialize(v8_command_line_arguments);
         slim::start();
     }
     catch (const std::bad_optional_access& error) {
