@@ -3,7 +3,6 @@
 #include <slim/slim_duckdb.h>
 #include <slim/common/memory/mapper.h>
 #include <slim/configuration_handler.h>
-
 namespace slim::configuration_handler {
     std::string default_configuration_file_name = "./slim_configuration.json";
     std::string default_configuration_file =
@@ -11,7 +10,12 @@ namespace slim::configuration_handler {
         std::filesystem::path::preferred_separator +
         default_configuration_file_name;
 }
-
+std::string slim::configuration_handler::get_script_name() {
+    return slim::common::memory_mapper::read_string("slim_runtime_environmental_variables", "script_name");
+}
+bool slim::configuration_handler::is_daemon() {
+    return slim::common::memory_mapper::read_bool("slim_runtime_environmental_variables", "daemon");
+}
 void slim::configuration_handler::load() {
     if(!std::filesystem::exists(default_configuration_file)) {
         return;

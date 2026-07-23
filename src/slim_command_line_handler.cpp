@@ -20,7 +20,7 @@ namespace slim::command_line {
 	std::vector<std::string> v8_configuration_values;
 	std::vector<std::string> library_paths;
 	std::unordered_set<std::string> allowed_file_extensions{"",".js",".mjs",".ts"};
-	std::unordered_set<std::string> slim_configurations {"--lib", "--use-cache","--cache-dir","--create-configurations","-v","-vv"};
+	std::unordered_set<std::string> slim_configurations {"--lib", "--use-cache","--cache-dir","--create-configurations","-d","-v","-vv"};
 	std::unordered_map<std::string, bool> slim_command_line_argument_expects_value {
 		{"--lib",true},{"--cache-dir",true}
 	};
@@ -91,9 +91,6 @@ namespace slim::command_line {
 		return answer;
 	};
 }
-const std::string& slim::command_line::get_script_name() {
-	return slim_configuration_values["script_name"];
-}
 std::vector<std::string> slim::command_line::parse(int argc, char *argv[]) {
 	log::trace(log::Message(__func__,"begins",__FILE__, __LINE__));
 	slim_configuration_values["slim_executable"] = slim::path::getExecutablePath();
@@ -117,7 +114,11 @@ std::vector<std::string> slim::command_line::parse(int argc, char *argv[]) {
 			}
 			else if(is_slim_argument(argument)) {
 				log::debug(log::Message(__func__, "slim argument => " + argument,__FILE__,__LINE__));
-				if(argument == "--use-cache") {
+				if(argument == "-d") {
+					memory_mapper::write("slim_runtime_environmental_variables", "daemon", true);
+					log::debug(log::Message(__func__,"daemon => true",__FILE__,__LINE__));
+				}
+				else if(argument == "--use-cache") {
 					slim_configuration_values["use_cache"] = "true";
 					log::debug(log::Message(__func__,"use_cache => true",__FILE__,__LINE__));
 				}

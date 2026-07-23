@@ -5,6 +5,7 @@
 #include <queue>
 #include <chrono>
 #include <thread>
+#include <signal.h>
 #include <v8.h>
 #include <slim/builtins/dummy_console_provider.h>
 #include <slim/common/log.h>
@@ -27,6 +28,14 @@ namespace slim::service::launcher {
 
 void slim::service::launcher::launch(std::string_view specifier_uri) {
     log::trace(log::Message(__func__,"begins",__FILE__, __LINE__));
+    // block signals on this thread — main thread handles them
+    sigset_t mask;
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGINT);
+    sigaddset(&mask, SIGTERM);
+    sigaddset(&mask, SIGHUP);
+    pthread_sigmask(SIG_BLOCK, &mask, nullptr);
+
     auto* isolate = slim::v_8::new_isolate(std::string(specifier_uri));
     log::debug(log::Message(__func__,"created new isolate",__FILE__, __LINE__));
 
@@ -88,7 +97,10 @@ void slim::service::launcher::launch(std::string_view specifier_uri) {
         auto stop_token = slim::get_stop_token();
         auto& wake = slim::isolate_wake::register_isolate(isolate);
         std::stop_callback stop_cb(stop_token, [isolate]{
+            log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+            log::debug(log::Message(__func__, "stop_callback fired, signaling isolate wake", __FILE__, __LINE__));
             slim::isolate_wake::signal(isolate);
+            log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
         });
         while (!stop_token.stop_requested()) {
             wake.semaphore.acquire();

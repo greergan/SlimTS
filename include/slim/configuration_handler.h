@@ -1,7 +1,7 @@
-#ifndef SLIM_CONFIGURATION_HANDLER_H
-#define SLIM_CONFIGURATION_HANDLER_H
+#pragma once
 #include <slim/common/log.h>
 namespace slim::configuration_handler {
+    std::string get_script_name();
+    bool is_daemon();
     void load();
 }
-#endif
