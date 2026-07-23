@@ -196,7 +196,7 @@ AC_CONFIG_FILES([
     src/plugins/color-console/Makefile
     src/plugins/fs/Makefile
     src/plugins/http_package/Makefile
-    src/plugins/http_server/Makefile
+    src/plugins/http/Makefile
     src/plugins/memoryAdaptor/Makefile
     src/plugins/os/Makefile
     src/plugins/path/Makefile
