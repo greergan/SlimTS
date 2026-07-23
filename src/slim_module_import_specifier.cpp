@@ -82,14 +82,14 @@ slim::module::import_specifier::import_specifier(v8::Isolate* isolate, std::stri
     log::debug(log::Message(__func__, "specifier_protocol_ => " + specifier_protocol_, __FILE__, __LINE__));
     log::debug(log::Message(__func__, "calling fetch_and_transpile", __FILE__, __LINE__));
     transpiled_source_code_ = fetch_and_transpile((char*)specifier_uri_.c_str());
-    //log::debug(log::Message(__func__, "transpiled_source_code_ => " + std::string(transpiled_source_code_.view()), __FILE__, __LINE__));
+    log::debug(log::Message(__func__, "transpiled_source_code_ size => " + transpiled_source_code_.view().size(), __FILE__, __LINE__));
 }
 
 void slim::module::import_specifier::compile_module() {
     v8::TryCatch try_catch(isolate_);
     std::string origin_string = specifier_path_.empty() ? specifier_uri_ : specifier_path_.string();
     v8::ScriptOrigin origin(slim::utilities::StringToV8Value(isolate_, origin_string), 0, 0, false, -1, slim::utilities::StringToV8Value(isolate_, ""), false, false, true);
-    v8::ScriptCompiler::Source v8_module_source(slim::utilities::StringToV8String(isolate_, std::string(transpiled_source_code_.view())), origin);
+    v8::ScriptCompiler::Source v8_module_source(slim::utilities::StringToV8String(isolate_, transpiled_source_code_.p), origin);
     v8::ScriptCompiler::CompileOptions module_compile_options(v8::ScriptCompiler::kProduceCompileHints);
     v8::ScriptCompiler::NoCacheReason module_no_cache_reason(v8::ScriptCompiler::kNoCacheNoReason);
     v8::MaybeLocal<v8::Module> temporary_module = v8::ScriptCompiler::CompileModule(isolate_, &v8_module_source, module_compile_options, module_no_cache_reason);
