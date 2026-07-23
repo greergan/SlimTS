@@ -28,7 +28,7 @@ v8::Isolate* slim::v_8::new_isolate(const std::string& _label) {
 		}
 		else {
 			log::debug(log::Message(__func__,std::format("unable to created and store v8::Isolate for => {}", _label),__FILE__, __LINE__));
-		}	
+		}
 	}
 	else {
 		log::error(log::Message(__func__,std::format("unable to create v8::Isolate for existing label => {}", _label),__FILE__, __LINE__));
@@ -41,8 +41,7 @@ void slim::v_8::initialize(std::vector<std::string>& _v8_command_line_arguments)
 	log::trace(log::Message(__func__,"begins",__FILE__, __LINE__));
 	int* arg_count = (int*)0; //_v8_command_line_arguments.size();
 	std::vector<char*> args;
-	args.reserve(1);
-	args[0] = nullptr;
+	args.push_back(nullptr);
 /* 	char** args = new char*[arg_count + 1];
 	for(int index = 0; index < arg_count; index++) {
 		args[index] = strdup(_v8_command_line_arguments[index].c_str());
