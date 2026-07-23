@@ -31,4 +31,3 @@ namespace slim::module {
 			void specifier_url(std::string_view s);
 	};
 }
-#endif
