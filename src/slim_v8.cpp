@@ -80,8 +80,8 @@ void slim::v_8::tear_down() {
 	log::trace(log::Message(__func__,"begins",__FILE__, __LINE__));
 	if(v8_is_initialized) {
 		for(const auto& isolate : isolates) {
-			log::debug(log::Message(__func__,std::format("isolate => {} => IsInUse => {}",
-				isolate.first, utilities::to_string(isolate.second->IsInUse())),__FILE__, __LINE__));
+			log::debug(log::Message(__func__,std::format("isolate => {} => IsInUse => {}", isolate.first, isolate.second->IsInUse()),
+			    __FILE__, __LINE__));
 			if(isolate.second->IsInUse()) {
 				isolate.second->TerminateExecution();
 				isolate.second->Exit();
