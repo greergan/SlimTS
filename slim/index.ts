@@ -8,8 +8,22 @@ async function serve(config: SlimHttpServerConfig) {
     console.debug("listener created");
     for await (const event of listener) {
         console.debug("event found");
-        console.debug(event.request.url);
-     }
+        const request = event.request;
+        console.debug(event.request);
+        console.debug(`url: ${request.url}`);
+        console.debug(typeof request.headers);
+        request.headers.forEach((value, key) => {
+            console.debug(`forEach: ${key} ==> ${value}`);
+        });
+        for (const pair of request.headers.entries()) {
+            console.debug(`entries: ${pair[0]}: ${pair[1]}`);
+        }
+        for (const value of request.headers.values()) {
+            console.debug(`values: ${value}`);
+        }
+        for (const key of request.headers.keys()) {
+            console.debug(`keys: ${key}`);
+        }
+    }
 }
 serve(config);
-console.trace("end");
