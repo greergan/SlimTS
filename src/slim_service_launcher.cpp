@@ -28,14 +28,6 @@ namespace slim::service::launcher {
 
 void slim::service::launcher::launch(std::string_view specifier_uri) {
     log::trace(log::Message(__func__,"begins",__FILE__, __LINE__));
-    // block signals on this thread — main thread handles them
-    sigset_t mask;
-    sigemptyset(&mask);
-    sigaddset(&mask, SIGINT);
-    sigaddset(&mask, SIGTERM);
-    sigaddset(&mask, SIGHUP);
-    pthread_sigmask(SIG_BLOCK, &mask, nullptr);
-
     auto* isolate = slim::v_8::new_isolate(std::string(specifier_uri));
     log::debug(log::Message(__func__,"created new isolate",__FILE__, __LINE__));
 
@@ -86,26 +78,17 @@ void slim::service::launcher::launch(std::string_view specifier_uri) {
     }
     else {
         log::debug(log::Message(__func__, "calling Evaluate on context", __FILE__, __LINE__));
+        auto& wake = slim::isolate_wake::register_isolate(isolate);
         v8::TryCatch try_catch(isolate);
         auto result = module_import_specifier.v8_module()->Evaluate(context);
         log::debug(log::Message(__func__, std::format("Evaluate returned is_empty => {}", result.IsEmpty()), __FILE__, __LINE__));
-        log::debug(log::Message(__func__, "pumping microtask queue", __FILE__, __LINE__));
-        isolate->PerformMicrotaskCheckpoint();
-        log::debug(log::Message(__func__, "microtask queue pumped", __FILE__, __LINE__));
 
-        // keep alive until stop is requested
         auto stop_token = slim::get_stop_token();
-        auto& wake = slim::isolate_wake::register_isolate(isolate);
-        std::stop_callback stop_cb(stop_token, [isolate]{
-            log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
-            log::debug(log::Message(__func__, "stop_callback fired, signaling isolate wake", __FILE__, __LINE__));
-            slim::isolate_wake::signal(isolate);
-            log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
-        });
         while (!stop_token.stop_requested()) {
-            wake.semaphore.acquire();
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            // keep comments until proven the call is not needed
+            //wake.semaphore.try_acquire_for(std::chrono::milliseconds(1));
             slim::isolate_wake::drain(isolate);
-            isolate->PerformMicrotaskCheckpoint();
         }
         slim::isolate_wake::unregister_isolate(isolate);
         log::debug(log::Message(__func__, "stop requested, exiting keep alive loop", __FILE__, __LINE__));
@@ -129,10 +112,10 @@ void slim::service::launcher::launch(std::string_view specifier_uri) {
             default:
                 log::debug(log::Message(__func__, "checking for stalled top level await modules",__FILE__, __LINE__));
                 auto await_message_module_pair = module_import_specifier.v8_module()->GetStalledTopLevelAwaitMessages(isolate);
-                auto number_of_stalled_to_level_await_modules = await_message_module_pair.first.size();
-                if(number_of_stalled_to_level_await_modules > 0) {
+                auto num_stalled_awaits = await_message_module_pair.first.size();
+                if(num_stalled_awaits > 0) {
                     log::debug(log::Message(__func__,"number of stalled top level await modules => "
-                        + std::to_string(number_of_stalled_to_level_await_modules),__FILE__, __LINE__));
+                        + std::to_string(num_stalled_awaits),__FILE__, __LINE__));
                     auto number_of_messages = await_message_module_pair.second.size();
                     log::debug(log::Message(__func__,"number of stalled top level await messages => "
                         + std::to_string(number_of_messages),__FILE__, __LINE__));
