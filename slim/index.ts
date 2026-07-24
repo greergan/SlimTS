@@ -8,8 +8,7 @@ async function serve(config: SlimHttpServerConfig) {
     console.debug("listener created");
     for await (const event of listener) {
         console.debug("event found");
-         //const url = new URL(event.request.url);
-         //console.debug(event.request.url);
+        console.debug(event.request.url);
      }
 }
 serve(config);
