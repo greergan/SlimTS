@@ -87,6 +87,8 @@ SlimTS uses standard installation paths when searching for required headers and 
 
 SlimCommon must be installed prior to building SlimTS. The source is available at [codeberg.org/greergan/SlimCommon](https://codeberg.org/greergan/SlimCommon).
 
+[↑ Top](#table-of-contents)
+
 ### libtsgo
 
 A C and C++ callable static library wrapping the TypeScript compiler. Must be installed prior to building SlimTS. Source available at [codeberg.org/greergan/libtsgo](https://codeberg.org/greergan/libtsgo).
@@ -123,7 +125,8 @@ make
 make install
 ```
 
-The output executable is named `slim`. It expects to be installed so that it can locate its plugin files.
+The output executable is named `slimts`.  
+The plugin directory is expected at path/to/slimts/../lib/slimTS  
 
 ```
 /usr/local/bin/slim
