@@ -24,6 +24,9 @@ async function serve(config: SlimHttpServerConfig) {
         for (const key of request.headers.keys()) {
             console.debug(`keys: ${key}`);
         }
+        const response = event.response;
+        await response.reply('<html><body><h1>hello from slim</h1></body></html>', { status: 200, statusText: 'OK' });
+        console.debug("response sent");
     }
 }
 serve(config);
