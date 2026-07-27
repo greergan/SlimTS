@@ -1,6 +1,6 @@
 #include <filesystem>
 #include <string>
-#include <slim/slim_duckdb.h>
+//#include <slim/slim_duckdb.h>
 #include <slim/common/memory/mapper.h>
 #include <slim/configuration_handler.h>
 namespace slim::configuration_handler {
@@ -20,12 +20,12 @@ void slim::configuration_handler::load() {
     if(!std::filesystem::exists(default_configuration_file)) {
         return;
     }
-    slim::duck_db::Database db;
-    slim::duck_db::Connection con(db);
-    auto result = con.query("SELECT * FROM read_json_auto($1)", default_configuration_file);
-    if(result.has_error()) {
-        return;
-    }
+    // slim::duck_db::Database db;
+    // slim::duck_db::Connection con(db);
+    // auto result = con.query("SELECT * FROM read_json_auto($1)", default_configuration_file);
+    // if(result.has_error()) {
+    //     return;
+    // }
 //    for(idx_t row = 0; row < result.row_count(); row++) {
 //        auto key = result.get_string("key", row);
 //        auto value = result.get_bool("value", row);
