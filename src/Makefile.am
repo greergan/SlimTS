@@ -1,5 +1,4 @@
 SUBDIRS=plugins
-
 bin_PROGRAMS  = slimts
 slimts_SOURCES  = main.cpp \
 				slim.cpp \
@@ -21,8 +20,7 @@ slimts_SOURCES  = main.cpp \
 				slim_utilities.cpp \
 				slim_v8.cpp \
 				simdutf.cpp
-
-slimts_CPPFLAGS  = -DV8_COMPRESS_POINTERS -DV8_ENABLE_SANDBOX -fno-rtti
-slimts_LDFLAGS   = -static-libgcc -static-libstdc++ -pthread -rdynamic
+slimts_CPPFLAGS  = -DV8_COMPRESS_POINTERS -DV8_ENABLE_SANDBOX -fno-rtti -fsanitize=address
+slimts_LDFLAGS   = -static-libgcc -static-libstdc++ -pthread -rdynamic -fsanitize=address
 #slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lssl -lcrypto
-slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lslimcommon -lduckdb -ltsgo -lssl -lcrypto
+slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lslimcommon -lduckdb -ltsgo -lssl -lcrypto -lasan
