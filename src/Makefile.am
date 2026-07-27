@@ -6,7 +6,6 @@ slimts_SOURCES  = main.cpp \
 				slim_builtins_dummy_console_provider.cpp \
 				slim_configuration_handler.cpp \
 				slim_command_line_handler.cpp \
-				slim_duckdb.cpp \
 				slim_exception_handler.cpp \
 				slim_isolate_wake.cpp \
 				slim_macros.cpp \
@@ -23,4 +22,4 @@ slimts_SOURCES  = main.cpp \
 slimts_CPPFLAGS  = -DV8_COMPRESS_POINTERS -DV8_ENABLE_SANDBOX -fno-rtti -fsanitize=address
 slimts_LDFLAGS   = -static-libgcc -static-libstdc++ -pthread -rdynamic -fsanitize=address
 #slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lssl -lcrypto
-slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lslimcommon -lduckdb -ltsgo -lssl -lcrypto -lasan
+slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lssl -lcrypto -lslimcommon -ltsgo -lasan

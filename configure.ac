@@ -158,6 +158,24 @@ AC_CHECK_HEADER([openssl/ssl.h], [], [AC_MSG_ERROR([missing OpenSSL headers])])
 AC_CHECK_HEADER([openssl/crypto.h], [], [AC_MSG_ERROR([missing OpenSSL crypto headers])])
 
 dnl ------------------------------------------------------------
+dnl SlimCommon
+dnl ------------------------------------------------------------
+PKG_CHECK_MODULES([SLIMCOMMON], [slimcommon],
+    [CPPFLAGS="$CPPFLAGS $SLIMCOMMON_CFLAGS"
+     LIBS="$LIBS $SLIMCOMMON_LIBS"],
+    [AC_MSG_ERROR([SlimCommon is required but not found])]
+)
+
+dnl ------------------------------------------------------------
+dnl libtsgo
+dnl ------------------------------------------------------------
+PKG_CHECK_MODULES([LIBTSGO], [libtsgo],
+    [CPPFLAGS="$CPPFLAGS $LIBTSGO_CFLAGS"
+     LIBS="$LIBS $LIBTSGO_LIBS"],
+    [AC_MSG_ERROR([libtsgo is required but not found])]
+)
+
+dnl ------------------------------------------------------------
 dnl project include
 dnl ------------------------------------------------------------
 cwd=`pwd`
