@@ -1,114 +1,141 @@
+<a href="https://github.com/greergan/SlimTS">
+  <img src="https://raw.githubusercontent.com/greergan/SlimTS/master/assets/slimts_logo.png" width="75" alt="SlimTS Logo">
+</a>
+
 # SlimTS
-SlimTS is a typescript platform written in C++ for the c++20 standards. It takes in either typescript or javascript ES6 modules which are then type checked and then run.
 
-There is an embedded tsconfig.json object which toggles specific type checking flags.
+A TypeScript platform written in C++ targeting the C++23 standard. Only ES6 modules are supported. CommonJS is not supported.
 
-Use of the 'require' statement is not supported and never will be. This is a module only platform.
+## Table of Contents
 
-SlimTS, so far, has only been built on Ubuntu desktop.
+- [Overview](#overview)
+- [TypeScript Compiler Options](#typescript-compiler-options)
+- [Security](#security)
+- [Console Behavior](#console-behavior)
+- [Prerequisites](#prerequisites)
+  - [Google V8](#google-v8)
+  - [BoringSSL](#boringssl)
+  - [SlimCommon](#slimcommon)
+  - [libtsgo](#libtsgo)
+- [Building](#building)
+- [Running](#running)
+
+## Overview
+
+SlimTS takes in TypeScript or JavaScript ES6 modules, applies type checking and executes them via an embedded V8 engine. CommonJS `require` is not supported.
+
+[↑ Top](#table-of-contents)
+
+## TypeScript Compiler Options
+
+SlimTS uses the `compilerOptions` from [libtsgo](https://codeberg.org/greergan/libtsgo).
+
+[↑ Top](#table-of-contents)
 
 ## Security
-The security model is one of lazy-loaded plugins. Even the console is a plugin. This allows for different behavior from the same "object" under different circumstances.
 
-## Things to understand
-The below listed import statement is required otherwise the default "dummy" console is used. If you are not seeing output from your console statements then you probably have not imported the console.
-```
+The security model is lazy-loaded plugins. Even the console is a plugin. This allows for different behavior from the same object under different circumstances.
+
+[↑ Top](#table-of-contents)
+
+## Console Behavior
+
+The console is a plugin and is not loaded by default. If you are not seeing output from console statements, you have not imported the console.
+
+```ts
 import console from 'console'
 ```
 
-As mentioned above, there is a tsconfig.json object embedded. Not that the "outDir" is an internal virtual filesystem location.
-```
-const tsconfig = {
-    "compilerOptions": {
-        "target": "es2024",
-        "module": "es2022",
-        "types": [],
-        "allowJs": true,
-        "checkJs": true,
-        "outDir": "built",
-        "removeComments": true,
-        "forceConsistentCasingInFileNames": true,
-        "strict": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noFallthroughCasesInSwitch": true,
-        "noImplicitOverride": true,
-        "skipDefaultLibCheck": true
-    }
-}
-```
+[↑ Top](#table-of-contents)
+
 ## Prerequisites
-Google v8  
-Several steps are required to get the things into a compiled state  
-1. Install, configure and fetch the v8 source using [these instructions](https://v8.dev/docs/source-code#using-git)  
-2. Build the v8 engine using [the first 4 steps of these instructions](https://v8.dev/docs/embed#run-the-example) This is an extremely long build.
-3. Checkout branch 13.1.1 prior to running the build
-```
+
+### Google V8
+
+Several steps are required to get V8 into a compiled state.
+
+1. Install, configure, and fetch the V8 source using [these instructions](https://v8.dev/docs/source-code#using-git)
+2. Build the V8 engine using [the first 4 steps of these instructions](https://v8.dev/docs/embed#run-the-example) — this is an extremely long build
+3. Checkout branch `13.1.1` prior to running the build
+
+```sh
 git checkout 13.1.1
 ```
-librdkafa from Confluent Inc.  
-1. clone the source from [GitHub](https://github.com/confluentinc/librdkafka)
-  librdkafka - compiled and installed, it must be configured as follows along with [these requirements](https://github.com/confluentinc/librdkafka?tab=readme-ov-file#build-from-source). SlimTS does not support the optional packages that are listed at this time.
+
+### BoringSSL
+
+The SlimTS SSL plugin is linked against [BoringSSL](https://boringssl.googlesource.com/boringssl) libraries.
+
 ```
-./configure --enable-static --prefix=/path/to/install/to
+libssl  libpki  libcrypto
 ```
-[boringssl](https://boringssl.googlesource.com/boringssl) by Google  
-The SlimTS ssl plugin is linked against the boringssl libraries
-```
-libssl libpki libcrypto
-```
-The following header files are used
-```
+
+The following headers are used:
+
+```cpp
 #include <openssl/rsa.h>
 #include <openssl/x509.h>
 ```
-The build may work with out of the box [OpenSSL](https://www.openssl.org/) but has not been attempted so far.  
-Either way, the plugin does compile but is not in a usable state.
 
-SlimTS uses standard installation paths when searching for the required header and library files.
+The build may work with standard [OpenSSL](https://www.openssl.org/) but has not been attempted. Either way, the plugin compiles but is not in a usable state.
 
-## Building SlimTS
-SlimTS uses the [GNU Autoconf](https://www.gnu.org/software/autoconf/) build configuration tools along with [GNU Make](https://www.gnu.org/software/make/). So far, it has only been built using [GCC](https://gcc.gnu.org/)  
-1. Clone or download the SlimTS source from [GitHub](https://github.com/greergan/SlimTS)
-```
+SlimTS uses standard installation paths when searching for required headers and libraries.
+
+[↑ Top](#table-of-contents)
+
+### SlimCommon
+
+SlimCommon must be installed prior to building SlimTS. The source is available at [codeberg.org/greergan/SlimCommon](https://codeberg.org/greergan/SlimCommon).
+
+### libtsgo
+
+A C and C++ callable static library wrapping the TypeScript compiler. Must be installed prior to building SlimTS. Source available at [codeberg.org/greergan/libtsgo](https://codeberg.org/greergan/libtsgo).
+
+[↑ Top](#table-of-contents)
+
+## Building
+
+SlimTS uses [GNU Autoconf](https://www.gnu.org/software/autoconf/) and [GNU Make](https://www.gnu.org/software/make/). It has only been built using [GCC](https://gcc.gnu.org/).
+
+1. Clone the SlimTS source
+
+```sh
 git clone git@github.com:greergan/SlimTS.git
 ```
-2. Run autoreconf from inside the SlimTS root directory
-```
+
+2. Run `autoreconf` from the SlimTS root directory
+
+```sh
 autoreconf -vfi
 ```
+
 3. Run the configure script
-```
+
+```sh
 ./configure --prefix=/path/to/install \
-    --with-google-v8-dir=/path/to/google/v8 \
-			--with-librdkafka=/path/to/installed/librdkafka
-```  
-4. Run the make command
+    --with-v8=/path/to/google/v8
 ```
-make or make install
+
+4. Build
+
+```sh
+make
+make install
 ```
-The output executable is named slim. It expects to be installed properly so that it can find its plugin files. slim will look for the plugin files in a lib directory named SlimTS  
+
+The output executable is named `slim`. It expects to be installed so that it can locate its plugin files.
+
 ```
 /usr/local/bin/slim
 /usr/local/lib/slimTS
 ```
 
-5. Run a script
-```
+[↑ Top](#table-of-contents)
+
+## Running
+
+```sh
 slim samples/hello_world.mjs
 ```
 
-## Plugin modules  
-Currently modifying modules as needed to push forward movement.
-- boringssl
-- console
-- csv
-- fs
-- http_package
-- kafka
-- memoryAdaptor
-- network
-- os
-- path
-- process
-- queue
+[↑ Top](#table-of-contents)
