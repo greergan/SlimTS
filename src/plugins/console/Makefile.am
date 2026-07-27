@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = console.la
+module_LTLIBRARIES = console.la
 console_la_SOURCES = console.cpp
-console_la_CPPFLAGS = -std=c++20
-console_la_LDFLAGS = -module -shared -avoid-version
+console_la_LDFLAGS = -module -version-info $(MODULE_VERSION_INFO)
+#pkgconfig_DATA = slimts.pc

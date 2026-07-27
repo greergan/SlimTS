@@ -1,12 +1,10 @@
-#ifndef __SLIM__H
-#define __SLIM__H
-#include <unordered_map>
-#include <string>
-#include <slim/module/resolver.h>
+#ifndef SLIM_H
+#define SLIM_H
+#include <stop_token>
 namespace slim {
-    void run(std::string file_name_string_in);
-    void start(int argc, char* argv[]);
-    void stop(void);
-    void version(void);
+    void start();
+    void stop();
+    void version();
+    std::stop_token get_stop_token();
 }
 #endif

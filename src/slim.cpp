@@ -1,58 +1,54 @@
-#include <filesystem>
+#include <print>
 #include <future>
+#include <stop_token>
 #include <string>
 #include "config.h"
 #include <v8.h>
-#include <slim/slim.h>
-#include <slim/command_line_handler.h>
-#include <slim/common/log.h>
-#include <slim/common/memory_mapper.h>
-#include <slim/module/import_specifier.h>
-#include <slim/servers/servers.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <slim/configuration_handler.h>
+#include <slim/runtime.h>
 #include <slim/service/launcher.h>
-#include <slim/utilities.h>
+#include <slim/slim.h>
+#include <slim/common/log.h>
+using namespace slim::common;
+namespace slim {
 namespace {
-	using namespace slim::common;
-	using namespace slim::utilities;
+static std::stop_source stop_source;
+static void initialize_ssl() {
+    log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+    SSL_library_init();
+    SSL_load_error_strings();
+    OpenSSL_add_all_algorithms();
+    log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
 }
-void slim::start(int argc, char* argv[]) {
-	log::trace(log::Message("slim::start()","begins",__FILE__, __LINE__));
-	auto v8_command_line_arguments = slim::command_line::set_argv(argc, argv);
-	auto& script_name_string = slim::command_line::get_script_name();
-	for(auto&& argument_string : v8_command_line_arguments) {
-		log::debug(log::Message("slim::start()","v8 commandline arguments => " + argument_string,__FILE__,__LINE__));	
-	}
-	log::debug(log::Message("slim::start()","preparing to run script => " + script_name_string,__FILE__,__LINE__));
-	slim::service::launcher::marshal_resources(v8_command_line_arguments);
-	slim::module::specifier_definition typescript_specifier_definition_struct{"file:///bin/typescript.mjs", memory_mapper::read("typescript_library", "file:///bin/typescript.mjs")};
-	auto launch_typescript_future = std::async(std::launch::async, slim::service::launcher::launch, typescript_specifier_definition_struct);
-	//slim::servers::start::less();
-	//slim::servers::start::prometheus();
-	//slim::servers::start::typescript();
-			
-	if(script_name_string.length() >= 4) {
-		log::debug(log::Message("slim::start()","script => " + script_name_string,__FILE__, __LINE__));
-		log::debug(log::Message("slim::start()","launching => " + script_name_string,__FILE__, __LINE__));
-		auto launch_future = std::async(std::launch::async, slim::service::launcher::launch, script_name_string);
-		if(launch_future.valid()) {
-			log::debug(log::Message("slim::start()","script future is valid",__FILE__, __LINE__));
-			launch_future.get();
-			log::debug(log::Message("slim::start()","resolved script future",__FILE__, __LINE__));
-		}
-		else {
-			log::debug(log::Message("slim::start()","future is not valid",__FILE__, __LINE__));
-		}
-		log::debug(log::Message("slim::start()","called launch",__FILE__, __LINE__));
-	}
-	log::trace(log::Message("slim::start()","ends, creating artificial exit",__FILE__, __LINE__));
-	exit(1);
+} // namespace
+void stop() {
+    log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+    stop_source.request_stop();
+    log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
 }
-void slim::stop() {
-	log::trace(log::Message("slim::stop()","begins",__FILE__, __LINE__));
-	slim::service::launcher::tear_down();
-	log::trace(log::Message("slim::stop()","ends",__FILE__, __LINE__));
+std::stop_token get_stop_token() {
+    return stop_source.get_token();
 }
-void slim::version() {
-	log::info("slim:  " VERSION);
-	log::info("libv8:  " + std::string(v8::V8::GetVersion()));
+void start() {
+    log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+    initialize_ssl();
+    auto script_name = slim::configuration_handler::get_script_name();
+    if(script_name.empty()) {
+        std::println("usage: slimts [options] <script>");
+        log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+        return;
+    }
+    log::debug(log::Message(__func__, std::format("launching script => {}", script_name), __FILE__, __LINE__));
+    slim::runtime::instance().start();
+    auto launch_script_future = std::async(std::launch::async, slim::service::launcher::launch, script_name);
+    launch_script_future.get();
+    slim::runtime::instance().stop();
+    log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
 }
+void version() {
+    std::println("slim:  {}", VERSION);
+    std::println("libv8: {} ", v8::V8::GetVersion());
+}
+} // namespace slim

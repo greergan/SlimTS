@@ -1,8 +1,9 @@
-#ifndef __SLIM__UTILITIES__H
+ #ifndef __SLIM__UTILITIES__H
 #define __SLIM__UTILITIES__H
 #include <regex>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <v8.h>
 namespace slim::utilities {
@@ -24,6 +25,7 @@ namespace slim::utilities {
 
     template <typename Thing>
     v8::Local<v8::Object> GetObject(v8::Isolate* isolate, Thing object);
+    v8::Local<v8::Object> GetObject(v8::Isolate* isolate, v8::Local<v8::Array> array, int array_index);
     v8::Local<v8::Object> GetObject(v8::Isolate* isolate, v8::Local<v8::Value> object);
     v8::Local<v8::Object> GetObject(v8::Isolate* isolate, std::string string, v8::Local<v8::Object> object);
     v8::Local<v8::Value> GetValue(v8::Isolate* isolate, std::string string, v8::Local<v8::Object> object);
@@ -52,10 +54,13 @@ namespace slim::utilities {
     v8::Local<v8::Number> DoubleToV8Number(v8::Isolate* isolate, const double value);
     v8::Local<v8::Integer> IntToV8Integer(v8::Isolate* isolate, const int value);
     v8::Local<v8::Integer> size_t_ToV8Integer(v8::Isolate* isolate, const size_t value);
+
     v8::Local<v8::String> StringToV8String(v8::Isolate* isolate, std::string string);
+    v8::Local<v8::String> StringViewToV8String(v8::Isolate* isolate, std::string_view string);
     v8::Local<v8::Name> StringToV8Name(v8::Isolate* isolate, const std::string value);
     v8::Local<v8::Value> StringToV8Value(v8::Isolate* isolate, const std::string value);
     v8::Local<v8::Value> StringToV8Value(v8::Isolate* isolate, const std::string* value);
+
     bool V8BoolToBool(v8::Isolate* isolate, v8::Maybe<bool> value);
     std::string V8JsonValueToString(v8::Isolate* isolate, v8::Local<v8::Value> value);
     std::string v8NameToString(v8::Isolate* isolate, v8::Local<v8::Name> string);

@@ -1,0 +1,19 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+bindir=${exec_prefix}/bin
+moduledir=${exec_prefix}/lib/SlimTS
+
+Name: SlimTS
+Description: SlimTS runtime
+Version: 0.3.0
+
+Libs: -L${libdir} -lSlimTS
+Cflags: -I${includedir}
+
+# Optional private dependencies (uncomment if needed)
+# Requires.private: openssl
+
+# Nonstandard metadata (consumer must read manually)
+#slimts_moduledir=${moduledir}

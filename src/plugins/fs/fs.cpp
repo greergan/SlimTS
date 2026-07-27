@@ -35,10 +35,10 @@ namespace slim::plugin::fs {
 	void is_true(const v8::FunctionCallbackInfo<v8::Value>& args);
 	void is_false(const v8::FunctionCallbackInfo<v8::Value>& args);
 }
-void ::slim::plugin::fs::is_true(const v8::FunctionCallbackInfo<v8::Value>& args) {
+void slim::plugin::fs::is_true(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	args.GetReturnValue().Set(v8::Boolean::New(args.GetIsolate(), 1));
 }
-void ::slim::plugin::fs::is_false(const v8::FunctionCallbackInfo<v8::Value>& args) {
+void slim::plugin::fs::is_false(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	args.GetReturnValue().Set(v8::Boolean::New(args.GetIsolate(), 0));
 }
 struct slim::plugin::fs::FileInfo {

@@ -38,12 +38,16 @@ void slim::exception_handler::v8_try_catch_handler(v8::TryCatch* try_catch) {
 	if(!maybe_stack_trace.IsEmpty()) {
 		stack_trace = maybe_stack_trace.ToLocalChecked();
 	}
+	// Extract the line number safely (returns -1 if it fails to get the line number)
+	int line_number = message->GetLineNumber(context).FromMaybe(-1);
+
 	log::debug(log::Message("script_origin.ScriptId()", std::to_string(script_origin.ScriptId()),__FILE__, __LINE__));
 	log::debug(log::Message("script_origin.ColumnOffset()", std::to_string(script_origin.ColumnOffset()),__FILE__, __LINE__));
 	log::debug(log::Message("script_origin.LineOffset()", std::to_string(script_origin.LineOffset()),__FILE__, __LINE__));
 	log::debug(log::Message("script_origin.ResourceName()", utilities::v8ValueToString(isolate, script_origin.ResourceName()),__FILE__, __LINE__));
 	log::debug(log::Message("message->Get()", utilities::v8StringToString(isolate, message->Get()),__FILE__, __LINE__));
 	log::debug(log::Message("message->GetScriptResourceName()", utilities::v8ValueToString(isolate, message->GetScriptResourceName()),__FILE__, __LINE__));
+	log::debug(log::Message("message->GetLineNumber()", std::to_string(line_number), __FILE__, __LINE__));
 	log::debug(log::Message("message->GetSourceLine()", utilities::v8StringToString(isolate, message->GetSourceLine(context).ToLocalChecked()),__FILE__, __LINE__));
 	log::debug(log::Message("message->ErrorLevel()", std::to_string(message->ErrorLevel()),__FILE__, __LINE__));
 	log::debug(log::Message("message->GetStartColumn()", std::to_string(message->GetStartColumn()),__FILE__, __LINE__));
@@ -54,6 +58,9 @@ void slim::exception_handler::v8_try_catch_handler(v8::TryCatch* try_catch) {
 	if(!script_origin.ResourceName()->IsUndefined()) {
 		exception_string << "\n" << utilities::v8ValueToString(isolate, script_origin.ResourceName());
 	}
+	if(line_number > 0) {
+		exception_string << "\nLine number: " << std::to_string(line_number) << "\n";
+	}
 	if(try_catch->HasCaught()) {
 		exception_string << "\n" << utilities::v8ValueToString(isolate, try_catch->Exception()) << "\n";
 	}
@@ -63,9 +70,9 @@ void slim::exception_handler::v8_try_catch_handler(v8::TryCatch* try_catch) {
 	}
 	exception_string << "^" << std::endl;
 	if(!stack_trace.IsEmpty()) {
-		exception_string << "\n" << utilities::v8ValueToString(isolate, stack_trace);
+	    exception_string << "\nStackTrace:\n";
+		exception_string << utilities::v8ValueToString(isolate, stack_trace);
 	}
-	log::info(exception_string.str());
 	log::trace(log::Message("slim::exception_handler::try_catch_handler()","ends",__FILE__, __LINE__));
 	throw(exception_string.str());
 }

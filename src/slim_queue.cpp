@@ -6,12 +6,18 @@
 #include <vector>
 #include <slim/common/log.h>
 #include <slim/queue/queue.h>
+
+#ifdef HAVE_LIBRDKAFKA
+#include <librdkafka/rdkafkacpp.h>
+#endif
+
 namespace slim::queue {
 	using namespace slim::common;
 	std::mutex queue_mutex;
 	static std::unordered_map<std::string, std::vector<job*>> queues;
 	static std::atomic<long> ticket_id(0);
 	static const unsigned int sleep_time = 1;  // next try with std::conditional_variable
+	// refactor to use std::condition_variable::wait()
 }
 slim::queue::job::job(){}
 slim::queue::job::job(std::string queue_name_string, std::string source_storage_handle, std::string source_file_name_string)

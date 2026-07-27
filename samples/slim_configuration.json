@@ -1,0 +1,36 @@
+{
+	"logging": {
+		"file_url": "",
+		"consumers": [
+			{
+				"name":"console",
+				"print_color": false,
+				"debug": false,
+				"error": false,
+				"info": false,
+				"trace": true,
+				"warn": false,
+				"sources": [
+					{
+						"name": "slim_common_fetch.cpp",
+						"debug": true,
+						"error": true,
+						"info": true,
+						"trace": true,
+						"warn": true,
+						"function_list": [
+							{
+									"name": "slim::common::fetch::stream(_string)",
+									"debug": true,
+									"error": true,
+									"info": true,
+									"trace": true,
+									"warn": true
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}

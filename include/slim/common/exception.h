@@ -1,5 +1,5 @@
-#ifndef __SLIM__COMMON__EXCEPTION__H
-#define __SLIM__COMMON__EXCEPTION__H
+#ifndef SLIM_COMMON_EXCEPTION_H
+#define SLIM_COMMON_EXCEPTION_H
 #include <exception>
 #include <stdexcept>
 #include <string>

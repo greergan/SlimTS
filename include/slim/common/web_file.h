@@ -1,5 +1,5 @@
-#ifndef __SLIM__COMMON__WEB__FILE__H
-#define __SLIM__COMMON__WEB__FILE__H
+#ifndef SLIM_COMMON_WEB_FILE_H
+#define SLIM_COMMON_WEB_FILE_H
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -7,7 +7,7 @@
 #include <slim/common/http/headers.h>
 #include <slim/common/http/request.h>
 #include <slim/common/http/response.h>
-#include <slim/common/vector_buffer.h>
+
 namespace slim::common {
 	struct WebFile {
 		WebFile(slim::common::http::Request&& request_object);

@@ -22,22 +22,22 @@ static void replace_token(const char* token, std::string& line_of_text, const st
 		//slim::common::log::debug(slim::common::log::Message("replace_token()", line_of_text.c_str(),__FILE__, __LINE__));
 	}
 }
-std::unique_ptr<std::string> slim::macros::apply(std::shared_ptr<std::string> content_pointer, const std::string& absolute_path_to_file) {
-	log::trace(log::Message("slim::macros::apply()",std::string("begins => " + absolute_path_to_file).c_str(),__FILE__, __LINE__));
-	std::stringstream content_stream{std::string(*content_pointer)};
-	auto macro_applied_string_stream = apply(std::make_unique<std::stringstream>(std::move(content_stream)), absolute_path_to_file);
-	log::trace(log::Message("slim::macros::apply()",std::string("ends => " + absolute_path_to_file).c_str(),__FILE__, __LINE__));
+std::unique_ptr<std::string> slim::macros::apply(std::shared_ptr<std::string> _content_pointer, const std::string& _specifier_string) {
+	log::trace(log::Message("slim::macros::apply()","begins => " + _specifier_string,__FILE__, __LINE__));
+	std::stringstream content_stream{std::string(*_content_pointer)};
+	auto macro_applied_string_stream = apply(std::make_unique<std::stringstream>(std::move(content_stream)), _specifier_string);
+	log::trace(log::Message("slim::macros::apply()","ends => " + _specifier_string,__FILE__, __LINE__));
 	return std::make_unique<std::string>(std::move(macro_applied_string_stream->str()));
 }
-std::unique_ptr<std::stringstream> slim::macros::apply(std::unique_ptr<std::stringstream> input_stringstream_pointer, const std::string& absolute_path_to_file) {
+std::unique_ptr<std::stringstream> slim::macros::apply(std::unique_ptr<std::stringstream> _input_stringstream_pointer, const std::string& _absolute_file_path_string) {
 	log::trace(log::Message("slim::macros::apply()","begins",__FILE__, __LINE__));
-	int last_file_directory_separator = absolute_path_to_file.find_last_of("/");
-	std::string directory_name_string = absolute_path_to_file.substr(0, last_file_directory_separator);
-	std::string file_name_string = absolute_path_to_file.substr(last_file_directory_separator + 1);
+	int last_file_directory_separator = _absolute_file_path_string.find_last_of("/");
+	std::string directory_name_string = _absolute_file_path_string.substr(0, last_file_directory_separator);
+	std::string file_name_string = _absolute_file_path_string.substr(last_file_directory_separator + 1);
 	std::stringstream output_string_stream;
 	std::string line_of_text;
 	int line_number = 0;
-	while(std::getline(*input_stringstream_pointer, line_of_text)) {
+	while(std::getline(*_input_stringstream_pointer, line_of_text)) {
 		//slim::common::log::debug(slim::common::log::Message("slim::macros::apply()", line_of_text.c_str(),__FILE__, __LINE__));
 		line_number++;
 		replace_token("__dirname", line_of_text, directory_name_string, true);

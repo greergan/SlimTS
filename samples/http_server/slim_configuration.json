@@ -1,0 +1,53 @@
+{
+	"logging": {
+		"file_url": "",
+		"system_logging_enabled": false,
+		"consumers": [
+			{
+				"name":"console",
+				"print_color": false,
+				"debug": true,
+				"error": false,
+				"info": false,
+				"trace": true,
+				"warn": false,
+				"continue": true,
+				"file_list": [
+					{
+						"name": "http_server.cpp",
+						"debug": true,
+						"trace": true,
+						"continue": true,
+						"function_list": [
+							{
+								"name": "listen",
+								"debug": true,
+								"trace": true
+							}
+						]
+					},
+					{
+						"name": "main.cpp",
+						"debug": false,
+						"trace": false
+					},
+					{
+						"name": "slim.cpp",
+						"debug": false,
+						"trace": false
+					},
+					{
+						"name": "slim_service_launcher.cpp",
+						"debug": false,
+						"trace": false
+					},
+					{
+						"name": "slim_v8.cpp",
+						"debug": false,
+						"trace": false
+					}
+				]
+			}
+		]
+	}
+}

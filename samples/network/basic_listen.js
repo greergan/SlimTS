@@ -1,4 +1,4 @@
 slim.load("console");
-slim.load("network");
+/*slim.load("network");
 net.server.listen();
-console.log("listening");
+console.log("listening");*/
