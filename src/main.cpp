@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
     }
     bool v8_initialized = false;
     try {
-        slim::configuration_handler::load();
         auto v8_command_line_arguments = slim::command_line::parse(argc, argv);
+        slim::configuration_handler::load();
         if (slim::configuration_handler::is_daemon() && !is_daemon_child) {
             pid_t pid = fork();
             if (pid < 0) throw std::runtime_error("fork() failed");
