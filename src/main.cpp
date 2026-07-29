@@ -9,6 +9,7 @@
 #include <vector>
 #include <slim/command_line_handler.h>
 #include <slim/common/exception.h>
+#include <slim/common/io/error_codes.h>
 #include <slim/configuration_handler.h>
 #include <slim/slim.h>
 #include <slim/slim_v8.h>
@@ -49,8 +50,8 @@ int main(int argc, char *argv[]) {
     }
     bool v8_initialized = false;
     try {
-        slim::configuration_handler::load();
         auto v8_command_line_arguments = slim::command_line::parse(argc, argv);
+        slim::configuration_handler::load();
         if (slim::configuration_handler::is_daemon() && !is_daemon_child) {
             pid_t pid = fork();
             if (pid < 0) throw std::runtime_error("fork() failed");
@@ -69,33 +70,48 @@ int main(int argc, char *argv[]) {
         slim::v_8::initialize(v8_command_line_arguments);
         v8_initialized = true;
         setup_signals();
-        slim::start();
+        do {
+            slim::start();
+        } while (slim::is_restart_requested());
     }
     catch (const std::bad_optional_access& error) {
+        std::cerr << "Exception caught\n";
         std::cerr << error.what() << std::endl;
     }
     catch (const std::string& error) {
+        std::cerr << "Exception caught\n";
         std::cerr << error << std::endl;
     }
     catch (const std::error_code& error_code) {
+        std::cerr << "Exception caught\n";
         std::cerr << error_code.message() << std::endl;
     }
+    catch (const slim::common::io::IOException& error) {
+        std::cerr << "Exception caught\n";
+        std::cerr << error.what() << std::endl;
+    }
     catch (const slim::common::SlimFileException& error) {
+        std::cerr << "Exception caught\n";
         std::cerr << error.message << ", path => " << error.path << std::endl;
     }
     catch (const slim::common::SlimException& error) {
+        std::cerr << "Exception caught\n";
         std::cerr << error.message << std::endl;
     }
     catch (const std::invalid_argument& error) {
+        std::cerr << "Exception caught\n";
         std::cerr << error.what() << std::endl;
     }
     catch (const std::runtime_error& error) {
+        std::cerr << "Exception caught\n";
         std::cerr << error.what() << std::endl;
     }
     catch (const std::exception& error) {
+        std::cerr << "Exception caught\n";
         std::cerr << error.what() << std::endl;
     }
     catch (...) {
+        std::cerr << "Exception caught\n";
         std::cerr << "caught unknown exception" << std::endl;
     }
     if (v8_initialized) slim::v_8::tear_down();

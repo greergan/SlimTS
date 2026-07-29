@@ -23,7 +23,12 @@ namespace slim::plugin::http {
         v8::Global<v8::Promise::Resolver> pending_resolver;
         std::deque<v8::Global<v8::Object>> pending_requests;
         std::unique_ptr<slim::common::network::server::Tcp> tcp_server;
+        std::shared_ptr<ListenerState>* persistent_state{nullptr};
+        std::stop_callback<std::function<void()>>* stop_cb{nullptr};
         explicit ListenerState(v8::Isolate* iso) : isolate(iso) {}
+        ~ListenerState() {
+            delete stop_cb;
+        }
     };
 
     struct ConnectionState {
@@ -737,6 +742,15 @@ namespace slim::plugin::http {
         log::debug(log::Message(__func__, "tcp server started", __FILE__, __LINE__));
 
         auto* persistent_state = new std::shared_ptr<ListenerState>(state);
+        state->persistent_state = persistent_state;
+        auto* stop_cb = new std::stop_callback<std::function<void()>>(slim::get_stop_token(), [state]() mutable {
+            log::debug(log::Message(__func__, "stop requested, releasing ListenerState", __FILE__, __LINE__));
+            if (state->persistent_state) {
+                delete state->persistent_state;
+                state->persistent_state = nullptr;
+            }
+        });
+        state->stop_cb = stop_cb;
         v8::Local<v8::External> state_external = v8::External::New(isolate, state.get());
 
         v8::Local<v8::Object> listener = v8::Object::New(isolate);
