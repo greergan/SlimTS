@@ -29,6 +29,25 @@ namespace slim::plugin::http {
         response_obj->DefineOwnProperty(context, utilities::StringToV8String(isolate, "__conn__"),
             conn_external, v8::PropertyAttribute::DontEnum).Check();
 
+        // register weak callback on response_obj to delete conn_state_ptr when GC collects it.
+        // this covers the case where reply() is never called (conn_state_ptr would otherwise leak).
+        struct WeakData {
+            std::shared_ptr<ConnectionState>* conn_state_ptr;
+            v8::Global<v8::Object>*           persistent_response;
+        };
+        auto* persistent_response = new v8::Global<v8::Object>(isolate, response_obj);
+        auto* weak_data = new WeakData{ conn_state_ptr, persistent_response };
+        persistent_response->SetWeak(weak_data,
+            [](const v8::WeakCallbackInfo<WeakData>& data) {
+                log::debug(log::Message(__func__, "response GC'd, releasing conn_state_ptr and persistent_response",
+                    __FILE__, __LINE__));
+                auto* wd = data.GetParameter();
+                delete wd->conn_state_ptr;
+                delete wd->persistent_response;
+                delete wd;
+            },
+            v8::WeakCallbackType::kParameter);
+
         // reply(body, init?)
         auto reply_fn = v8::Function::New(context, [](const v8::FunctionCallbackInfo<v8::Value>& args) {
             auto* isolate = args.GetIsolate();
@@ -101,10 +120,6 @@ namespace slim::plugin::http {
                 log::debug(log::Message(__func__, "keeping connection alive, connection_header => '" +
                     conn_state->connection_header + "'", __FILE__, __LINE__));
             }
-
-            // conn_state_ptr was heap-allocated in make_response_object to outlive
-            // the stack frame — delete it here now that reply is done
-            delete conn_state_ptr;
 
             self->Set(context, utilities::StringToV8String(isolate, "bodyUsed"), v8::Boolean::New(isolate, true)).Check();
 

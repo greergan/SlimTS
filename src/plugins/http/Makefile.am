@@ -7,5 +7,5 @@ http_la_SOURCES = \
     listener.cpp \
     http_plugin.cpp
 http_la_CPPFLAGS = -DV8_COMPRESS_POINTERS -DV8_ENABLE_SANDBOX -fno-rtti -fsanitize=address
-http_la_LDFLAGS = -module -shared -version-info $(MODULE_VERSION_INFO)
+http_la_LDFLAGS = -module -shared -version-info $(MODULE_VERSION_INFO) -fsanitize=address
 #pkgconfig_DATA = slimts.pc

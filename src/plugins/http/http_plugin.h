@@ -20,12 +20,7 @@ namespace slim::plugin::http {
         v8::Global<v8::Promise::Resolver> pending_resolver;
         std::deque<v8::Global<v8::Object>> pending_requests;
         std::unique_ptr<slim::common::network::server::Tcp> tcp_server;
-        std::stop_callback<std::function<void()>>* stop_cb{nullptr};
-        v8::Global<v8::Object>* persistent_listener{nullptr};
         explicit ListenerState(v8::Isolate* iso) : isolate(iso) {}
-        ~ListenerState() {
-            delete stop_cb;
-        }
     };
 
     struct ConnectionState {

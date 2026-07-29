@@ -73,29 +73,27 @@ namespace slim::plugin::http {
 
         auto stop_token = slim::get_stop_token();
         slim::common::network::server::tcp::Config listen_config{host, port, "", ""};
-        std::weak_ptr<ListenerState> weak_state = state;
-        state->tcp_server = std::make_unique<slim::common::network::server::Tcp>(
-            listen_config, slim::runtime::instance(), stop_token,
-            [weak_state](slim::common::io::Scheduler& sched, int fd, SSL_CTX* ssl_ctx)
-                -> slim::common::io::Task<void> {
-                auto s = weak_state.lock();
-                if (!s) co_return;
-                co_return co_await connection_handler(sched, fd, ssl_ctx, std::move(s));
+        state->tcp_server = std::make_unique<slim::common::network::server::Tcp>(listen_config, slim::runtime::instance(),
+            stop_token, [state](slim::common::io::Scheduler& sched, int fd, SSL_CTX* ssl_ctx) {
+                return connection_handler(sched, fd, ssl_ctx, state);
             });
         log::debug(log::Message(__func__, "tcp server started", __FILE__, __LINE__));
 
-        // build listener object — all error paths return here before any heap ownership is established
-        v8::Local<v8::Object> listener = v8::Object::New(isolate);
+        auto* persistent_state = new std::shared_ptr<ListenerState>(state);
         v8::Local<v8::External> state_external = v8::External::New(isolate, state.get());
+
+        v8::Local<v8::Object> listener = v8::Object::New(isolate);
 
         v8::Local<v8::FunctionTemplate> next_tpl = v8::FunctionTemplate::New(isolate, listener_next, state_external);
         v8::Local<v8::Function> next_func;
         if (!next_tpl->GetFunction(context).ToLocal(&next_func)) {
             log::error(log::Message(__func__, "failed to get next function", __FILE__, __LINE__));
+            delete persistent_state;
             return;
         }
         if (listener->Set(context, utilities::StringToV8String(isolate, "next"), next_func).IsNothing()) {
             log::error(log::Message(__func__, "failed to set next on listener", __FILE__, __LINE__));
+            delete persistent_state;
             return;
         }
         log::debug(log::Message(__func__, "next function set on listener", __FILE__, __LINE__));
@@ -104,45 +102,25 @@ namespace slim::plugin::http {
         v8::Local<v8::Function> iter_func;
         if (!iter_tpl->GetFunction(context).ToLocal(&iter_func)) {
             log::error(log::Message(__func__, "failed to get asyncIterator function", __FILE__, __LINE__));
+            delete persistent_state;
             return;
         }
         if (listener->Set(context, v8::Symbol::GetAsyncIterator(isolate), iter_func).IsNothing()) {
             log::error(log::Message(__func__, "failed to set asyncIterator on listener", __FILE__, __LINE__));
+            delete persistent_state;
             return;
         }
         log::debug(log::Message(__func__, "asyncIterator set on listener", __FILE__, __LINE__));
 
-        // all setup succeeded — now establish heap ownership
-        auto* persistent_state = new std::shared_ptr<ListenerState>(state);
-
-        // persistent_listener stored on state so stop callback can clean it up
-        // before the isolate is disposed — GC weak is not used because the
-        // isolate tears down before GC runs, leaving the Global leaked.
+        // persistent_listener keeps ListenerState alive until GC collects the
+        // listener object. When collected, the weak callback deletes persistent_state.
         auto* persistent_listener = new v8::Global<v8::Object>(isolate, listener);
-        state->persistent_listener = persistent_listener;
-
-        state->stop_cb = new std::stop_callback<std::function<void()>>(slim::get_stop_token(), [persistent_state]() {
-            log::debug(log::Message(__func__, "stop requested, releasing ListenerState", __FILE__, __LINE__));
-            auto& state = *persistent_state;
-            if (state->persistent_listener) {
-                state->persistent_listener->Reset();
-                delete state->persistent_listener;
-                state->persistent_listener = nullptr;
-            }
-            // reset all v8::Globals while the isolate is still alive — the stop
-            // callback fires before dispose_isolate, but ~ListenerState may run
-            // after it if other shared_ptr refs are still outstanding at that point.
-            // ~v8::Global() on a disposed isolate is UB / hang.
-            state->pending_resolver.Reset();
-            state->pending_requests.clear();
-            // null out stop_cb before delete persistent_state — if this is the last
-            // shared_ptr ref, ~ListenerState runs here and would call delete stop_cb,
-            // but std::stop_callback dtor blocks until the running callback returns →
-            // deadlock. nulling first skips the delete in ~ListenerState.
-            // the stop_callback itself leaks, which is acceptable at process shutdown.
-            state->stop_cb = nullptr;
-            delete persistent_state;
-        });
+        persistent_listener->SetWeak(persistent_state,
+            [](const v8::WeakCallbackInfo<std::shared_ptr<ListenerState>>& data) {
+                log::debug(log::Message(__func__, "listener GC'd, releasing persistent_state", __FILE__, __LINE__));
+                delete data.GetParameter();
+            },
+            v8::WeakCallbackType::kParameter);
 
         log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
         args.GetReturnValue().Set(listener);
