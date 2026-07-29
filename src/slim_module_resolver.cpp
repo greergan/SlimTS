@@ -6,11 +6,14 @@
 #include <v8.h>
 #include <slim/common/exception.h>
 #include <slim/common/log.h>
+#include <slim/configuration_handler.h>
 #include <slim/exception_handler.h>
+#include <slim/file/watcher.h>
 #include <slim/module/import_specifier.h>
 #include <slim/module/resolver.h>
 #include <slim/plugin/loader.h>
 #include <slim/utilities.h>
+
 namespace slim::module::resolver {
 	using namespace slim;
 	using namespace slim::common;
@@ -92,6 +95,9 @@ v8::MaybeLocal<v8::Module> slim::module::resolver::module_call_back_resolver(v8:
 		}
 		else {
 			log::debug(log::Message(__func__, std::format("specifier is a file module => {}", specifier_name_string), __FILE__, __LINE__));
+			if(slim::configuration_handler::is_watching()) {
+				slim::file::watcher::add(specifier_name_string);
+			}
 			import_specifier module_specifier(isolate, specifier_name_string, false, referrer);
 			module_specifier.compile_module();
 			if(module_specifier.v8_module()->GetStatus() == v8::Module::Status::kErrored) {
@@ -138,6 +144,9 @@ std::optional<std::reference_wrapper<slim::module::import_specifier>> slim::modu
 		log::debug(log::Message(__func__, std::format("module compile errored for specifier_uri => {}", specifier_uri), __FILE__, __LINE__));
 		log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
 		return std::nullopt;
+	}
+	if(slim::configuration_handler::is_watching()) {
+		slim::file::watcher::add(specifier_uri);
 	}
 	int hash_id = entry_script_specifier.v8_module()->GetIdentityHash();
 	log::debug(log::Message(__func__, std::format("module compiled with hash_id => {}", hash_id), __FILE__, __LINE__));

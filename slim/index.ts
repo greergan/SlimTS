@@ -9,21 +9,21 @@ async function serve(config: SlimHttpServerConfig) {
     for await (const event of listener) {
         console.debug("event found");
         const request = event.request;
-        console.debug(event.request);
-        console.debug(`url: ${request.url}`);
-        console.debug(typeof request.headers);
-        request.headers.forEach((value, key) => {
-            console.debug(`forEach: ${key} ==> ${value}`);
-        });
-        for (const pair of request.headers.entries()) {
-            console.debug(`entries: ${pair[0]}: ${pair[1]}`);
-        }
-        for (const value of request.headers.values()) {
-            console.debug(`values: ${value}`);
-        }
-        for (const key of request.headers.keys()) {
-            console.debug(`keys: ${key}`);
-        }
+        // console.debug(event.request);
+        // console.debug(`url: ${request.url}`);
+        // console.debug(typeof request.headers);
+        // request.headers.forEach((value, key) => {
+        //     console.debug(`forEach: ${key} ==> ${value}`);
+        // });
+        // for (const pair of request.headers.entries()) {
+        //     console.debug(`entries: ${pair[0]}: ${pair[1]}`);
+        // }
+        // for (const value of request.headers.values()) {
+        //     console.debug(`values: ${value}`);
+        // }
+        // for (const key of request.headers.keys()) {
+        //     console.debug(`keys: ${key}`);
+        // }
         const response = event.response;
         await response.reply('<html><body><h1>hello from slim</h1></body></html>', { status: 200, statusText: 'OK' });
         console.debug("response sent");

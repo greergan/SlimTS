@@ -16,27 +16,22 @@ namespace slim::v_8 {
 	std::mutex isolates_mutex;
 	bool v8_is_initialized = false;
 }
-v8::Isolate* slim::v_8::new_isolate(const std::string& _label) {
+
+void slim::v_8::dispose_isolate(std::string_view label) {
 	log::trace(log::Message(__func__,"begins",__FILE__, __LINE__));
 	std::lock_guard isolate_lock(isolates_mutex);
-	v8::Isolate* isolate;
-	if(!isolates.contains(_label)) {
-		auto pair = isolates.emplace(_label, v8::Isolate::New(create_params));
-		if(pair.second) {
-			isolate = pair.first->second;
-			log::debug(log::Message(__func__,std::format("created and stored v8::Isolate for => {}", _label),__FILE__, __LINE__));
-		}
-		else {
-			log::debug(log::Message(__func__,std::format("unable to created and store v8::Isolate for => {}", _label),__FILE__, __LINE__));
-		}
+	auto it = isolates.find(std::string(label));
+	if(it != isolates.end()) {
+		it->second->Dispose();
+		isolates.erase(it);
+		log::debug(log::Message(__func__,std::format("disposed isolate => {}", label),__FILE__, __LINE__));
 	}
 	else {
-		log::error(log::Message(__func__,std::format("unable to create v8::Isolate for existing label => {}", _label),__FILE__, __LINE__));
-		log::error(log::Message(__func__,"returning bad v8::Isolate*",__FILE__, __LINE__));
+		log::error(log::Message(__func__,std::format("isolate not found => {}", label),__FILE__, __LINE__));
 	}
 	log::trace(log::Message(__func__,"ends",__FILE__, __LINE__));
-	return isolate;
 }
+
 void slim::v_8::initialize(std::vector<std::string>& _v8_command_line_arguments) {
 	log::trace(log::Message(__func__,"begins",__FILE__, __LINE__));
 	int* arg_count = (int*)0; //_v8_command_line_arguments.size();
@@ -76,6 +71,29 @@ void slim::v_8::initialize(std::vector<std::string>& _v8_command_line_arguments)
 	v8_is_initialized = true;
 	log::trace(log::Message(__func__,"ends",__FILE__, __LINE__));
 }
+
+v8::Isolate* slim::v_8::new_isolate(std::string label) {
+	log::trace(log::Message(__func__,"begins",__FILE__, __LINE__));
+	std::lock_guard isolate_lock(isolates_mutex);
+	v8::Isolate* isolate;
+	if(!isolates.contains(label)) {
+		auto pair = isolates.emplace(label, v8::Isolate::New(create_params));
+		if(pair.second) {
+			isolate = pair.first->second;
+			log::debug(log::Message(__func__,std::format("created and stored v8::Isolate for => {}", label),__FILE__, __LINE__));
+		}
+		else {
+			log::debug(log::Message(__func__,std::format("unable to created and store v8::Isolate for => {}", label),__FILE__, __LINE__));
+		}
+	}
+	else {
+		log::error(log::Message(__func__,std::format("unable to create v8::Isolate for existing label => {}", label),__FILE__, __LINE__));
+		log::error(log::Message(__func__,"returning bad v8::Isolate*",__FILE__, __LINE__));
+	}
+	log::trace(log::Message(__func__,"ends",__FILE__, __LINE__));
+	return isolate;
+}
+
 void slim::v_8::tear_down() {
 	log::trace(log::Message(__func__,"begins",__FILE__, __LINE__));
 	if(v8_is_initialized) {

@@ -20,7 +20,7 @@ namespace slim::command_line {
 	std::vector<std::string> v8_configuration_values;
 	std::vector<std::string> library_paths;
 	std::unordered_set<std::string> allowed_file_extensions{"",".js",".mjs",".ts"};
-	std::unordered_set<std::string> slim_configurations {"--lib", "--use-cache","--cache-dir","--create-configurations","-d","-v","-vv"};
+	std::unordered_set<std::string> slim_configurations {"--lib", "--use-cache","--cache-dir","--create-configurations","-d","-v","-vv","-w"};
 	std::unordered_map<std::string, bool> slim_command_line_argument_expects_value {
 		{"--lib",true},{"--cache-dir",true}
 	};
@@ -117,6 +117,10 @@ std::vector<std::string> slim::command_line::parse(int argc, char *argv[]) {
 				if(argument == "-d") {
 					memory_mapper::write("slim_runtime_environmental_variables", "daemon", true);
 					log::debug(log::Message(__func__,"daemon => true",__FILE__,__LINE__));
+				}
+				else if(argument == "-w") {
+					memory_mapper::write("slim_runtime_environmental_variables", "watching_files", true);
+					log::debug(log::Message(__func__,"watching_files => true",__FILE__,__LINE__));
 				}
 				else if(argument == "--use-cache") {
 					slim_configuration_values["use_cache"] = "true";
