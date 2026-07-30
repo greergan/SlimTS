@@ -1,0 +1,38 @@
+#!/bin/bash
+attempts=${1:-100}
+sets=${2:-1}
+pid=$(pgrep -a slimts | grep -v grep | awk '{print $1}')
+
+get_rss() {
+    awk '/VmRSS/{print $2}' /proc/$1/status 2>/dev/null
+}
+
+for s in $(seq 1 $sets); do
+    echo "--- set $s of $sets ---"
+    rss_start=$(get_rss $pid)
+
+    for i in $(seq 1 $attempts); do
+        curl -s -f localhost:9000 > /dev/null
+        if [ $? -ne 0 ]; then
+            echo "attempt $i failed, exiting"
+            exit 1
+        fi
+        rss=$(get_rss $pid)
+        delta=$((rss - rss_start))
+        echo "attempt $i | rss=${rss}kb | delta=${delta}kb"
+    done
+
+    echo "--- pre-gc ---"
+    rss_pre_gc=$(get_rss $pid)
+    echo "rss=${rss_pre_gc}kb | delta=$((rss_pre_gc - rss_start))kb"
+
+    #curl -s localhost:9000/gc > /dev/null
+    #sleep 2
+
+    echo "--- post-gc ---"
+    rss_post_gc=$(get_rss $pid)
+    echo "rss=${rss_post_gc}kb | delta=$((rss_post_gc - rss_start))kb | reclaimed=$((rss_pre_gc - rss_post_gc))kb"
+
+    echo "--- memory summary ---"
+    echo "start: ${rss_start}kb | end: ${rss_post_gc}kb | total delta: $((rss_post_gc - rss_start))kb"
+done
