@@ -44,14 +44,17 @@ namespace slim::plugin::http {
             auto iter_result = v8::Object::New(isolate);
             if (iter_result->Set(context, utilities::StringToV8String(isolate, "value"), event_obj).IsNothing()) {
                 log::error(log::Message(__func__, "failed to set value", __FILE__, __LINE__));
+                resolver->Reject(context, utilities::StringToV8String(isolate, "failed to set value")).Check();
                 return;
             }
             if (iter_result->Set(context, utilities::StringToV8String(isolate, "done"), v8::Boolean::New(isolate, false)).IsNothing()) {
                 log::error(log::Message(__func__, "failed to set done", __FILE__, __LINE__));
+                resolver->Reject(context, utilities::StringToV8String(isolate, "failed to set done")).Check();
                 return;
             }
             if (resolver->Resolve(context, iter_result).IsNothing()) {
                 log::error(log::Message(__func__, "failed to resolve promise", __FILE__, __LINE__));
+                // Resolve already failed; nothing to reject — just log and return
                 return;
             }
             log::debug(log::Message(__func__, "promise resolved from buffer", __FILE__, __LINE__));
