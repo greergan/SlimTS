@@ -1,7 +1,8 @@
-#ifndef __SLIM__PLUGIN__HPP
-#define __SLIM__PLUGIN__HPP
+#pragma once
 #include <functional>
+#include <memory>
 #include <variant>
+#include <vector>
 #include <v8.h>
 #include <slim/utilities.h>
 
@@ -31,7 +32,7 @@ namespace slim::plugin {
                 else if(std::holds_alternative<int*>(property)) {
                     value = v8::Int32::New(isolate, *std::get<int*>(property)).As<v8::Value>();
                 }
-                return value; 
+                return value;
             }
             void SetValue(v8::Isolate* isolate, v8::Local<v8::Value> value) {
                 if(std::holds_alternative<std::string*>(property)) {
@@ -79,8 +80,8 @@ namespace slim::plugin {
                     v8::Handle<v8::External> data = v8::Handle<v8::External>::Cast(args.Data());
                     static_cast<slim::plugin::PropertyPointer*>(data->Value())->SetValue(args.GetIsolate(), value);
             };
-            PropertyPointer* property_pointer = new PropertyPointer(property);
-            plugin_template->SetNativeDataProperty(slim::utilities::StringToName(isolate, name), getter, setter, v8::External::New(isolate, (void*)property_pointer));
+            auto& property_pointer = property_pointers_.emplace_back(std::make_unique<PropertyPointer>(property));
+            plugin_template->SetNativeDataProperty(slim::utilities::StringToName(isolate, name), getter, setter, v8::External::New(isolate, (void*)property_pointer.get()));
         }
         template<typename T, typename U>
         void add_property_immutable(T property_name, U property_value) {
@@ -129,6 +130,6 @@ namespace slim::plugin {
             v8::Isolate* isolate;
             v8::Local<v8::Name> v8_name;
             v8::Local<v8::ObjectTemplate> plugin_template;
+            std::vector<std::unique_ptr<PropertyPointer>> property_pointers_;
     };
 }
-#endif

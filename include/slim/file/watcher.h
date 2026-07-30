@@ -1,12 +1,14 @@
 #pragma once
 #include <functional>
 #include <string_view>
+
 namespace slim::file::watcher {
     void add(std::string_view path);
     void clear();
     void on_change(std::function<void()> restart);
     void stop();
     void watch();
+    void watch_dir(std::string_view path);
 
     class Watcher {
     public:

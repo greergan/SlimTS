@@ -21,6 +21,7 @@
 #include <slim/isolate_wake.h>
 #include <slim/slim.h>
 #include <slim/utilities.h>
+#include <slim/slim_v8.h>
 
 namespace slim::service::launcher {
     using namespace slim::common;
@@ -84,12 +85,23 @@ void slim::service::launcher::launch(std::string_view specifier_uri) {
         log::debug(log::Message(__func__, std::format("Evaluate returned is_empty => {}", result.IsEmpty()), __FILE__, __LINE__));
 
         auto stop_token = slim::get_stop_token();
+        int gc_counter = 0;
         while (!stop_token.stop_requested()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            // keep comments until proven the call is not needed
-            //wake.semaphore.try_acquire_for(std::chrono::milliseconds(1));
             slim::isolate_wake::drain(isolate);
+            v8::platform::PumpMessageLoop(slim::v_8::get_platform(), isolate);
+            isolate->PerformMicrotaskCheckpoint();
+            if (++gc_counter >= 1000) {
+                isolate->LowMemoryNotification();
+                v8::HeapStatistics hs;
+                isolate->GetHeapStatistics(&hs);
+                log::debug(log::Message(__func__,
+                    "heap used => " + std::to_string(hs.used_heap_size() / 1024) + "kb"
+                    " total => " + std::to_string(hs.total_heap_size() / 1024) + "kb", __FILE__, __LINE__));
+                gc_counter = 0;
+            }
         }
+        slim::v_8::run_cleanup(isolate);
         slim::isolate_wake::unregister_isolate(isolate);
         log::debug(log::Message(__func__, "stop requested, exiting keep alive loop", __FILE__, __LINE__));
 

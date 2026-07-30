@@ -1,4 +1,5 @@
 #include <print>
+#include <filesystem>
 #include <future>
 #include <stop_token>
 #include <string>
@@ -7,11 +8,13 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <slim/configuration_handler.h>
+#include <slim/file/watcher.h>
 #include <slim/runtime.h>
 #include <slim/service/launcher.h>
 #include <slim/slim.h>
 #include <slim/slim_v8.h>
 #include <slim/common/log.h>
+#include <libtsgo.h>
 
 namespace slim {
 namespace {
@@ -54,6 +57,10 @@ void start() {
         std::println("usage: slimts [options] <script>");
         log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
         return;
+    }
+    load_types_dir((char*)(std::filesystem::current_path().string() + "/types").c_str());
+    if(slim::configuration_handler::is_watching()) {
+		slim::file::watcher::watch_dir(std::filesystem::current_path().string() + "/types");
     }
     log::debug(log::Message(__func__, "starting runtime instance", __FILE__, __LINE__));
     slim::runtime::instance().start();

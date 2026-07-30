@@ -1,7 +1,9 @@
 #include <format>
+#include <functional>
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #include <slim/common/log.h>
@@ -15,6 +17,7 @@ namespace slim::v_8 {
 	static std::unordered_map<std::string, v8::Isolate*> isolates;
 	std::mutex isolates_mutex;
 	bool v8_is_initialized = false;
+	static std::unordered_map<v8::Isolate*, std::vector<std::function<void()>>> cleanup_hooks;
 }
 
 void slim::v_8::dispose_isolate(std::string_view label) {
@@ -30,6 +33,10 @@ void slim::v_8::dispose_isolate(std::string_view label) {
 		log::error(log::Message(__func__,std::format("isolate not found => {}", label),__FILE__, __LINE__));
 	}
 	log::trace(log::Message(__func__,"ends",__FILE__, __LINE__));
+}
+
+v8::Platform* slim::v_8::get_platform() {
+    return platform.get();
 }
 
 void slim::v_8::initialize(std::vector<std::string>& _v8_command_line_arguments) {
@@ -53,7 +60,8 @@ void slim::v_8::initialize(std::vector<std::string>& _v8_command_line_arguments)
 	v8::V8::InitializeICUDefaultLocation(slim::path::getExecutablePath().c_str());
 	log::debug(log::Message(__func__,"called InitializeICUDefaultLocation",__FILE__, __LINE__));
 
-	platform = v8::platform::NewDefaultPlatform();
+	platform = v8::platform::NewDefaultPlatform(0, // thread_pool_size = 0, no background threads
+        v8::platform::IdleTaskSupport::kDisabled, v8::platform::InProcessStackDumping::kDisabled);
 	log::debug(log::Message(__func__,"created platform",__FILE__, __LINE__));
 
 	v8::V8::InitializePlatform(platform.get());
@@ -92,6 +100,30 @@ v8::Isolate* slim::v_8::new_isolate(std::string label) {
 	}
 	log::trace(log::Message(__func__,"ends",__FILE__, __LINE__));
 	return isolate;
+}
+
+void slim::v_8::register_cleanup(v8::Isolate* isolate, std::function<void()> fn) {
+	log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+	std::lock_guard lock(isolates_mutex);
+	cleanup_hooks[isolate].push_back(std::move(fn));
+	log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+}
+
+void slim::v_8::run_cleanup(v8::Isolate* isolate) {
+	log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+	std::vector<std::function<void()>> hooks;
+	{
+		std::lock_guard lock(isolates_mutex);
+		auto it = cleanup_hooks.find(isolate);
+		if (it != cleanup_hooks.end()) {
+			hooks = std::move(it->second);
+			cleanup_hooks.erase(it);
+		}
+	}
+	for (auto& fn : hooks) {
+		fn();
+	}
+	log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
 }
 
 void slim::v_8::tear_down() {

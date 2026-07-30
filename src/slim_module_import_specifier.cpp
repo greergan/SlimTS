@@ -168,6 +168,10 @@ void slim::module::import_specifier::resolve_module_path(std::string_view specif
             else if(specifier_path_uri.string().starts_with("./")) {
                 temporary_specifier_string = specifier_path_uri.string().substr(1);
             }
+            else {
+                // bare /name with referrer — resolve filename against referrer's directory
+                temporary_specifier_string = "/" + specifier_path_uri.filename().string();
+            }
             specifier_path_ = std::filesystem::path(ref.specifier_path_.parent_path().string() + temporary_specifier_string);
             specifier_uri(specifier_path_.string());
         }

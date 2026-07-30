@@ -7,7 +7,7 @@ moduledir=${exec_prefix}/lib/SlimTS
 
 Name: SlimTS
 Description: SlimTS runtime
-Version: 0.3.0
+Version: 0.4.0
 
 Libs: -L${libdir} -lSlimTS
 Cflags: -I${includedir}

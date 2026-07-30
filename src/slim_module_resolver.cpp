@@ -95,10 +95,14 @@ v8::MaybeLocal<v8::Module> slim::module::resolver::module_call_back_resolver(v8:
 		}
 		else {
 			log::debug(log::Message(__func__, std::format("specifier is a file module => {}", specifier_name_string), __FILE__, __LINE__));
-			if(slim::configuration_handler::is_watching()) {
-				slim::file::watcher::add(specifier_name_string);
-			}
 			import_specifier module_specifier(isolate, specifier_name_string, false, referrer);
+			if(slim::configuration_handler::is_watching()) {
+				std::string watch_path = module_specifier.specifier_uri();
+				if(watch_path.starts_with("file://")) {
+					watch_path = watch_path.substr(7);
+				}
+				slim::file::watcher::add(watch_path);
+			}
 			module_specifier.compile_module();
 			if(module_specifier.v8_module()->GetStatus() == v8::Module::Status::kErrored) {
 				isolate->ThrowException(module_specifier.v8_module()->GetException());
