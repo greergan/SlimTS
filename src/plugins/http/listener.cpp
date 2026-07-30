@@ -4,9 +4,21 @@
 #include <slim/utilities.h>
 #include <slim/runtime.h>
 #include <slim/slim.h>
+#include <slim/slim_v8.h>
 
 namespace slim::plugin::http {
     using namespace slim::common;
+
+    struct WeakListenerData {
+        std::shared_ptr<ListenerState>* persistent_state;
+        v8::Global<v8::Object>*         persistent_listener;
+    };
+
+    void listener_async_iterator(const v8::FunctionCallbackInfo<v8::Value>& args) {
+        log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+        args.GetReturnValue().Set(args.This());
+        log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+    }
 
     void listener_next(const v8::FunctionCallbackInfo<v8::Value>& args) {
         log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
@@ -51,12 +63,6 @@ namespace slim::plugin::http {
         log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
     }
 
-    void listener_async_iterator(const v8::FunctionCallbackInfo<v8::Value>& args) {
-        log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
-        args.GetReturnValue().Set(args.This());
-        log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
-    }
-
     void serve(const v8::FunctionCallbackInfo<v8::Value>& args) {
         log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
         auto* isolate = args.GetIsolate();
@@ -80,7 +86,9 @@ namespace slim::plugin::http {
         log::debug(log::Message(__func__, "tcp server started", __FILE__, __LINE__));
 
         auto* persistent_state = new std::shared_ptr<ListenerState>(state);
-        v8::Local<v8::External> state_external = v8::External::New(isolate, state.get());
+
+        // use persistent_state->get() so the raw pointer remains valid after local state goes out of scope
+        v8::Local<v8::External> state_external = v8::External::New(isolate, persistent_state->get());
 
         v8::Local<v8::Object> listener = v8::Object::New(isolate);
 
@@ -112,15 +120,44 @@ namespace slim::plugin::http {
         }
         log::debug(log::Message(__func__, "asyncIterator set on listener", __FILE__, __LINE__));
 
-        // persistent_listener keeps ListenerState alive until GC collects the
-        // listener object. When collected, the weak callback deletes persistent_state.
         auto* persistent_listener = new v8::Global<v8::Object>(isolate, listener);
-        persistent_listener->SetWeak(persistent_state,
-            [](const v8::WeakCallbackInfo<std::shared_ptr<ListenerState>>& data) {
-                log::debug(log::Message(__func__, "listener GC'd, releasing persistent_state", __FILE__, __LINE__));
-                delete data.GetParameter();
+        auto* weak_listener_data = new WeakListenerData{ persistent_state, persistent_listener };
+
+        // weak callback: safety net for GC-before-shutdown; no-op if cleanup hook already ran
+        persistent_listener->SetWeak(weak_listener_data,
+            [](const v8::WeakCallbackInfo<WeakListenerData>& data) {
+                log::debug(log::Message(__func__, "listener GC'd, releasing persistent_state and persistent_listener", __FILE__, __LINE__));
+                auto* wld = data.GetParameter();
+                if (wld->persistent_state) {
+                    (*wld->persistent_state)->tcp_server.reset();
+                    delete wld->persistent_state;
+                    wld->persistent_state = nullptr;
+                }
+                if (wld->persistent_listener) {
+                    delete wld->persistent_listener;
+                    wld->persistent_listener = nullptr;
+                }
+                delete wld;
             },
             v8::WeakCallbackType::kParameter);
+
+        // register explicit cleanup hook: runs after stop is requested, before isolate disposal.
+        // breaks ListenerState → tcp_server → lambda → ListenerState cycle, then frees all bookkeeping.
+        slim::v_8::register_cleanup(isolate, [weak_listener_data]() {
+            log::debug(log::Message(__func__, "cleanup hook: releasing ListenerState and persistent_listener", __FILE__, __LINE__));
+            if (weak_listener_data->persistent_state) {
+                (*weak_listener_data->persistent_state)->tcp_server.reset();
+                delete weak_listener_data->persistent_state;
+                weak_listener_data->persistent_state = nullptr;
+            }
+            if (weak_listener_data->persistent_listener) {
+                weak_listener_data->persistent_listener->ClearWeak();
+                weak_listener_data->persistent_listener->Reset();
+                delete weak_listener_data->persistent_listener;
+                weak_listener_data->persistent_listener = nullptr;
+            }
+            delete weak_listener_data;
+        });
 
         log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
         args.GetReturnValue().Set(listener);
