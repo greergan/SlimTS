@@ -2,6 +2,7 @@
 #include <cerrno>
 #include <chrono>
 #include <cstring>
+#include <filesystem>
 #include <functional>
 #include <stdexcept>
 #include <string>
@@ -22,6 +23,7 @@ namespace slim::file::watcher {
     static int inotify_fd{-1};
     static int pipe_fd[2]{-1, -1};
     static std::unordered_map<int, std::string> wd_to_path;
+    static std::unordered_map<int, std::string> wd_to_dir;
 }
 
 void slim::file::watcher::add(std::string_view path) {
@@ -54,9 +56,14 @@ void slim::file::watcher::clear() {
             log::debug(log::Message(__func__, std::format("removing watch => {}", path), __FILE__, __LINE__));
             inotify_rm_watch(inotify_fd, wd);
         }
+        for(auto& [wd, dir] : wd_to_dir) {
+            log::debug(log::Message(__func__, std::format("removing dir watch => {}", dir), __FILE__, __LINE__));
+            inotify_rm_watch(inotify_fd, wd);
+        }
     }
     watched_paths.clear();
     wd_to_path.clear();
+    wd_to_dir.clear();
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
 }
 
@@ -98,6 +105,17 @@ void slim::file::watcher::watch() {
             throw std::runtime_error(std::format("inotify_add_watch failed for path => {}: {}", path, strerror(errno)));
         }
     }
+    // register any directories that were queued before inotify_fd was ready
+    std::vector<std::string> deferred_dirs;
+    for(auto& [wd, dir] : wd_to_dir) {
+        if(wd < 0) {
+            deferred_dirs.push_back(dir);
+        }
+    }
+    wd_to_dir.clear();
+    for(auto& dir : deferred_dirs) {
+        watch_dir(dir);
+    }
     running = true;
     constexpr int DEBOUNCE_MS = 500;
     constexpr int EVENT_BUF_SIZE = 1024 * (sizeof(inotify_event) + 16);
@@ -123,9 +141,23 @@ void slim::file::watcher::watch() {
             break;
         }
         if(FD_ISSET(inotify_fd, &fds)) {
-            read(inotify_fd, event_buf, EVENT_BUF_SIZE);
+            ssize_t len = read(inotify_fd, event_buf, EVENT_BUF_SIZE);
             last_event_time = std::chrono::steady_clock::now();
             pending = true;
+            // check for new subdirectory creation and add watches dynamically
+            ssize_t i = 0;
+            while(i < len) {
+                auto* event = reinterpret_cast<inotify_event*>(event_buf + i);
+                if((event->mask & IN_CREATE) && (event->mask & IN_ISDIR) && event->len > 0) {
+                    auto it = wd_to_dir.find(event->wd);
+                    if(it != wd_to_dir.end()) {
+                        std::string new_dir = it->second + "/" + event->name;
+                        log::debug(log::Message(__func__, std::format("new subdirectory detected => {}", new_dir), __FILE__, __LINE__));
+                        watch_dir(new_dir);
+                    }
+                }
+                i += sizeof(inotify_event) + event->len;
+            }
             log::debug(log::Message(__func__, "file change event received", __FILE__, __LINE__));
         }
         if(pending) {
@@ -157,5 +189,36 @@ void slim::file::watcher::watch() {
         close(inotify_fd);
         inotify_fd = -1;
     }
+    log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+}
+
+void slim::file::watcher::watch_dir(std::string_view path) {
+    log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+    log::debug(log::Message(__func__, std::format("watching directory => {}", path), __FILE__, __LINE__));
+    if(inotify_fd < 0) {
+        log::debug(log::Message(__func__, "inotify_fd not ready, deferring directory watch", __FILE__, __LINE__));
+        // store for watch() to register when it initializes
+        wd_to_dir[-1 - static_cast<int>(wd_to_dir.size())] = std::string(path);
+        log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+        return;
+    }
+    // recursively register watches for path and all subdirectories
+    std::function<void(const std::string&)> register_dir = [&](const std::string& dir_path) {
+        int wd = inotify_add_watch(inotify_fd, dir_path.c_str(),
+            IN_CREATE | IN_CLOSE_WRITE | IN_DELETE | IN_MOVED_FROM | IN_MOVED_TO);
+        if(wd >= 0) {
+            wd_to_dir[wd] = dir_path;
+            log::debug(log::Message(__func__, std::format("registered dir watch => {}", dir_path), __FILE__, __LINE__));
+        } else {
+            throw std::runtime_error(std::format("inotify_add_watch failed for dir => {}: {}", dir_path, strerror(errno)));
+        }
+        // recurse into subdirectories
+        for(auto& entry : std::filesystem::directory_iterator(dir_path)) {
+            if(entry.is_directory()) {
+                register_dir(entry.path().string());
+            }
+        }
+    };
+    register_dir(std::string(path));
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
 }
