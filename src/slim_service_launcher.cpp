@@ -90,6 +90,7 @@ void slim::service::launcher::launch(std::string_view specifier_uri) {
             //wake.semaphore.try_acquire_for(std::chrono::milliseconds(1));
             slim::isolate_wake::drain(isolate);
         }
+        slim::v_8::run_cleanup(isolate);
         slim::isolate_wake::unregister_isolate(isolate);
         log::debug(log::Message(__func__, "stop requested, exiting keep alive loop", __FILE__, __LINE__));
 
