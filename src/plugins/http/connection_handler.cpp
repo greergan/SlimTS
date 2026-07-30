@@ -51,7 +51,16 @@ namespace slim::plugin::http {
         slim::isolate_wake::post(state->isolate, [state, conn_state, request = std::move(request)]() mutable {
             log::trace(log::Message(__func__, "resolve task begins", __FILE__, __LINE__));
             auto* isolate = state->isolate;
+            v8::HandleScope handle_scope(isolate);
             auto context = isolate->GetCurrentContext();
+
+            // temporary: log heap stats each call
+            v8::HeapStatistics hs;
+            state->isolate->GetHeapStatistics(&hs);
+            log::debug(log::Message(__func__,
+                "heap used=" + std::to_string(hs.used_heap_size() / 1024) + "kb"
+                " total=" + std::to_string(hs.total_heap_size() / 1024) + "kb",
+                __FILE__, __LINE__));
 
             auto request_obj  = make_request_object(isolate, request);
             auto response_obj = make_response_object(isolate, conn_state);
