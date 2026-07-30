@@ -8,6 +8,12 @@
 namespace slim::plugin::http {
     using namespace slim::common;
 
+    // forward-declared here so both reply() lambda and the weak callback can use it
+    struct WeakData {
+        std::shared_ptr<ConnectionState>* conn_state_ptr;
+        v8::Global<v8::Object>*           persistent_response;
+    };
+
     v8::Local<v8::Object> make_response_object(v8::Isolate* isolate, std::shared_ptr<ConnectionState> conn_state) {
         log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
         auto context = isolate->GetCurrentContext();
@@ -31,10 +37,6 @@ namespace slim::plugin::http {
 
         // register weak callback on response_obj to delete conn_state_ptr when GC collects it.
         // this covers the case where reply() is never called (conn_state_ptr would otherwise leak).
-        struct WeakData {
-            std::shared_ptr<ConnectionState>* conn_state_ptr;
-            v8::Global<v8::Object>*           persistent_response;
-        };
         auto* persistent_response = new v8::Global<v8::Object>(isolate, response_obj);
         auto* weak_data = new WeakData{ conn_state_ptr, persistent_response };
         persistent_response->SetWeak(weak_data,
@@ -42,11 +44,23 @@ namespace slim::plugin::http {
                 log::debug(log::Message(__func__, "response GC'd, releasing conn_state_ptr and persistent_response",
                     __FILE__, __LINE__));
                 auto* wd = data.GetParameter();
-                delete wd->conn_state_ptr;
-                delete wd->persistent_response;
+                // null-guard: reply() may have already cleaned up
+                if (wd->conn_state_ptr) {
+                    delete wd->conn_state_ptr;
+                    wd->conn_state_ptr = nullptr;
+                }
+                if (wd->persistent_response) {
+                    delete wd->persistent_response;
+                    wd->persistent_response = nullptr;
+                }
                 delete wd;
             },
             v8::WeakCallbackType::kParameter);
+
+        // store weak_data as non-enumerable external so reply() can clean up explicitly
+        auto wd_external = v8::External::New(isolate, weak_data);
+        response_obj->DefineOwnProperty(context, utilities::StringToV8String(isolate, "__wd__"),
+            wd_external, v8::PropertyAttribute::DontEnum).Check();
 
         // reply(body, init?)
         auto reply_fn = v8::Function::New(context, [](const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -123,6 +137,19 @@ namespace slim::plugin::http {
 
             self->Set(context, utilities::StringToV8String(isolate, "bodyUsed"), v8::Boolean::New(isolate, true)).Check();
 
+            // clean up WeakData bookkeeping explicitly so the weak callback is a no-op if GC fires later
+            auto wd_external = self->Get(context, utilities::StringToV8String(isolate, "__wd__")).ToLocalChecked().As<v8::External>();
+            auto* wd = static_cast<WeakData*>(wd_external->Value());
+            if (wd) {
+                delete wd->conn_state_ptr;
+                wd->conn_state_ptr = nullptr;
+                wd->persistent_response->ClearWeak();
+                wd->persistent_response->Reset();
+                delete wd->persistent_response;
+                wd->persistent_response = nullptr;
+                delete wd;
+            }
+
             auto resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
             resolver->Resolve(context, v8::Undefined(isolate)).Check();
             args.GetReturnValue().Set(resolver->GetPromise());
@@ -161,7 +188,8 @@ namespace slim::plugin::http {
             auto context = isolate->GetCurrentContext();
             auto self = args.This();
             auto clone = v8::Object::New(isolate);
-            auto prop_names = self->GetOwnPropertyNames(context).ToLocalChecked();
+            // ONLY_ENUMERABLE excludes __conn__ and __wd__ (both DontEnum)
+            auto prop_names = self->GetOwnPropertyNames(context, v8::PropertyFilter::ONLY_ENUMERABLE).ToLocalChecked();
             for (uint32_t i = 0; i < prop_names->Length(); ++i) {
                 auto key = prop_names->Get(context, i).ToLocalChecked();
                 clone->Set(context, key, self->Get(context, key).ToLocalChecked()).Check();
