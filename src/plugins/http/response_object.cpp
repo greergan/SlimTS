@@ -133,6 +133,7 @@ namespace slim::plugin::http {
             } else {
                 log::debug(log::Message(__func__, "keeping connection alive, connection_header => '" +
                     conn_state->connection_header + "'", __FILE__, __LINE__));
+                conn_state_ptr->reset(); // destructor closes socket // temporary
             }
 
             self->Set(context, utilities::StringToV8String(isolate, "bodyUsed"), v8::Boolean::New(isolate, true)).Check();
@@ -140,7 +141,7 @@ namespace slim::plugin::http {
             // clean up WeakData bookkeeping explicitly so the weak callback is a no-op if GC fires later
             auto wd_external = self->Get(context, utilities::StringToV8String(isolate, "__wd__")).ToLocalChecked().As<v8::External>();
             auto* wd = static_cast<WeakData*>(wd_external->Value());
-            if (wd) {
+            if (wd && wd->conn_state_ptr) { // conn_state_ptr null → reply already called
                 delete wd->conn_state_ptr;
                 wd->conn_state_ptr = nullptr;
                 wd->persistent_response->ClearWeak();
@@ -148,6 +149,10 @@ namespace slim::plugin::http {
                 delete wd->persistent_response;
                 wd->persistent_response = nullptr;
                 delete wd;
+                // null out the external so a second call is a no-op
+                wd_external->Value(); // can't mutate External; zero the property instead
+                self->DefineOwnProperty(context, utilities::StringToV8String(isolate, "__wd__"),
+                    v8::External::New(isolate, nullptr), v8::PropertyAttribute::DontEnum).Check();
             }
 
             auto resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
