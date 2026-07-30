@@ -1,5 +1,5 @@
 AC_COPYRIGHT([[Copyright 2022-2026 Jeff Greer. All rights reserved. Restrictions apply, see COPYRIGHT and LICENSE files.]])
-AC_INIT([SlimTS], [0.3.0])
+AC_INIT([SlimTS], [0.4.0])
 AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([include/config.h])
