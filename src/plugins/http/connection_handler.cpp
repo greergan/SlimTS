@@ -53,19 +53,10 @@ namespace slim::plugin::http {
             auto* isolate = state->isolate;
             v8::HandleScope handle_scope(isolate);
             auto context = isolate->GetCurrentContext();
-
-            // temporary: log heap stats each call
-            v8::HeapStatistics hs;
-            state->isolate->GetHeapStatistics(&hs);
-            log::debug(log::Message(__func__,
-                "heap used=" + std::to_string(hs.used_heap_size() / 1024) + "kb"
-                " total=" + std::to_string(hs.total_heap_size() / 1024) + "kb",
-                __FILE__, __LINE__));
-
             auto request_obj  = make_request_object(isolate, request);
             auto response_obj = make_response_object(isolate, conn_state);
-
             auto event_obj = v8::Object::New(isolate);
+
             if (event_obj->Set(context, utilities::StringToV8String(isolate, "request"), request_obj).IsNothing()) {
                 log::error(log::Message(__func__, "failed to set request on event", __FILE__, __LINE__));
                 return;
