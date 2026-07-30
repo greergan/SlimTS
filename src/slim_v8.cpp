@@ -35,6 +35,10 @@ void slim::v_8::dispose_isolate(std::string_view label) {
 	log::trace(log::Message(__func__,"ends",__FILE__, __LINE__));
 }
 
+v8::Platform* slim::v_8::get_platform() {
+    return platform.get();
+}
+
 void slim::v_8::initialize(std::vector<std::string>& _v8_command_line_arguments) {
 	log::trace(log::Message(__func__,"begins",__FILE__, __LINE__));
 	int* arg_count = (int*)0; //_v8_command_line_arguments.size();
@@ -56,7 +60,8 @@ void slim::v_8::initialize(std::vector<std::string>& _v8_command_line_arguments)
 	v8::V8::InitializeICUDefaultLocation(slim::path::getExecutablePath().c_str());
 	log::debug(log::Message(__func__,"called InitializeICUDefaultLocation",__FILE__, __LINE__));
 
-	platform = v8::platform::NewDefaultPlatform();
+	platform = v8::platform::NewDefaultPlatform(0, // thread_pool_size = 0, no background threads
+        v8::platform::IdleTaskSupport::kDisabled, v8::platform::InProcessStackDumping::kDisabled);
 	log::debug(log::Message(__func__,"created platform",__FILE__, __LINE__));
 
 	v8::V8::InitializePlatform(platform.get());
