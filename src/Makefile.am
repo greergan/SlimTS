@@ -21,7 +21,8 @@ slimts_SOURCES  = main.cpp \
 				slim_v8.cpp \
 				simdutf.cpp
 slimts_CPPFLAGS  = -DV8_COMPRESS_POINTERS -DV8_ENABLE_SANDBOX -fno-rtti
+#slimts_CPPFLAGS  = -DV8_COMPRESS_POINTERS -DV8_ENABLE_SANDBOX -fno-rtti -fsanitize=address
 slimts_LDFLAGS   = -static-libgcc -static-libstdc++ -pthread -rdynamic
-#slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lssl -lcrypto
-#slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lssl -lcrypto -lslimcommon -ltsgo -lasan
+#slimts_LDFLAGS   = -static-libgcc -static-libstdc++ -pthread -rdynamic -fsanitize=address
 slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lssl -lcrypto -lslimcommon -ltsgo
+#slimts_LDADD     = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lssl -lcrypto -lslimcommon -ltsgo -lasan
