@@ -34,9 +34,7 @@ get_modules_for_commit() {
         [ -z "$file" ] && continue
 
         local mod="core"
-        if [[ "$file" =~ ^types/ ]]; then
-            mod="types"
-        elif [[ "$file" =~ src/plugins/([^/]+)/ ]]; then
+        if [[ "$file" =~ src/plugins/([^/]+)/ ]]; then
             mod="${BASH_REMATCH[1]}"
         fi
 
@@ -110,16 +108,21 @@ fi
 VERSION=$(echo "$LAST_TAG" | sed 's/^v//')
 MAJOR=$(echo "$VERSION" | cut -d. -f1)
 MINOR=$(echo "$VERSION" | cut -d. -f2)
-PATCH=$(echo "$VERSION" | cut -d. -f3)
 
 if [ "$BUMP" = "minor" ]; then
     MINOR=$((MINOR + 1))
-    PATCH=0
+    NEW_TAG="v$MAJOR.$MINOR"
 else
+    PATCH=$(echo "$VERSION" | cut -d. -f3)
     PATCH=$((PATCH + 1))
+    NEW_TAG="v$MAJOR.$MINOR.$PATCH"
 fi
 
-NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+# Check if the calculated tag already exists to prevent multiple bumps
+if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+    echo "version: tag $NEW_TAG already exists"
+    exit 0
+fi
 
 # 5. Extract package versions using pkg-config if available
 SLIMCOMMON_VER=$(pkg-config --modversion slimcommon 2>/dev/null || echo "unknown")
