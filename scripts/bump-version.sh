@@ -59,9 +59,7 @@ while IFS='|' read -r commit_hash raw_msg; do
         MATCHED_TYPE=""
 
         if echo "$msg" | grep -qE '^(feature|refactor):'; then
-            if [ "$BUMP" != "minor" ]; then
-                BUMP="minor"
-            fi
+            BUMP="minor"
             if [[ "$msg" =~ ^feature: ]]; then MATCHED_TYPE="feature"; else MATCHED_TYPE="refactor"; fi
             is_bump=true
         elif echo "$msg" | grep -qE '^(fix|docs|config):'; then
@@ -106,17 +104,18 @@ fi
 
 # 4. Calculate the new version number
 VERSION=$(echo "$LAST_TAG" | sed 's/^v//')
-MAJOR=$(echo "$VERSION" | cut -d. -f1)
-MINOR=$(echo "$VERSION" | cut -d. -f2)
+IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+MINOR=${MINOR:-0}
+PATCH=${PATCH:-0}
 
 if [ "$BUMP" = "minor" ]; then
     MINOR=$((MINOR + 1))
-    NEW_TAG="v$MAJOR.$MINOR"
+    PATCH=0
 else
-    PATCH=$(echo "$VERSION" | cut -d. -f3)
     PATCH=$((PATCH + 1))
-    NEW_TAG="v$MAJOR.$MINOR.$PATCH"
 fi
+
+NEW_TAG="v$MAJOR.$MINOR.$PATCH"
 
 # Check if the calculated tag already exists to prevent multiple bumps
 if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
