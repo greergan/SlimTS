@@ -112,8 +112,7 @@ dnl ------------------------------------------------------------
 dnl SlimCommon
 dnl ------------------------------------------------------------
 PKG_CHECK_MODULES([SLIMCOMMON], [slimcommon],
-    [CPPFLAGS="$CPPFLAGS $SLIMCOMMON_CFLAGS"
-     LIBS="$LIBS $SLIMCOMMON_LIBS"],
+    [CPPFLAGS="$CPPFLAGS $SLIMCOMMON_CFLAGS"],
     [AC_MSG_ERROR([SlimCommon is required but not found])]
 )
 

@@ -1,4 +1,5 @@
-SUBDIRS=plugins
+SUBDIRS = plugins
+
 bin_PROGRAMS  = slimts
 slimts_SOURCES  = main.cpp \
 				slim.cpp \
@@ -21,4 +22,7 @@ slimts_SOURCES  = main.cpp \
 				simdutf.cpp
 
 slimts_LDFLAGS = -static-libgcc -static-libstdc++ -pthread -rdynamic
-slimts_LDADD   = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lssl -lcrypto -lslimcommon -ltsgo
+slimts_LDADD   = -ldl -lv8_monolith -lv8_libbase -lv8_libplatform -lssl -lcrypto -l:libslimcommon.a -ltsgo
+
+all-local:
+	strip --strip-unneeded $(builddir)/slimts
