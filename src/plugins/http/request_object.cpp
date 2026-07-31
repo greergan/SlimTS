@@ -1,13 +1,18 @@
 #include "http_plugin.h"
 
+#include "config.h"
+#ifdef ENABLE_LOGGING
 #include <slim/common/log.h>
+#endif
 #include <slim/utilities.h>
 
 namespace slim::plugin::http {
     using namespace slim::common;
 
     v8::Local<v8::Object> make_request_object(v8::Isolate* isolate, slim::common::http::Request& request) {
+#ifdef ENABLE_LOGGING
         log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
         auto context = isolate->GetCurrentContext();
         auto request_obj = v8::Object::New(isolate);
 
@@ -98,7 +103,9 @@ namespace slim::plugin::http {
         request_obj->Set(context, utilities::StringToV8String(isolate, "integrity"), utilities::StringToV8String(isolate, "")).Check();
         request_obj->Set(context, utilities::StringToV8String(isolate, "keepalive"), v8::Boolean::New(isolate, false)).Check();
 
+#ifdef ENABLE_LOGGING
         log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
         return request_obj;
     }
 

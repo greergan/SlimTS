@@ -1,14 +1,19 @@
 #include "http_plugin.h"
 
 #include <algorithm>
+#include "config.h"
+#ifdef ENABLE_LOGGING
 #include <slim/common/log.h>
+#endif
 #include <slim/utilities.h>
 
 namespace slim::plugin::http {
     using namespace slim::common;
 
     v8::Local<v8::Object> make_headers_object(v8::Isolate* isolate, const slim::common::http::Headers& headers) {
+#ifdef ENABLE_LOGGING
         log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
         auto context = isolate->GetCurrentContext();
         auto headers_obj = v8::Object::New(isolate);
 
@@ -258,7 +263,9 @@ namespace slim::plugin::http {
         headers_obj->Set(context, utilities::StringToV8String(isolate, "getSetCookie"), get_set_cookie_fn).Check();
         headers_obj->Set(context, v8::Symbol::GetIterator(isolate), symbol_iterator_fn).Check();
 
+#ifdef ENABLE_LOGGING
         log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
         return headers_obj;
     }
 
