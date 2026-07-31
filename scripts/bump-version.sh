@@ -102,6 +102,10 @@ if [ -z "$BUMP" ]; then
     exit 0
 fi
 
+# Deduplicate changelog entries while preserving order
+CHANGELOG=$(printf '%s' "$CHANGELOG" | awk '!seen[$0]++')
+[ -n "$CHANGELOG" ] && CHANGELOG="${CHANGELOG}"$'\n'
+
 # 4. Calculate the new version number
 VERSION=$(echo "$LAST_TAG" | sed 's/^v//')
 IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
