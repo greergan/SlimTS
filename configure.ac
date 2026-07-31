@@ -1,5 +1,5 @@
 AC_COPYRIGHT([[Copyright 2022-2026 Jeff Greer. All rights reserved. Restrictions apply, see COPYRIGHT and LICENSE files.]])
-AC_INIT([SlimTS], [m4_esyscmd_s([git describe --always --tags --dirty 2>/dev/null | sed 's/^v//' || echo "0.0.0"])])
+AC_INIT([SlimTS], m4_esyscmd_s([git describe --always --tags 2>/dev/null | sed 's/^v//' | cut -d'-' -f1 || echo "0.0.0"]))
 AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([include/config.h])
