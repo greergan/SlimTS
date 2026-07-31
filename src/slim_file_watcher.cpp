@@ -12,9 +12,13 @@
 #include <sys/inotify.h>
 #include <sys/select.h>
 #include <unistd.h>
+#include "config.h"
+#ifdef ENABLE_LOGGING
 #include <slim/common/log.h>
+#endif
 #include <slim/file/watcher.h>
 
+namespace slim::common {}
 namespace slim::file::watcher {
     using namespace slim::common;
     static std::vector<std::string> watched_paths;
@@ -27,20 +31,28 @@ namespace slim::file::watcher {
 }
 
 void slim::file::watcher::add(std::string_view path) {
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
     //watched_paths.emplace_back(path.substr(7));
     watched_paths.emplace_back(path);
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, std::format("adding path => {}", watched_paths.back()), __FILE__, __LINE__));
+#endif
     if(inotify_fd >= 0) {
         int wd = inotify_add_watch(inotify_fd, watched_paths.back().c_str(), IN_CLOSE_WRITE);
         if(wd >= 0) {
             wd_to_path[wd] = watched_paths.back();
+#ifdef ENABLE_LOGGING
             log::debug(log::Message(__func__, std::format("registered watch => {}", watched_paths.back()), __FILE__, __LINE__));
+#endif
         } else {
             throw std::runtime_error(std::format("inotify_add_watch failed for path => {}: {}", watched_paths.back(), strerror(errno)));
         }
     }
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
 }
 
 // Clears registered watches and bookkeeping only. Does NOT touch
@@ -50,27 +62,39 @@ void slim::file::watcher::add(std::string_view path) {
 // on_change callback without killing the loop or the fd out from
 // under itself.
 void slim::file::watcher::clear() {
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
     if(inotify_fd >= 0) {
         for(auto& [wd, path] : wd_to_path) {
+#ifdef ENABLE_LOGGING
             log::debug(log::Message(__func__, std::format("removing watch => {}", path), __FILE__, __LINE__));
+#endif
             inotify_rm_watch(inotify_fd, wd);
         }
         for(auto& [wd, dir] : wd_to_dir) {
+#ifdef ENABLE_LOGGING
             log::debug(log::Message(__func__, std::format("removing dir watch => {}", dir), __FILE__, __LINE__));
+#endif
             inotify_rm_watch(inotify_fd, wd);
         }
     }
     watched_paths.clear();
     wd_to_path.clear();
     wd_to_dir.clear();
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
 }
 
 void slim::file::watcher::on_change(std::function<void()> restart) {
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
     restart_callback = std::move(restart);
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
 }
 
 // Thread-safe: only flips the atomic running flag and writes to the
@@ -78,17 +102,27 @@ void slim::file::watcher::on_change(std::function<void()> restart) {
 // inotify_fd is never touched here -- it's closed by watch() itself,
 // on the watcher thread, after the loop breaks.
 void slim::file::watcher::stop() {
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
     running = false;
     if(pipe_fd[1] >= 0) {
         char byte = 0;
-        write(pipe_fd[1], &byte, 1);
+        if (write(pipe_fd[1], &byte, 1) < 0) {
+#ifdef ENABLE_LOGGING
+            log::error(log::Message(__func__, "write to pipe failed => " + std::string(strerror(errno)), __FILE__, __LINE__));
+#endif
+        }
     }
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
 }
 
 void slim::file::watcher::watch() {
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
     inotify_fd = inotify_init();
     if(inotify_fd < 0) {
         throw std::runtime_error(std::format("inotify_init failed: {}", strerror(errno)));
@@ -100,7 +134,9 @@ void slim::file::watcher::watch() {
         int wd = inotify_add_watch(inotify_fd, path.c_str(), IN_CLOSE_WRITE);
         if(wd >= 0) {
             wd_to_path[wd] = path;
+#ifdef ENABLE_LOGGING
             log::debug(log::Message(__func__, std::format("watching path => {}", path), __FILE__, __LINE__));
+#endif
         } else {
             throw std::runtime_error(std::format("inotify_add_watch failed for path => {}: {}", path, strerror(errno)));
         }
@@ -137,7 +173,9 @@ void slim::file::watcher::watch() {
             throw std::runtime_error(std::format("select failed: {}", strerror(errno)));
         }
         if(FD_ISSET(pipe_fd[0], &fds)) {
+#ifdef ENABLE_LOGGING
             log::debug(log::Message(__func__, "stop signal received", __FILE__, __LINE__));
+#endif
             break;
         }
         if(FD_ISSET(inotify_fd, &fds)) {
@@ -152,20 +190,26 @@ void slim::file::watcher::watch() {
                     auto it = wd_to_dir.find(event->wd);
                     if(it != wd_to_dir.end()) {
                         std::string new_dir = it->second + "/" + event->name;
+#ifdef ENABLE_LOGGING
                         log::debug(log::Message(__func__, std::format("new subdirectory detected => {}", new_dir), __FILE__, __LINE__));
+#endif
                         watch_dir(new_dir);
                     }
                 }
                 i += sizeof(inotify_event) + event->len;
             }
+#ifdef ENABLE_LOGGING
             log::debug(log::Message(__func__, "file change event received", __FILE__, __LINE__));
+#endif
         }
         if(pending) {
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - last_event_time).count();
             if(elapsed >= DEBOUNCE_MS) {
                 pending = false;
+#ifdef ENABLE_LOGGING
                 log::debug(log::Message(__func__, "debounce elapsed, invoking restart callback", __FILE__, __LINE__));
+#endif
                 if(restart_callback) {
                     restart_callback();
                     // drain stale events accumulated during restart
@@ -189,17 +233,27 @@ void slim::file::watcher::watch() {
         close(inotify_fd);
         inotify_fd = -1;
     }
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
 }
 
 void slim::file::watcher::watch_dir(std::string_view path) {
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, std::format("watching directory => {}", path), __FILE__, __LINE__));
+#endif
     if(inotify_fd < 0) {
+#ifdef ENABLE_LOGGING
         log::debug(log::Message(__func__, "inotify_fd not ready, deferring directory watch", __FILE__, __LINE__));
+#endif
         // store for watch() to register when it initializes
         wd_to_dir[-1 - static_cast<int>(wd_to_dir.size())] = std::string(path);
+#ifdef ENABLE_LOGGING
         log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
         return;
     }
     // recursively register watches for path and all subdirectories
@@ -208,7 +262,9 @@ void slim::file::watcher::watch_dir(std::string_view path) {
             IN_CREATE | IN_CLOSE_WRITE | IN_DELETE | IN_MOVED_FROM | IN_MOVED_TO);
         if(wd >= 0) {
             wd_to_dir[wd] = dir_path;
+#ifdef ENABLE_LOGGING
             log::debug(log::Message(__func__, std::format("registered dir watch => {}", dir_path), __FILE__, __LINE__));
+#endif
         } else {
             throw std::runtime_error(std::format("inotify_add_watch failed for dir => {}: {}", dir_path, strerror(errno)));
         }
@@ -220,5 +276,7 @@ void slim::file::watcher::watch_dir(std::string_view path) {
         }
     };
     register_dir(std::string(path));
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
 }

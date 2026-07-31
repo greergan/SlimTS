@@ -6,7 +6,10 @@
 #include <string>
 #include <vector>
 #include <v8.h>
+#include "config.h"
+#ifdef ENABLE_LOGGING
 #include <slim/common/log.h>
+#endif
 #include <slim/utilities.h>
 
 #include <iostream>
@@ -49,7 +52,9 @@ std::string slim::utilities::print_property_type(v8::Isolate* isolate, v8::Local
 	return local_string;
 }
 void slim::utilities::print_v8_array_buffer(v8::Isolate* isolate, const v8::Local<v8::ArrayBuffer>& array_buffer) {
+#ifdef ENABLE_LOGGING
 	slim::common::log::debug(slim::common::log::Message("print_v8_array_buffer size => ", std::to_string(array_buffer->ByteLength()).c_str(), "", 0));
+#endif
 	auto backing_store = array_buffer->GetBackingStore();
 	unsigned char* array_buffer_data_pointer = static_cast<unsigned char*>(backing_store->Data());
 	for(long count = 0; count < array_buffer->ByteLength(); count++) {
@@ -68,7 +73,9 @@ void slim::utilities::print_v8_object_keys(v8::Isolate* isolate, const v8::Local
 	for(int array_index = 0; array_index < property_names_array->Length(); array_index++) {
 		auto v8_property_name = property_names_array->Get(isolate->GetCurrentContext(), array_index).ToLocalChecked();
 		std::string property_name_string = slim::utilities::v8ValueToString(isolate, v8_property_name);
+#ifdef ENABLE_LOGGING
 		slim::common::log::debug(slim::common::log::Message("print_object_keys => ", property_name_string.c_str(), "", 0));
+#endif
 	}
 }
 int slim::utilities::ArrayCount(v8::Local<v8::Value> value) {

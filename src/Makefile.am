@@ -9,7 +9,6 @@ slimts_SOURCES  = main.cpp \
 				slim_exception_handler.cpp \
 				slim_file_watcher.cpp \
 				slim_isolate_wake.cpp \
-				slim_macros.cpp \
 				slim_module_import_specifier.cpp \
 				slim_module_resolver.cpp \
 				slim_runtime.cpp \

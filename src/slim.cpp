@@ -13,7 +13,9 @@
 #include <slim/service/launcher.h>
 #include <slim/slim.h>
 #include <slim/slim_v8.h>
+#ifdef ENABLE_LOGGING
 #include <slim/common/log.h>
+#endif
 #include <libtsgo.h>
 
 namespace slim {
@@ -24,11 +26,15 @@ static std::once_flag ssl_init_flag;
 static bool restart_requested = false;
 
 static void initialize_ssl() {
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
     SSL_library_init();
     SSL_load_error_strings();
     OpenSSL_add_all_algorithms();
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
 }
 } // namespace
 
@@ -41,42 +47,62 @@ bool is_restart_requested() {
 }
 
 void restart() {
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
     restart_requested = true;
     slim::stop();
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
 }
 
 void start() {
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
     restart_requested = false;
     stop_source = std::stop_source{};
     std::call_once(ssl_init_flag, initialize_ssl);
     auto script_name = slim::configuration_handler::get_script_name();
     if(script_name.empty()) {
         std::println("usage: slimts [options] <script>");
+#ifdef ENABLE_LOGGING
         log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
         return;
     }
     load_types_dir((char*)(std::filesystem::current_path().string() + "/types").c_str());
     if(slim::configuration_handler::is_watching()) {
 		slim::file::watcher::watch_dir(std::filesystem::current_path().string() + "/types");
     }
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, "starting runtime instance", __FILE__, __LINE__));
+#endif
     slim::runtime::instance().start();
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, std::format("launching script => {}", script_name), __FILE__, __LINE__));
+#endif
     auto launch_script_future = std::async(std::launch::async, slim::service::launcher::launch, script_name);
     launch_script_future.get();
     slim::v_8::dispose_isolate(script_name);
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, "stop runtime instance", __FILE__, __LINE__));
+#endif
     slim::runtime::instance().stop();
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
 }
 
 void stop() {
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
     stop_source.request_stop();
+#ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
 }
 
 void version() {

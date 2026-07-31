@@ -2,7 +2,10 @@
 
 #include <format>
 #include <sys/socket.h>
+#include "config.h"
+#ifdef ENABLE_LOGGING
 #include <slim/common/log.h>
+#endif
 #include <slim/utilities.h>
 
 namespace slim::plugin::http {
@@ -15,7 +18,9 @@ namespace slim::plugin::http {
     };
 
     v8::Local<v8::Object> make_response_object(v8::Isolate* isolate, std::shared_ptr<ConnectionState> conn_state) {
+#ifdef ENABLE_LOGGING
         log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
+#endif
         auto context = isolate->GetCurrentContext();
         auto response_obj = v8::Object::New(isolate);
 
@@ -41,8 +46,10 @@ namespace slim::plugin::http {
         auto* weak_data = new WeakData{ conn_state_ptr, persistent_response };
         persistent_response->SetWeak(weak_data,
             [](const v8::WeakCallbackInfo<WeakData>& data) {
+#ifdef ENABLE_LOGGING
                 log::debug(log::Message(__func__, "response GC'd, releasing conn_state_ptr and persistent_response",
                     __FILE__, __LINE__));
+#endif
                 auto* wd = data.GetParameter();
                 // null-guard: reply() may have already cleaned up
                 if (wd->conn_state_ptr) {
@@ -108,7 +115,9 @@ namespace slim::plugin::http {
                 status, status_text, body_str.size(), headers_str, body_str);
 
             // raw blocking send — reply_fn runs on V8 thread, cannot co_await
+#ifdef ENABLE_LOGGING
             log::debug(log::Message(__func__, "writing reply", __FILE__, __LINE__));
+#endif
             {
                 const char* data      = response.data();
                 size_t      remaining = response.size();
@@ -116,23 +125,31 @@ namespace slim::plugin::http {
                     ssize_t sent = ::send(conn_state->fd, data, remaining, MSG_NOSIGNAL);
                     if (sent < 0) {
                         if (errno == EAGAIN || errno == EWOULDBLOCK) continue;
+#ifdef ENABLE_LOGGING
                         log::error(log::Message(__func__, "send failed => " + std::string(strerror(errno)), __FILE__, __LINE__));
+#endif
                         break;
                     }
                     data      += sent;
                     remaining -= static_cast<size_t>(sent);
                 }
             }
+#ifdef ENABLE_LOGGING
             log::debug(log::Message(__func__, "reply written", __FILE__, __LINE__));
+#endif
 
             // close connection unless client requested keep-alive
             if (conn_state->connection_header != "keep-alive") {
+#ifdef ENABLE_LOGGING
                 log::debug(log::Message(__func__, "closing connection (not keep-alive), connection_header => '" +
                     conn_state->connection_header + "'", __FILE__, __LINE__));
+#endif
                 conn_state_ptr->reset(); // destructor closes socket
             } else {
+#ifdef ENABLE_LOGGING
                 log::debug(log::Message(__func__, "keeping connection alive, connection_header => '" +
                     conn_state->connection_header + "'", __FILE__, __LINE__));
+#endif
                 conn_state_ptr->reset(); // destructor closes socket // temporary
             }
 
@@ -220,7 +237,9 @@ namespace slim::plugin::http {
         response_obj->Set(context, utilities::StringToV8String(isolate, "clone"), clone_fn).Check();
         response_obj->Set(context, utilities::StringToV8String(isolate, "error"), error_fn).Check();
 
+#ifdef ENABLE_LOGGING
         log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
+#endif
         return response_obj;
     }
 

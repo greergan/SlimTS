@@ -5,7 +5,10 @@
 #include <unordered_set>
 #include <vector>
 #include <v8.h>
+#include "config.h"
+#ifdef ENABLE_LOGGING
 #include <slim/common/log.h>
+#endif
 #include <slim/common/memory/mapper.h>
 #include <slim/common/utilities.h>
 #include <slim/exception_handler.h>
@@ -38,25 +41,41 @@ slim::module::import_specifier::import_specifier(v8::Isolate* isolate, std::stri
             }
         }
     }
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, "specifier_string => " + std::string(specifier_string), __FILE__, __LINE__));
+#endif
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, "is_entry_point => " + std::string(is_entry_point ? "true" : "false"), __FILE__, __LINE__));
+#endif
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, "referrer_.IsEmpty => " + std::string(referrer_.IsEmpty() ? "true" : "false"), __FILE__, __LINE__));
+#endif
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, "slim_library_path => " + slim_library_path_string, __FILE__, __LINE__));
+#endif
     if(specifier_string.starts_with("http://") || specifier_string.starts_with("https://")) {
+#ifdef ENABLE_LOGGING
         log::debug(log::Message(__func__, "taking http/https path", __FILE__, __LINE__));
+#endif
         specifier_uri(specifier_string);
     }
     else if((specifier_string.starts_with("./") || specifier_string.starts_with("../")) && !referrer_.IsEmpty()) {
+#ifdef ENABLE_LOGGING
         log::debug(log::Message(__func__, "taking relative path with referrer", __FILE__, __LINE__));
+#endif
         auto referrer_import_specifier = slim::module::resolver::get_import_specifier_by_hash_id(referrer_->GetIdentityHash());
         if(!referrer_import_specifier.has_value()) {
             isolate_->ThrowException(slim::utilities::StringToV8String(isolate_, "referrer not found in cache"));
             return;
         }
         import_specifier& ref = referrer_import_specifier.value().get();
+#ifdef ENABLE_LOGGING
         log::debug(log::Message(__func__, "referrer specifier_uri => " + ref.specifier_uri_, __FILE__, __LINE__));
+#endif
         if(ref.specifier_uri_.starts_with("http://") || ref.specifier_uri_.starts_with("https://")) {
+#ifdef ENABLE_LOGGING
             log::debug(log::Message(__func__, "taking http/https relative path", __FILE__, __LINE__));
+#endif
             std::string referrer_uri = ref.specifier_uri_;
             auto last_slash = referrer_uri.rfind('/');
             std::string base = referrer_uri.substr(0, last_slash + 1);
@@ -69,20 +88,34 @@ slim::module::import_specifier::import_specifier(v8::Isolate* isolate, std::stri
             }
         }
         else {
+#ifdef ENABLE_LOGGING
             log::debug(log::Message(__func__, "taking relative file path", __FILE__, __LINE__));
+#endif
             resolve_module_path(specifier_string);
         }
     }
     else {
+#ifdef ENABLE_LOGGING
         log::debug(log::Message(__func__, "taking default resolve_module_path", __FILE__, __LINE__));
+#endif
         resolve_module_path(specifier_string);
     }
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, "specifier_uri_ => " + specifier_uri_, __FILE__, __LINE__));
+#endif
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, "specifier_path_ => " + specifier_path_.string(), __FILE__, __LINE__));
+#endif
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, "specifier_protocol_ => " + specifier_protocol_, __FILE__, __LINE__));
+#endif
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, "calling fetch_and_transpile", __FILE__, __LINE__));
+#endif
     transpiled_source_code_ = fetch_and_transpile((char*)specifier_uri_.c_str());
+#ifdef ENABLE_LOGGING
     log::debug(log::Message(__func__, "transpiled_source_code_ size => " + transpiled_source_code_.view().size(), __FILE__, __LINE__));
+#endif
 }
 
 void slim::module::import_specifier::compile_module() {

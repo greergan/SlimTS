@@ -1,6 +1,9 @@
 #include <future>
 #include <memory>
+#include "config.h"
+#ifdef ENABLE_LOGGING
 #include <slim/common/log.h>
+#endif
 #include <slim/common/network/client/request/handler/metrics.h>
 #include <slim/common/network/address_set.h>
 #include <slim/common/network/listener.h>
@@ -13,17 +16,23 @@ namespace slim::metrics::server {
 	void reset();
 }
 void slim::metrics::server::start() {
+#ifdef ENABLE_LOGGING
 	log::trace(log::Message("slim::metrics::server::start()","begins",__FILE__,__LINE__));
+#endif
 	//network::address::AddressSet metrics_server_address_set{9090,"127.0.0.1"};
 	std::shared_ptr<network::listener::Information> metrics_server_listener_information 
 		= std::make_shared<network::listener::Information>(network::listener::Information{{"127.0.0.1:9090"}, 100, 4});
+#ifdef ENABLE_LOGGING
 	log::info("Starting metrics server on http://" +  metrics_server_listener_information->address_set.address() 
 										+ ":" + std::to_string(metrics_server_listener_information->address_set.port()));
+#endif
 	metrics_server_promise = std::async(std::launch::async,
 		slim::common::network::listener::standard,
 		metrics_server_listener_information,
 		std::ref(slim::common::network::client::request::handler::metrics::handle_request),
 		std::ref(metrics)
 	);
+#ifdef ENABLE_LOGGING
 	log::trace(log::Message("slim::metrics::server::start()","begins",__FILE__,__LINE__));
+#endif
 }
