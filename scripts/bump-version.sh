@@ -22,27 +22,30 @@ printf '%s\n' "$COMMITS" > "$TMPFILE"
 BUMP=""
 CHANGELOG=""
 
-# Helper function to derive module name strictly: plugins get their plugin name, types get 'types', everything else is 'core'
-get_module_name() {
+# Helper function to derive all unique modules touched by a commit's files
+get_modules_for_commit() {
     local commit_hash="$1"
     local files
     files=$(git diff-tree --no-commit-id --name-only -r "$commit_hash" 2>/dev/null || true)
 
-    local module="core"
+    local found_modules=""
 
     while IFS= read -r file; do
         [ -z "$file" ] && continue
 
+        local mod="core"
         if [[ "$file" =~ ^types/ ]]; then
-            module="types"
-            break
+            mod="types"
         elif [[ "$file" =~ src/plugins/([^/]+)/ ]]; then
-            module="${BASH_REMATCH[1]}"
-            break
+            mod="${BASH_REMATCH[1]}"
+        fi
+
+        if [[ ! " $found_modules " =~ [[:space:]]"$mod"[[:space:]] ]]; then
+            found_modules="${found_modules} ${mod}"
         fi
     done <<< "$files"
 
-    echo "$module"
+    echo "${found_modules# }"
 }
 
 # 3. Parse commits and normalize inline multi-prefixes
@@ -87,8 +90,11 @@ while IFS='|' read -r commit_hash raw_msg; do
                 CHANGELOG="${CHANGELOG}- ${msg}"$'\n'
             else
                 clean_desc=$(echo "$msg" | sed -E "s/^(feature|refactor|fix|docs|config|update): *//")
-                MODULE=$(get_module_name "$commit_hash")
-                CHANGELOG="${CHANGELOG}- ${MATCHED_TYPE}(${MODULE}): ${clean_desc}"$'\n'
+
+                MODS=$(get_modules_for_commit "$commit_hash")
+                for MODULE in $MODS; do
+                    CHANGELOG="${CHANGELOG}- ${MATCHED_TYPE}(${MODULE}): ${clean_desc}"$'\n'
+                done
             fi
         fi
     done <<< "$normalized_msg"
@@ -115,7 +121,7 @@ fi
 
 NEW_TAG="v$MAJOR.$MINOR.$PATCH"
 
-# 5. Extract package versions using pkg-config if available (checking boringssl instead of openssl)
+# 5. Extract package versions using pkg-config if available
 SLIMCOMMON_VER=$(pkg-config --modversion slimcommon 2>/dev/null || echo "unknown")
 LIBTSGO_VER=$(pkg-config --modversion libtsgo 2>/dev/null || echo "unknown")
 BORINGSSL_VER=$(pkg-config --modversion boringssl 2>/dev/null || echo "unknown")
