@@ -22,27 +22,28 @@ printf '%s\n' "$COMMITS" > "$TMPFILE"
 BUMP=""
 CHANGELOG=""
 
-# Helper function to derive module name strictly: plugins get their plugin name, types get 'types', everything else is 'core'
-get_module_name() {
+# Helper function to derive all unique modules touched by a commit's files
+get_modules_for_commit() {
     local commit_hash="$1"
     local files
     files=$(git diff-tree --no-commit-id --name-only -r "$commit_hash" 2>/dev/null || true)
 
-    local module="core"
+    local found_modules=""
 
     while IFS= read -r file; do
         [ -z "$file" ] && continue
 
-        if [[ "$file" =~ ^types/ ]]; then
-            module="types"
-            break
-        elif [[ "$file" =~ src/plugins/([^/]+)/ ]]; then
-            module="${BASH_REMATCH[1]}"
-            break
+        local mod="core"
+        if [[ "$file" =~ src/plugins/([^/]+)/ ]]; then
+            mod="${BASH_REMATCH[1]}"
+        fi
+
+        if [[ ! " $found_modules " =~ [[:space:]]"$mod"[[:space:]] ]]; then
+            found_modules="${found_modules} ${mod}"
         fi
     done <<< "$files"
 
-    echo "$module"
+    echo "${found_modules# }"
 }
 
 # 3. Parse commits and normalize inline multi-prefixes
@@ -58,9 +59,7 @@ while IFS='|' read -r commit_hash raw_msg; do
         MATCHED_TYPE=""
 
         if echo "$msg" | grep -qE '^(feature|refactor):'; then
-            if [ "$BUMP" != "minor" ]; then
-                BUMP="minor"
-            fi
+            BUMP="minor"
             if [[ "$msg" =~ ^feature: ]]; then MATCHED_TYPE="feature"; else MATCHED_TYPE="refactor"; fi
             is_bump=true
         elif echo "$msg" | grep -qE '^(fix|docs|config):'; then
@@ -87,8 +86,11 @@ while IFS='|' read -r commit_hash raw_msg; do
                 CHANGELOG="${CHANGELOG}- ${msg}"$'\n'
             else
                 clean_desc=$(echo "$msg" | sed -E "s/^(feature|refactor|fix|docs|config|update): *//")
-                MODULE=$(get_module_name "$commit_hash")
-                CHANGELOG="${CHANGELOG}- ${MATCHED_TYPE}(${MODULE}): ${clean_desc}"$'\n'
+
+                MODS=$(get_modules_for_commit "$commit_hash")
+                for MODULE in $MODS; do
+                    CHANGELOG="${CHANGELOG}- ${MATCHED_TYPE}(${MODULE}): ${clean_desc}"$'\n'
+                done
             fi
         fi
     done <<< "$normalized_msg"
@@ -102,9 +104,9 @@ fi
 
 # 4. Calculate the new version number
 VERSION=$(echo "$LAST_TAG" | sed 's/^v//')
-MAJOR=$(echo "$VERSION" | cut -d. -f1)
-MINOR=$(echo "$VERSION" | cut -d. -f2)
-PATCH=$(echo "$VERSION" | cut -d. -f3)
+IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+MINOR=${MINOR:-0}
+PATCH=${PATCH:-0}
 
 if [ "$BUMP" = "minor" ]; then
     MINOR=$((MINOR + 1))
@@ -115,7 +117,13 @@ fi
 
 NEW_TAG="v$MAJOR.$MINOR.$PATCH"
 
-# 5. Extract package versions using pkg-config if available (checking boringssl instead of openssl)
+# Check if the calculated tag already exists to prevent multiple bumps
+if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+    echo "version: tag $NEW_TAG already exists"
+    exit 0
+fi
+
+# 5. Extract package versions using pkg-config if available
 SLIMCOMMON_VER=$(pkg-config --modversion slimcommon 2>/dev/null || echo "unknown")
 LIBTSGO_VER=$(pkg-config --modversion libtsgo 2>/dev/null || echo "unknown")
 BORINGSSL_VER=$(pkg-config --modversion boringssl 2>/dev/null || echo "unknown")

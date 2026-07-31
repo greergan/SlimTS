@@ -80,7 +80,8 @@ void stop() {
 }
 
 void version() {
-    std::println("slim:  {}", VERSION);
-    std::println("libv8: {} ", v8::V8::GetVersion());
+    std::println("slimts: {}", VERSION);
+    std::println("libv8:  {}", v8::V8::GetVersion());
+    exit(0);
 }
 } // namespace slim

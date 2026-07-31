@@ -9,8 +9,10 @@
 #include <slim/common/log.h>
 #include <slim/common/memory/mapper.h>
 #include <slim/path.h>
+#include <slim/slim.h>
 
 #include <iostream>
+#include <cstdlib>
 
 namespace slim::command_line {
 	using namespace slim::common;
@@ -20,17 +22,9 @@ namespace slim::command_line {
 	std::vector<std::string> v8_configuration_values;
 	std::vector<std::string> library_paths;
 	std::unordered_set<std::string> allowed_file_extensions{"",".js",".mjs",".ts"};
-	std::unordered_set<std::string> slim_configurations {"--lib", "--use-cache","--cache-dir","--create-configurations","-d","-v","-vv","-w"};
+	std::unordered_set<std::string> slim_configurations {"--lib", "--use-cache","--cache-dir","--create-configurations","-d","-v","--version","-w"};
 	std::unordered_map<std::string, bool> slim_command_line_argument_expects_value {
 		{"--lib",true},{"--cache-dir",true}
-	};
-	std::unordered_map<std::string, std::string> typescript_configurations
-		{{"--print-typescript-all","false"},{"--print-typescript-debug","false"},
-		{"--print-typescript-info","false"},{"--print-typescript-log","false"},{"--print-typescript-trace","false"},
-		{"--print-typescript-warn","false"},{"--print-typescript-configuration","false"},
-		{"--typescript-project",""}};
-	std::unordered_map<std::string, bool> typescript_command_line_argument_expects_value {
-		{"--typescript-project",true}
 	};
 	auto is_script = [](std::string& argument)->std::string {
 		log::trace(log::Message("slim::command_line::is_script()","begins => " + argument, __FILE__,__LINE__));
@@ -65,29 +59,12 @@ namespace slim::command_line {
 		return answer;
 	};
 	auto slim_argument_expects_value = [](std::string& argument)->bool {
-		log::trace(log::Message("slim::command_line::typescript_argument_expects_value()","begins => " + argument, __FILE__,__LINE__));
+		log::trace(log::Message("slim::command_line::slim_argument_expects_value()","begins => " + argument, __FILE__,__LINE__));
 		auto answer = slim_command_line_argument_expects_value.find(argument) != slim_command_line_argument_expects_value.end()
 			&& slim_command_line_argument_expects_value.find(argument)->second;
 		auto answer_message_string = + answer ? "true" : "false";
-		log::debug(log::Message("slim::command_line::typescript_argument_expects_value()",argument + " expects value => " + answer_message_string, __FILE__,__LINE__));
-		log::trace(log::Message("slim::command_line::typescript_argument_expects_value()","ends => " + argument, __FILE__,__LINE__));
-		return answer;
-	};
-	auto is_typescript_argument = [](std::string& argument)->bool {
-		log::trace(log::Message("slim::command_line::is_typescript_argument()","begins => " + argument, __FILE__,__LINE__));
-		auto answer = typescript_configurations.contains(argument);
-		auto answer_message_string = + answer ? "true" : "false";
-		log::debug(log::Message("slim::command_line::is_typescript_argument()",argument + " is_typescript_argument => " + answer_message_string, __FILE__,__LINE__));
-		log::trace(log::Message("slim::command_line::is_typescript_argument()","ends => " + argument, __FILE__,__LINE__));
-		return answer;
-	};
-	auto typescript_argument_expects_value = [](std::string& argument)->bool {
-		log::trace(log::Message("slim::command_line::typescript_argument_expects_value()","begins => " + argument, __FILE__,__LINE__));
-		auto answer = typescript_command_line_argument_expects_value.find(argument) != typescript_command_line_argument_expects_value.end()
-			&& typescript_command_line_argument_expects_value.find(argument)->second;
-		auto answer_message_string = + answer ? "true" : "false";
-		log::debug(log::Message("slim::command_line::typescript_argument_expects_value()",argument + " expects value => " + answer_message_string, __FILE__,__LINE__));
-		log::trace(log::Message("slim::command_line::typescript_argument_expects_value()","ends => " + argument, __FILE__,__LINE__));
+		log::debug(log::Message("slim::command_line::slim_argument_expects_value()",argument + " expects value => " + answer_message_string, __FILE__,__LINE__));
+		log::trace(log::Message("slim::command_line::slim_argument_expects_value()","ends => " + argument, __FILE__,__LINE__));
 		return answer;
 	};
 }
@@ -103,20 +80,14 @@ std::vector<std::string> slim::command_line::parse(int argc, char *argv[]) {
 				log::debug(log::Message(__func__, "script argument => " + argument,__FILE__,__LINE__));
 				script_arguments += argument + ",";
 			}
-			else if(is_typescript_argument(argument)) {
-				log::debug(log::Message(__func__, "typescript argument => " + argument,__FILE__,__LINE__));
-				if(argument.starts_with("--print")) {
-					typescript_configurations[argument] = "true";
-				}
-				else if(typescript_argument_expects_value(argument)) {
-					typescript_configurations[argument] = std::string(argv[++index]);
-				}
-			}
 			else if(is_slim_argument(argument)) {
 				log::debug(log::Message(__func__, "slim argument => " + argument,__FILE__,__LINE__));
 				if(argument == "-d") {
 					memory_mapper::write("slim_runtime_environmental_variables", "daemon", true);
 					log::debug(log::Message(__func__,"daemon => true",__FILE__,__LINE__));
+				}
+				else if(argument == "-v" || argument == "--version") {
+					slim::version();
 				}
 				else if(argument == "-w") {
 					memory_mapper::write("slim_runtime_environmental_variables", "watching_files", true);
@@ -180,29 +151,6 @@ std::cout << "here\n";
 		throw error_message_string;
 	}
 	log::debug(log::Message(__func__, "command line has been parsed",__FILE__,__LINE__));
-	std::string typescript_configuration_string("{");
-	for(auto [key,value] : typescript_configurations) {
-		std::string new_key;
-		std::string new_value;
-		if(key.starts_with("--")) {
-			new_key = key.substr(2);
-		}
-		new_key = "\"" + new_key + "\":";
-		if(value == "true" || value == "false") {
-			new_value = value + ",";
-		}
-		else {
-			new_value = "\"" + value + "\",";
-		}
-		typescript_configuration_string += new_key + new_value;
-	}
-	if(typescript_configuration_string.ends_with(",")) {
-		typescript_configuration_string.pop_back();
-	}
-	typescript_configuration_string += "}";
-	log::debug(log::Message(__func__, "writting typescript configuration",__FILE__,__LINE__));
-	memory_mapper::write("configurations", "typescript", typescript_configuration_string);
-	log::debug(log::Message(__func__, "typescript configuration has been written",__FILE__,__LINE__));
 	if(script_arguments.ends_with(",")) {
 		script_arguments.pop_back();
 	}
@@ -223,7 +171,6 @@ std::cout << "here\n";
 		auto check_value = memory_mapper::read_string("slim_runtime_environmental_variables", key);
 		log::debug(log::Message(__func__,"slim_runtime_environmental_variable => " + key + ":" + check_value,__FILE__,__LINE__));
 	}
-	log::debug(log::Message(__func__,"typescript arguments => " + typescript_configuration_string,__FILE__,__LINE__));
 	log::debug(log::Message(__func__,"script arguments => " + script_arguments,__FILE__,__LINE__));
 	log::trace(log::Message(__func__,"ends",__FILE__, __LINE__));
 	return v8_configuration_values;
