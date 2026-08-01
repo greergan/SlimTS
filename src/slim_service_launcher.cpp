@@ -25,6 +25,7 @@
 #include <slim/slim.h>
 #include <slim/utilities.h>
 #include <slim/slim_v8.h>
+#include <slim/service/handles.h>
 
 namespace slim::service::launcher {
     using namespace slim::common;
@@ -121,6 +122,10 @@ void slim::service::launcher::launch(std::string_view specifier_uri) {
         auto& wake = slim::isolate_wake::register_isolate(isolate);
         v8::TryCatch try_catch(isolate);
         auto result = module_import_specifier.v8_module()->Evaluate(context);
+        v8::Local<v8::Promise> module_promise;
+        if (!result.IsEmpty() && result.ToLocalChecked()->IsPromise()) {
+            module_promise = result.ToLocalChecked().As<v8::Promise>();
+        }
 #ifdef ENABLE_LOGGING
         log::debug(log::Message(__func__, std::format("Evaluate returned is_empty => {}", result.IsEmpty()), __FILE__, __LINE__));
 #endif
@@ -128,15 +133,20 @@ void slim::service::launcher::launch(std::string_view specifier_uri) {
         auto stop_token = slim::get_stop_token();
         int gc_counter = 0;
         while (!stop_token.stop_requested()) {
+            bool module_finished = module_promise.IsEmpty() || module_promise->State() != v8::Promise::PromiseState::kPending;
+            if (module_finished && slim::service::handles::count() == 0) {
+                slim::stop();
+            }
+
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
             slim::isolate_wake::drain(isolate);
             v8::platform::PumpMessageLoop(slim::v_8::get_platform(), isolate);
             isolate->PerformMicrotaskCheckpoint();
             if (++gc_counter >= 1000) {
                 isolate->LowMemoryNotification();
+#ifdef ENABLE_LOGGING
                 v8::HeapStatistics hs;
                 isolate->GetHeapStatistics(&hs);
-#ifdef ENABLE_LOGGING
                 log::debug(log::Message(__func__,
                     "heap used => " + std::to_string(hs.used_heap_size() / 1024) + "kb"
                     " total => " + std::to_string(hs.total_heap_size() / 1024) + "kb", __FILE__, __LINE__));
