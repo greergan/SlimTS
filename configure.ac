@@ -21,25 +21,17 @@ AC_ARG_ENABLE([debug],
     [enable_debug="no"]
 )
 
-AC_ARG_ENABLE([compact],
-    [AS_HELP_STRING([--enable-compact], [enable compact build optimizations])],
-    [enable_compact="$enableval"],
-    [enable_compact="no"]
-)
-
-if test "$enable_debug" = "yes" && test "$enable_compact" = "yes"; then
-    AC_MSG_ERROR([Cannot enable both debug and compact builds simultaneously.])
-fi
-
 if test "$enable_debug" = "yes"; then
     CXXFLAGS="$CXXFLAGS -g -O0 -fsanitize=address"
     AM_LDFLAGS="$AM_LDFLAGS -fsanitize=address"
-elif test "$enable_compact" = "yes"; then
-    CXXFLAGS="$CXXFLAGS -Os -DNDEBUG"
+    do_strip="no"
 else
     AC_MSG_NOTICE([no build type specified, defaulting to release])
     CXXFLAGS="$CXXFLAGS -O2 -DNDEBUG"
+    do_strip="yes"
 fi
+
+AM_CONDITIONAL([RELEASE_STRIP], [test "x$do_strip" = "xyes"])
 
 AC_PROG_CXX
 AM_PROG_AR
