@@ -29,13 +29,12 @@ static void initialize_ssl() {
 #ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
 #endif
-    SSL_library_init();
-    SSL_load_error_strings();
-    OpenSSL_add_all_algorithms();
+    OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, nullptr);
 #ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
 #endif
 }
+
 } // namespace
 
 std::stop_token get_stop_token() {
