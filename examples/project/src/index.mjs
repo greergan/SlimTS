@@ -1,6 +1,6 @@
 import console from 'console';
 import server from 'http';
-import helloWorld from '/hello_world';
+import helloWorld from './hello_world.mjs';
 
 console.trace("begin");
 
