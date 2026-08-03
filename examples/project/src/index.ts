@@ -22,7 +22,7 @@ async function startServer(name, port) {
         const id = ++requestCount;
 
         await response.reply(
-            `<html><body><h1>${helloWorld} from ${name}!</h1><p>request: ${id}</p><p>time: ${timestamp}</p></body></html>`,
+          `<html><body><h1>${helloWorld} from ${name}!</h1><p>request: ${id}</p><p>src: ts</p><p>time: ${timestamp}</p></body></html>`,
             { status: 200, statusText: 'OK' }
         );
 
