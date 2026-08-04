@@ -592,8 +592,7 @@ Task<Response> fetch_http(Scheduler& scheduler, const URL& url, SSL_CTX* ssl_ctx
 #endif
                 co_return make_error(500);
             }
-
-            SSL_CTX* next_ssl = (next.protocol() == "https") ? ssl_ctx : nullptr;
+            SSL_CTX* next_ssl = (next.protocol() == "https") ? get_ssl_ctx() : nullptr;
 #ifdef ENABLE_LOGGING
             log::debug({__func__, std::format("following redirect to '{}' => ssl=>{}", next.href(), next_ssl ? "yes" : "no"), __FILE__, __LINE__});
 #endif
