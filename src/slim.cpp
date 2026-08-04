@@ -4,7 +4,6 @@
 #include <stop_token>
 #include <string>
 #include "config.h"
-#include <v8.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <slim/configuration_handler.h>
@@ -29,13 +28,12 @@ static void initialize_ssl() {
 #ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
 #endif
-    SSL_library_init();
-    SSL_load_error_strings();
-    OpenSSL_add_all_algorithms();
+    OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, nullptr);
 #ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
 #endif
 }
+
 } // namespace
 
 std::stop_token get_stop_token() {
@@ -65,13 +63,6 @@ void start() {
     stop_source = std::stop_source{};
     std::call_once(ssl_init_flag, initialize_ssl);
     auto script_name = slim::configuration_handler::get_script_name();
-    if(script_name.empty()) {
-        std::println("usage: slimts [options] <script>");
-#ifdef ENABLE_LOGGING
-        log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
-#endif
-        return;
-    }
     load_types_dir((char*)(std::filesystem::current_path().string() + "/types").c_str());
     if(slim::configuration_handler::is_watching()) {
 		slim::file::watcher::watch_dir(std::filesystem::current_path().string() + "/types");
@@ -103,11 +94,5 @@ void stop() {
 #ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "ends", __FILE__, __LINE__));
 #endif
-}
-
-void version() {
-    std::println("slimts: {}", VERSION);
-    std::println("libv8:  {}", v8::V8::GetVersion());
-    exit(0);
 }
 } // namespace slim

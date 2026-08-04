@@ -1,6 +1,6 @@
 import console from 'console';
 import server from 'http';
-import helloWorld from '/hello_world';
+import helloWorld from './hello_world.ts';
 
 console.trace("begin");
 
@@ -22,19 +22,19 @@ async function startServer(name, port) {
         const id = ++requestCount;
 
         await response.reply(
-            `<html><body><h1>${helloWorld} from ${name}!</h1><p>request: ${id}</p><p>time: ${timestamp}</p></body></html>`,
+            `<html><body><h1>${helloWorld} from ${name}!</h1><p>request: ${id}</p><p>src: mjs</p><p>time: ${timestamp}</p></body></html>`,
             { status: 200, statusText: 'OK' }
         );
 
         console.debug(`[${name}:${requestCount}] response sent`);
 
-        if (requestCount === 1000) {
-            console.debug(`[${name}] stopping server`);
-            listener.stop();
-        }
+        // if (requestCount === 1000) {
+        //     console.debug(`[${name}] stopping server`);
+        //     listener.stop();
+        // }
     }
 }
 
 // Call the function twice without 'await' to start them concurrently
 startServer('Server 1', 9000);
-startServer('Server 2', 9001);
+//startServer('Server 2', 9001);
