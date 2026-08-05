@@ -1,0 +1,1263 @@
+Check the specs and create a Story indention for 1 task or set of related tasks at a time. Then display the markdown so that I can dopy it.
+example start
+- [ ] Implement `reportError` Function
+  - Story: `reportError(new TypeError("bad input"))` dispatches an `error` event on the global scope, matching browser behavior for uncaught exceptions.
+example end
+
+
+# Milestone: Platform Primitives
+- [ ] Global functions
+  - [ ] Implement `queueMicrotask` Function
+    - Story:
+      - Signature: `queueMicrotask(callback: () => void): void`
+      - Example: `queueMicrotask(() => { microtaskRan = true }) // microtaskRan is false here, true after current task yields`
+      - Details: Confirms the callback runs after the current synchronous block but before the next macrotask.
+  - [ ] Implement `structuredClone` Function
+    - Story:
+      - Signature: `structuredClone<T>(value: T): T`
+      - Example: `const b = structuredClone(a) // b deeply equals a, but b !== a and nested objects are distinct references`
+      - Details: Confirms a true deep clone with no shared identity between original and copy.
+    - [ ] Implement `options.transfer` (Transferable array support)
+      - Story:
+        - Signature: `structuredClone<T>(value: T, options: { transfer: Transferable[] }): T`
+        - Example: `structuredClone(obj, { transfer: [buf] }) // buf.byteLength === 0 after the call`
+        - Details: Confirms ownership of listed Transferables is transferred and originals are detached.
+  - [ ] Implement `setTimeout` Function
+    - Story:
+      - Signature: `setTimeout(handler: Function | string, delay?: number, ...args: any[]): number`
+      - Example: `setTimeout(fn, 100) // fn is called asynchronously, not during current synchronous execution`
+      - Details: Confirms correct scheduling — handler fires after at least `delay` ms.
+    - [ ] Implement handler as `Function`
+      - Story:
+        - Signature: `setTimeout(handler: Function, delay?: number): number`
+        - Example: `setTimeout(fn, 0) // fn is invoked exactly once after yielding control`
+        - Details: Confirms a plain function reference is accepted and called.
+    - [ ] Implement handler as `string` (legacy, spec-required)
+      - Story:
+        - Signature: `setTimeout(handler: string, delay?: number): number`
+        - Example: `setTimeout("triggered = true", 0) // triggered === true after delay`
+        - Details: Confirms string handlers are evaluated as code per the spec.
+    - [ ] Implement rest `...arguments` pass-through
+      - Story:
+        - Signature: `setTimeout(handler: Function, delay?: number, ...args: any[]): number`
+        - Example: `setTimeout((a, b) => { received = [a, b] }, 0, 1, 2) // received === [1, 2]`
+        - Details: Confirms extra arguments are forwarded to the handler on invocation.
+    - [ ] Implement return value (timer ID)
+      - Story:
+        - Signature: `setTimeout(handler: Function, delay?: number): number`
+        - Example: `const id = setTimeout(fn, 0); clearTimeout(id) // fn is never called`
+        - Details: Confirms the returned ID is a positive integer usable with `clearTimeout`.
+  - [ ] Implement `clearTimeout` Function
+    - Story:
+      - Signature: `clearTimeout(id?: number): void`
+      - Example: `clearTimeout(id) // pending callback cancelled; clearTimeout(9999) // no error thrown`
+      - Details: Confirms the timer is cancelled and that calling with an invalid ID is a no-op.
+  - [ ] Implement `setInterval` Function
+    - Story:
+      - Signature: `setInterval(handler: Function | string, delay?: number, ...args: any[]): number`
+      - Example: `setInterval(fn, 50) // fn is called repeatedly every 50ms until cleared`
+      - Details: Confirms the handler is re-scheduled after each invocation rather than fired once.
+    - [ ] Implement handler as `Function`
+      - Story:
+        - Signature: `setInterval(handler: Function, delay?: number): number`
+        - Example: `setInterval(fn, 50) // fn is invoked on multiple successive ticks`
+        - Details: Confirms a function reference is accepted and re-called each interval.
+    - [ ] Implement handler as `string` (legacy, spec-required)
+      - Story:
+        - Signature: `setInterval(handler: string, delay?: number): number`
+        - Example: `setInterval("count++", 50) // count increments on each tick`
+        - Details: Confirms string handlers are re-evaluated as code on every interval per the spec.
+    - [ ] Implement rest `...arguments` pass-through
+      - Story:
+        - Signature: `setInterval(handler: Function, delay?: number, ...args: any[]): number`
+        - Example: `setInterval((a, b) => { last = [a, b] }, 50, 1, 2) // last === [1, 2] on every tick`
+        - Details: Confirms extra arguments are forwarded on each invocation.
+    - [ ] Implement return value (timer ID)
+      - Story:
+        - Signature: `setInterval(handler: Function, delay?: number): number`
+        - Example: `const id = setInterval(fn, 50); clearInterval(id) // fn stops firing`
+        - Details: Confirms the returned ID is a positive integer usable with `clearInterval`.
+  - [ ] Implement `clearInterval` Function
+    - Story:
+      - Signature: `clearInterval(id?: number): void`
+      - Example: `clearInterval(id) // repeating callback stopped; clearInterval(9999) // no error thrown`
+      - Details: Confirms the interval is cancelled and that calling with an invalid ID is a no-op.
+  - [ ] Implement `atob` Function
+    - Story:
+      - Signature: `atob(data: string): string`
+      - Example: `atob("SGVsbG8=") // "Hello"`
+      - Details: Confirms correct Base64 decoding; passing invalid characters throws `InvalidCharacterError`.
+  - [ ] Implement `btoa` Function
+    - Story:
+      - Signature: `btoa(data: string): string`
+      - Example: `btoa("Hello") // "SGVsbG8="`
+      - Details: Confirms correct binary-to-Base64 encoding; codepoints above 255 throw `InvalidCharacterError`.
+  - [ ] Implement `reportError` Function
+    - Story:
+      - Signature: `reportError(error: any): void`
+      - Example: `reportError(new TypeError("bad input")) // dispatches "error" event on global scope; event.error === the TypeError instance`
+      - Details: Confirms browser behavior for uncaught exceptions — global error handlers receive the event.
+- [ ] Implement `DOMException` Class
+  - Constructor
+    - [ ] Implement constructor (`new DOMException(message, name)`)
+      - Story:
+        - Signature: `new DOMException(message?: string, name?: string): DOMException`
+        - Example: `new DOMException("Operation aborted", "AbortError") // creates a DOMException with message and name set`
+        - Details: Confirms the constructor accepts optional message and name arguments and returns a properly formed DOMException instance.
+  - Properties
+    - [ ] Implement `DOMException.prototype.name`
+      - Story:
+        - Signature: `DOMException.prototype.name: string`
+        - Example: `new DOMException("msg", "AbortError").name // "AbortError"`
+        - Details: Confirms the name property reflects the value passed to the constructor, defaulting to "Error" when omitted.
+    - [ ] Implement `DOMException.prototype.message`
+      - Story:
+        - Signature: `DOMException.prototype.message: string`
+        - Example: `new DOMException("Operation aborted", "AbortError").message // "Operation aborted"`
+        - Details: Confirms the message property reflects the value passed to the constructor, defaulting to "" when omitted.
+    - [ ] Implement `DOMException.prototype.code`
+      - Story:
+        - Signature: `DOMException.prototype.code: number`
+        - Example: `new DOMException("msg", "NotFoundError").code // 8`
+        - Details: Confirms the code property returns the legacy numeric constant matching the given name, or 0 for names with no associated legacy code.
+  - Named error codes
+    - [ ] `"AbortError"`
+      - Story:
+        - Signature: `new DOMException(message, "AbortError")`
+        - Example: `new DOMException("Aborted", "AbortError").name // "AbortError"`
+        - Details: Confirms "AbortError" is a recognized name and the instance identifies correctly as an abort error.
+    - [ ] `"NetworkError"`
+      - Story:
+        - Signature: `new DOMException(message, "NetworkError")`
+        - Example: `new DOMException("Failed", "NetworkError").name // "NetworkError"`
+        - Details: Confirms "NetworkError" is a recognized name and the instance identifies correctly as a network error.
+    - [ ] `"InvalidStateError"`
+      - Story:
+        - Signature: `new DOMException(message, "InvalidStateError")`
+        - Example: `new DOMException("Bad state", "InvalidStateError").name // "InvalidStateError"`
+        - Details: Confirms "InvalidStateError" is a recognized name and the instance identifies correctly as an invalid state error.
+    - [ ] `"NotSupportedError"`
+      - Story:
+        - Signature: `new DOMException(message, "NotSupportedError")`
+        - Example: `new DOMException("Not supported", "NotSupportedError").name // "NotSupportedError"`
+        - Details: Confirms "NotSupportedError" is a recognized name and the instance identifies correctly as a not supported error.
+    - [ ] `"DataCloneError"`
+      - Story:
+        - Signature: `new DOMException(message, "DataCloneError")`
+        - Example: `new DOMException("Cannot clone", "DataCloneError").name // "DataCloneError"`
+        - Details: Confirms "DataCloneError" is a recognized name and the instance identifies correctly as a data clone error.
+    - [ ] `"TimeoutError"`
+      - Story:
+        - Signature: `new DOMException(message, "TimeoutError")`
+        - Example: `new DOMException("Timed out", "TimeoutError").name // "TimeoutError"`
+        - Details: Confirms "TimeoutError" is a recognized name and the instance identifies correctly as a timeout error.
+    - [ ] `"SyntaxError"`
+      - Story:
+        - Signature: `new DOMException(message, "SyntaxError")`
+        - Example: `new DOMException("Bad syntax", "SyntaxError").name // "SyntaxError"`
+        - Details: Confirms "SyntaxError" is a recognized name and the instance identifies correctly as a syntax error.
+    - [ ] `"SecurityError"`
+      - Story:
+        - Signature: `new DOMException(message, "SecurityError")`
+        - Example: `new DOMException("Blocked", "SecurityError").name // "SecurityError"`
+        - Details: Confirms "SecurityError" is a recognized name and the instance identifies correctly as a security error.
+    - [ ] `"EncodingError"`
+      - Story:
+        - Signature: `new DOMException(message, "EncodingError")`
+        - Example: `new DOMException("Bad encoding", "EncodingError").name // "EncodingError"`
+        - Details: Confirms "EncodingError" is a recognized name and the instance identifies correctly as an encoding error.
+- [ ] Implement `EvalError` extensions
+  - Story:
+    - Signature: `new EvalError(message?: string): EvalError`
+    - Example: `new EvalError("bad eval").name // "EvalError"; instanceof EvalError // true`
+    - Details: Confirms EvalError is a properly extended native error with correct name, message, and prototype chain per the Web IDL spec.
+- [ ] Implement `URIError` extensions
+  - Story:
+    - Signature: `new URIError(message?: string): URIError`
+    - Example: `new URIError("bad URI").name // "URIError"; instanceof URIError // true`
+    - Details: Confirms URIError is a properly extended native error with correct name, message, and prototype chain per the Web IDL spec.
+- [ ] Implement `AggregateError` extensions
+  - Story:
+    - Signature: `new AggregateError(errors: Iterable<any>, message?: string): AggregateError`
+    - Example: `new AggregateError([new Error("a"), new Error("b")], "multiple errors").errors.length // 2`
+    - Details: Confirms AggregateError is a properly extended native error with a populated errors array and correct prototype chain per the Web IDL spec.
+- [ ] Implement `TypeError` extensions
+  - - [ ] Implement immutable headers error messages
+      - Story:
+        - Signature: `new TypeError(message: string): TypeError`
+        - Example: `headers.set("Content-Type", "text/plain") // throws TypeError: "Cannot modify immutable Headers"`
+        - Details: Confirms that attempting to mutate a guarded Headers object throws a TypeError with a message that clearly identifies the immutability violation.
+  - [ ] Implement invalid URL error messages
+    - Story:
+      - Signature: `new TypeError(message: string): TypeError`
+      - Example: `new URL("not a url") // throws TypeError: "Failed to construct 'URL': Invalid URL"`
+      - Details: Confirms that passing a malformed URL string throws a TypeError with a descriptive message identifying the invalid URL input.
+  - [ ] Implement guard check failure error messages
+    - Story:
+      - Signature: `new TypeError(message: string): TypeError`
+      - Example: `new Request(url, { method: "GET", body: "data" }) // throws TypeError: "Request with GET method cannot have a body"`
+      - Details: Confirms that guard check violations throw a TypeError with a message that clearly describes which constraint was violated.
+- [ ] Implement `RangeError` extensions
+  - [ ] Implement invalid status code error messages (e.g. `new Response(body, {status})`)
+    - Story:
+      - Signature: `new RangeError(message: string): RangeError`
+      - Example: `new Response(null, { status: 999 }) // throws RangeError: "The status provided (999) is not equal to 200-599"`
+      - Details: Confirms that an out-of-range HTTP status code throws a RangeError with a message that identifies the invalid value and the accepted range.
+- [ ] Implement `SyntaxError` extensions
+  - [ ] Implement invalid header value format error messages
+    - Story:
+      - Signature: `new SyntaxError(message: string): SyntaxError`
+      - Example: `new Headers([["Content-Type", "\u0000"]]) // throws SyntaxError: "Invalid header value"`
+      - Details: Confirms that a header value containing invalid characters throws a SyntaxError with a message identifying the format violation.
+- [ ] Implement `EventTarget` Base Class
+  - Constructor
+    - [ ] Implement constructor (`new EventTarget()`)
+      - Story:
+        - Signature: `new EventTarget(): EventTarget`
+        - Example: `const target = new EventTarget() // creates a bare EventTarget with no listeners`
+        - Details: Confirms EventTarget can be directly instantiated and serves as a valid base for dispatching and listening to events.
+  - Methods
+    - [ ] Implement `EventTarget.prototype.addEventListener()`
+      - Story:
+        - Signature: `addEventListener(type: string, listener: EventListener, options?: AddEventListenerOptions): void`
+        - Example: `target.addEventListener("click", fn) // fn is invoked when a "click" event is dispatched on target`
+        - Details: Confirms a listener is registered and invoked when a matching event type is dispatched.
+      - [ ] Implement `capture` flag support
+        - Story:
+          - Signature: `addEventListener(type: string, listener: EventListener, options: { capture: boolean }): void`
+          - Example: `target.addEventListener("click", fn, { capture: true }) // fn fires during capture phase`
+          - Details: Confirms that listeners registered with capture true are invoked during the capture phase rather than the bubble phase.
+      - [ ] Implement `once` flag support
+        - Story:
+          - Signature: `addEventListener(type: string, listener: EventListener, options: { once: boolean }): void`
+          - Example: `target.addEventListener("click", fn, { once: true }) // fn is invoked once then automatically removed`
+          - Details: Confirms the listener is automatically removed after its first invocation when once is true.
+      - [ ] Implement `passive` flag support
+        - Story:
+          - Signature: `addEventListener(type: string, listener: EventListener, options: { passive: boolean }): void`
+          - Example: `target.addEventListener("scroll", fn, { passive: true }) // calling preventDefault() inside fn has no effect`
+          - Details: Confirms that passive listeners cannot cancel the event via preventDefault, matching browser behavior for performance-safe listeners.
+      - [ ] Implement `signal` (AbortSignal) support
+        - Story:
+          - Signature: `addEventListener(type: string, listener: EventListener, options: { signal: AbortSignal }): void`
+          - Example: `const ac = new AbortController(); target.addEventListener("click", fn, { signal: ac.signal }); ac.abort() // fn is no longer invoked`
+          - Details: Confirms the listener is automatically removed when the provided AbortSignal is aborted.
+    - [ ] Implement `EventTarget.prototype.removeEventListener()`
+      - Story:
+        - Signature: `removeEventListener(type: string, listener: EventListener, options?: EventListenerOptions): void`
+        - Example: `target.removeEventListener("click", fn) // fn is no longer invoked on subsequent "click" dispatches`
+        - Details: Confirms the specified listener is unregistered and no longer called when the event type is dispatched.
+    - [ ] Implement `EventTarget.prototype.dispatchEvent()`
+      - Story:
+        - Signature: `dispatchEvent(event: Event): boolean`
+        - Example: `target.dispatchEvent(new Event("click")) // all registered "click" listeners are synchronously invoked`
+        - Details: Confirms that dispatching an event synchronously invokes all matching listeners in registration order and returns false if the event was cancelled, true otherwise.
+- [ ] Implement `Event` Class
+  - Constructor
+    - [ ] Implement constructor (`new Event(type, eventInitDict)`)
+      - Story:
+        - Signature: `new Event(type: string, eventInitDict?: EventInit): Event`
+        - Example: `new Event("click", { bubbles: true, cancelable: true }) // creates a bubbling, cancelable click event`
+        - Details: Confirms the constructor accepts a type string and optional init dictionary and returns a properly formed Event instance.
+  - Properties
+    - [ ] Implement `Event.prototype.type`
+      - Story:
+        - Signature: `Event.prototype.type: string`
+        - Example: `new Event("click").type // "click"`
+        - Details: Confirms the type property reflects the event type string passed to the constructor.
+    - [ ] Implement `Event.prototype.target`
+      - Story:
+        - Signature: `Event.prototype.target: EventTarget | null`
+        - Example: `target.addEventListener("click", e => e.target === target) // true during dispatch`
+        - Details: Confirms target is set to the EventTarget the event was dispatched on and is null outside of dispatch.
+    - [ ] Implement `Event.prototype.currentTarget`
+      - Story:
+        - Signature: `Event.prototype.currentTarget: EventTarget | null`
+        - Example: `target.addEventListener("click", e => e.currentTarget === target) // true during listener invocation`
+        - Details: Confirms currentTarget is set to the EventTarget whose listener is currently being invoked and is null outside of dispatch.
+    - [ ] Implement `Event.prototype.eventPhase`
+      - Story:
+        - Signature: `Event.prototype.eventPhase: number`
+        - Example: `target.addEventListener("click", e => e.eventPhase) // Event.AT_TARGET (2) during dispatch on target`
+        - Details: Confirms eventPhase reflects the current phase of event propagation — NONE, CAPTURING_PHASE, AT_TARGET, or BUBBLING_PHASE.
+    - [ ] Implement `Event.prototype.bubbles`
+      - Story:
+        - Signature: `Event.prototype.bubbles: boolean`
+        - Example: `new Event("click", { bubbles: true }).bubbles // true`
+        - Details: Confirms bubbles reflects the value set in the event init dictionary, defaulting to false when omitted.
+    - [ ] Implement `Event.prototype.cancelable`
+      - Story:
+        - Signature: `Event.prototype.cancelable: boolean`
+        - Example: `new Event("click", { cancelable: true }).cancelable // true`
+        - Details: Confirms cancelable reflects the value set in the event init dictionary, defaulting to false when omitted.
+    - [ ] Implement `Event.prototype.defaultPrevented`
+      - Story:
+        - Signature: `Event.prototype.defaultPrevented: boolean`
+        - Example: `const e = new Event("click", { cancelable: true }); e.preventDefault(); e.defaultPrevented // true`
+        - Details: Confirms defaultPrevented is true only after preventDefault() is called on a cancelable event.
+    - [ ] Implement `Event.prototype.composed`
+      - Story:
+        - Signature: `Event.prototype.composed: boolean`
+        - Example: `new Event("click", { composed: true }).composed // true`
+        - Details: Confirms composed reflects the value set in the event init dictionary, defaulting to false when omitted.
+    - [ ] Implement `Event.prototype.isTrusted`
+      - Story:
+        - Signature: `Event.prototype.isTrusted: boolean`
+        - Example: `new Event("click").isTrusted // false — only true for events dispatched by the user agent`
+        - Details: Confirms isTrusted is always false for events created via the constructor and cannot be set by script.
+    - [ ] Implement `Event.prototype.timeStamp`
+      - Story:
+        - Signature: `Event.prototype.timeStamp: DOMHighResTimeStamp`
+        - Example: `new Event("click").timeStamp // e.g. 1234.56 — a high resolution timestamp relative to the time origin`
+        - Details: Confirms timeStamp is set at creation time and reflects a high resolution time value relative to the performance time origin.
+  - Methods
+    - [ ] Implement `Event.prototype.composedPath()`
+      - Story:
+        - Signature: `composedPath(): EventTarget[]`
+        - Example: `target.addEventListener("click", e => e.composedPath()) // [target] — the path the event propagated through`
+        - Details: Confirms composedPath returns the ordered list of EventTargets the event passed through during dispatch, and an empty array when called outside of dispatch.
+    - [ ] Implement `Event.prototype.stopPropagation()`
+      - Story:
+        - Signature: `stopPropagation(): void`
+        - Example: `parent.addEventListener("click", fn); child.addEventListener("click", e => e.stopPropagation()) // fn is never called`
+        - Details: Confirms stopPropagation prevents the event from propagating to further targets in the dispatch chain while still allowing remaining listeners on the current target to fire.
+    - [ ] Implement `Event.prototype.stopImmediatePropagation()`
+      - Story:
+        - Signature: `stopImmediatePropagation(): void`
+        - Example: `target.addEventListener("click", e => e.stopImmediatePropagation()); target.addEventListener("click", fn) // fn is never called`
+        - Details: Confirms stopImmediatePropagation prevents all subsequent listeners on the current target and further targets from being invoked.
+    - [ ] Implement `Event.prototype.preventDefault()`
+      - Story:
+        - Signature: `preventDefault(): void`
+        - Example: `const e = new Event("submit", { cancelable: true }); e.preventDefault(); e.defaultPrevented // true`
+        - Details: Confirms preventDefault sets defaultPrevented to true on cancelable events and has no effect on non-cancelable events.
+  - Constants
+    - [ ] `NONE`
+      - Story:
+        - Signature: `Event.NONE: 0`
+        - Example: `Event.NONE // 0 — event is not being dispatched`
+        - Details: Confirms the NONE constant is exposed as 0 on both the class and prototype, reflecting the phase when no dispatch is occurring.
+    - [ ] `CAPTURING_PHASE`
+      - Story:
+        - Signature: `Event.CAPTURING_PHASE: 1`
+        - Example: `Event.CAPTURING_PHASE // 1 — event is propagating through the capture phase`
+        - Details: Confirms the CAPTURING_PHASE constant is exposed as 1 on both the class and prototype.
+    - [ ] `AT_TARGET`
+      - Story:
+        - Signature: `Event.AT_TARGET: 2`
+        - Example: `Event.AT_TARGET // 2 — event has arrived at its target`
+        - Details: Confirms the AT_TARGET constant is exposed as 2 on both the class and prototype.
+    - [ ] `BUBBLING_PHASE`
+      - Story:
+        - Signature: `Event.BUBBLING_PHASE: 3`
+        - Example: `Event.BUBBLING_PHASE // 3 — event is propagating through the bubble phase`
+        - Details: Confirms the BUBBLING_PHASE constant is exposed as 3 on both the class and prototype.
+- [ ] Implement `CustomEvent` Class
+  - Constructor
+    - [ ] Implement constructor (`new CustomEvent(type, eventInitDict)`)
+      - Story:
+        - Signature: `new CustomEvent(type: string, eventInitDict?: CustomEventInit): CustomEvent`
+        - Example: `new CustomEvent("build", { detail: { version: 2 } }) // creates a CustomEvent with detail payload`
+        - Details: Confirms the constructor accepts a type string and optional init dictionary containing a detail property and returns a properly formed CustomEvent instance that extends Event.
+  - Properties
+    - [ ] Implement `CustomEvent.prototype.detail`
+      - Story:
+        - Signature: `CustomEvent.prototype.detail: any`
+        - Example: `new CustomEvent("build", { detail: { version: 2 } }).detail // { version: 2 }`
+        - Details: Confirms detail reflects the value passed in the init dictionary, defaulting to null when omitted, and is read-only after construction.
+- [ ] Implement `MessageEvent` Class
+  - Constructor
+    - [ ] Implement constructor (`new MessageEvent(type, eventInitDict)`)
+      - Story:
+        - Signature: `new MessageEvent(type: string, eventInitDict?: MessageEventInit): MessageEvent`
+        - Example: `new MessageEvent("message", { data: "hello", origin: "https://example.com" }) // creates a MessageEvent with data and origin set`
+        - Details: Confirms the constructor accepts a type string and optional init dictionary and returns a properly formed MessageEvent instance that extends Event.
+  - Properties
+    - [ ] Implement `MessageEvent.prototype.data`
+      - Story:
+        - Signature: `MessageEvent.prototype.data: any`
+        - Example: `new MessageEvent("message", { data: "hello" }).data // "hello"`
+        - Details: Confirms data reflects the value passed in the init dictionary, defaulting to null when omitted.
+    - [ ] Implement `MessageEvent.prototype.origin`
+      - Story:
+        - Signature: `MessageEvent.prototype.origin: string`
+        - Example: `new MessageEvent("message", { origin: "https://example.com" }).origin // "https://example.com"`
+        - Details: Confirms origin reflects the value passed in the init dictionary, defaulting to "" when omitted.
+    - [ ] Implement `MessageEvent.prototype.lastEventId`
+      - Story:
+        - Signature: `MessageEvent.prototype.lastEventId: string`
+        - Example: `new MessageEvent("message", { lastEventId: "42" }).lastEventId // "42"`
+        - Details: Confirms lastEventId reflects the value passed in the init dictionary, defaulting to "" when omitted.
+    - [ ] Implement `MessageEvent.prototype.source`
+      - Story:
+        - Signature: `MessageEvent.prototype.source: MessageEventSource | null`
+        - Example: `new MessageEvent("message", { source: port }).source === port // true`
+        - Details: Confirms source reflects the value passed in the init dictionary, defaulting to null when omitted.
+    - [ ] Implement `MessageEvent.prototype.ports`
+      - Story:
+        - Signature: `MessageEvent.prototype.ports: ReadonlyArray<MessagePort>`
+        - Example: `new MessageEvent("message", { ports: [port1, port2] }).ports // [port1, port2]`
+        - Details: Confirms ports reflects the array passed in the init dictionary, defaulting to an empty array when omitted, and is frozen after construction.
+- [ ] Implement `MessageChannel` Class
+  - Constructor
+    - [ ] Implement constructor (`new MessageChannel()`)
+      - Story:
+        - Signature: `new MessageChannel(): MessageChannel`
+        - Example: `const { port1, port2 } = new MessageChannel() // creates a paired message channel with two entangled ports`
+        - Details: Confirms the constructor takes no arguments and returns a MessageChannel instance with two distinct but entangled MessagePort instances accessible as port1 and port2.
+  - Properties
+    - [ ] Implement `MessageChannel.prototype.port1`
+      - Story:
+        - Signature: `MessageChannel.prototype.port1: MessagePort`
+        - Example: `new MessageChannel().port1 instanceof MessagePort // true`
+        - Details: Confirms port1 is a MessagePort instance representing the local end of the channel, entangled with port2.
+    - [ ] Implement `MessageChannel.prototype.port2`
+      - Story:
+        - Signature: `MessageChannel.prototype.port2: MessagePort`
+        - Example: `new MessageChannel().port2 instanceof MessagePort // true`
+        - Details: Confirms port2 is a MessagePort instance representing the remote end of the channel, entangled with port1.
+- [ ] Implement `MessagePort` Class
+  - Constructor
+    - [ ] Note: not directly constructable; created via `MessageChannel`
+      - Story:
+        - Signature: `new MessagePort() // throws TypeError`
+        - Example: `new MessageChannel().port1 instanceof MessagePort // true — only obtainable via MessageChannel`
+        - Details: Confirms MessagePort has no public constructor and can only be obtained as port1 or port2 from a MessageChannel instance.
+  - Methods
+    - [ ] Implement `MessagePort.prototype.postMessage(message, transfer)`
+      - Story:
+        - Signature: `postMessage(message: any, transfer?: Transferable[]): void`
+        - Example: `port1.postMessage({ value: 42 }) // port2 receives a "message" event with event.data === { value: 42 }`
+        - Details: Confirms postMessage serializes the message via structured clone and delivers it as a MessageEvent on the entangled port, with optional transfer of Transferable objects.
+    - [ ] Implement `MessagePort.prototype.start()`
+      - Story:
+        - Signature: `start(): void`
+        - Example: `port1.start() // queued messages begin dispatching as "message" events`
+        - Details: Confirms start enables the port to begin delivering queued messages; messages posted before start() is called are held and dispatched once it is invoked.
+    - [ ] Implement `MessagePort.prototype.close()`
+      - Story:
+        - Signature: `close(): void`
+        - Example: `port1.close() // port1 no longer receives or dispatches messages`
+        - Details: Confirms close permanently deactivates the port so no further messages are delivered and any queued messages are discarded.
+  - Event handlers
+    - [ ] Implement `MessagePort.prototype.onmessage`
+      - Story:
+        - Signature: `MessagePort.prototype.onmessage: ((event: MessageEvent) => void) | null`
+        - Example: `port1.onmessage = e => received = e.data // received is set when port2 posts a message to port1`
+        - Details: Confirms setting onmessage registers a listener for "message" events and implicitly calls start(), enabling message delivery without an explicit start() call.
+    - [ ] Implement `MessagePort.prototype.onmessageerror`
+      - Story:
+        - Signature: `MessagePort.prototype.onmessageerror: ((event: MessageEvent) => void) | null`
+        - Example: `port1.onmessageerror = e => error = e // fires when a received message cannot be deserialized`
+        - Details: Confirms setting onmessageerror registers a listener for "messageerror" events, which fire when a message arrives but fails structured clone deserialization.
+- [ ] Implement `AbortController` Class
+  - Constructor
+    - [ ] Implement constructor (`new AbortController()`)
+      - Story:
+        - Signature: `new AbortController(): AbortController`
+        - Example: `const ac = new AbortController() // creates a controller with a non-aborted signal`
+        - Details: Confirms the constructor takes no arguments and returns an AbortController instance with a fresh AbortSignal accessible via ac.signal where ac.signal.aborted === false.
+  - Properties
+    - [ ] Implement `AbortController.prototype.signal`
+      - Story:
+        - Signature: `AbortController.prototype.signal: AbortSignal`
+        - Example: `new AbortController().signal instanceof AbortSignal // true`
+        - Details: Confirms signal is an AbortSignal instance that is initially non-aborted and becomes aborted when abort() is called on the controller.
+  - Methods
+    - [ ] Implement `AbortController.prototype.abort(reason)`
+      - Story:
+        - Signature: `abort(reason?: any): void`
+        - Example: `const ac = new AbortController(); ac.abort(new Error("cancelled")); ac.signal.aborted // true; ac.signal.reason // Error("cancelled")`
+        - Details: Confirms abort() sets signal.aborted to true, sets signal.reason to the provided value (defaulting to an AbortError DOMException when omitted), and dispatches an "abort" event on the signal.
+- [ ] Implement `AbortSignal` Class
+  - Static methods
+    - [ ] Implement `AbortSignal.abort(reason)`
+      - Story:
+        - Signature: `AbortSignal.abort(reason?: any): AbortSignal`
+        - Example: `AbortSignal.abort(new Error("cancelled")).aborted // true; .reason // Error("cancelled")`
+        - Details: Confirms abort() returns a pre-aborted AbortSignal with reason set to the provided value, defaulting to an AbortError DOMException when omitted.
+    - [ ] Implement `AbortSignal.timeout(milliseconds)`
+      - Story:
+        - Signature: `AbortSignal.timeout(milliseconds: number): AbortSignal`
+        - Example: `AbortSignal.timeout(100) // returns a signal that becomes aborted after 100ms with a TimeoutError DOMException as reason`
+        - Details: Confirms timeout() returns a non-aborted signal that automatically aborts after the specified number of milliseconds with a TimeoutError DOMException as the reason.
+    - [ ] Implement `AbortSignal.any(signals)`
+      - Story:
+        - Signature: `AbortSignal.any(signals: AbortSignal[]): AbortSignal`
+        - Example: `AbortSignal.any([ac1.signal, ac2.signal]) // returns a signal that aborts when either ac1 or ac2 is aborted`
+        - Details: Confirms any() returns a signal that becomes aborted as soon as any of the provided signals abort, adopting the reason of the first signal to abort.
+  - Properties
+    - [ ] Implement `AbortSignal.prototype.aborted`
+      - Story:
+        - Signature: `AbortSignal.prototype.aborted: boolean`
+        - Example: `const ac = new AbortController(); ac.signal.aborted // false; ac.abort(); ac.signal.aborted // true`
+        - Details: Confirms aborted is false on a fresh signal and becomes true permanently after the signal is aborted.
+    - [ ] Implement `AbortSignal.prototype.reason`
+      - Story:
+        - Signature: `AbortSignal.prototype.reason: any`
+        - Example: `const ac = new AbortController(); ac.abort(new Error("cancelled")); ac.signal.reason // Error("cancelled")`
+        - Details: Confirms reason is undefined on a fresh signal and is set to the value passed to abort() once the signal is aborted, defaulting to an AbortError DOMException when no reason is provided.
+  - Methods
+    - [ ] Implement `AbortSignal.prototype.throwIfAborted()`
+      - Story:
+        - Signature: `throwIfAborted(): void`
+        - Example: `const ac = new AbortController(); ac.abort(new Error("cancelled")); ac.signal.throwIfAborted() // throws Error("cancelled")`
+        - Details: Confirms throwIfAborted() throws signal.reason if the signal is aborted and is a no-op if the signal is not yet aborted.
+  - Event handlers
+    - [ ] Implement `AbortSignal.prototype.onabort`
+      - Story:
+        - Signature: `AbortSignal.prototype.onabort: ((event: Event) => void) | null`
+        - Example: `ac.signal.onabort = e => aborted = true; ac.abort() // aborted === true`
+        - Details: Confirms setting onabort registers a listener for the "abort" event that fires synchronously when the signal transitions to aborted.
+- [ ] Implement `TextEncoder` Class
+  - Constructor
+    - [ ] Implement constructor (`new TextEncoder()`)
+      - Story:
+        - Signature: `new TextEncoder(): TextEncoder`
+        - Example: `const encoder = new TextEncoder() // creates a TextEncoder that always encodes to UTF-8`
+        - Details: Confirms the constructor takes no arguments and returns a TextEncoder instance fixed to UTF-8 encoding.
+  - Properties
+    - [ ] Implement `TextEncoder.prototype.encoding`
+      - Story:
+        - Signature: `TextEncoder.prototype.encoding: string`
+        - Example: `new TextEncoder().encoding // "utf-8"`
+        - Details: Confirms encoding is always "utf-8" regardless of the environment locale, as required by the spec.
+  - Methods
+    - [ ] Implement `TextEncoder.prototype.encode()`
+      - Story:
+        - Signature: `encode(input?: string): Uint8Array`
+        - Example: `new TextEncoder().encode("Hello") // Uint8Array [72, 101, 108, 108, 111]`
+        - Details: Confirms encode() converts the input string to a UTF-8 encoded Uint8Array, returning an empty Uint8Array when input is omitted or empty.
+    - [ ] Implement `TextEncoder.prototype.encodeInto()`
+      - Story:
+        - Signature: `encodeInto(source: string, destination: Uint8Array): TextEncoderEncodeIntoResult`
+        - Example: `const buf = new Uint8Array(5); new TextEncoder().encodeInto("Hello", buf) // { read: 5, written: 5 }; buf // Uint8Array [72, 101, 108, 108, 111]`
+        - Details: Confirms encodeInto() writes UTF-8 bytes directly into the provided buffer and returns an object reporting how many source characters were read and how many bytes were written, stopping when the buffer is full.
+- [ ] Implement `TextDecoder` Class
+  - Constructor
+    - [ ] Implement constructor (`new TextDecoder(label, options)`)
+      - Story:
+        - Signature: `new TextDecoder(label?: string, options?: TextDecoderOptions): TextDecoder`
+        - Example: `new TextDecoder("utf-8", { fatal: true }) // creates a TextDecoder for UTF-8 that throws on malformed input`
+        - Details: Confirms the constructor accepts an optional encoding label defaulting to "utf-8" and an optional options dictionary, throwing a RangeError for unknown or unsupported encoding labels.
+  - Properties
+    - [ ] Implement `TextDecoder.prototype.encoding`
+      - Story:
+        - Signature: `TextDecoder.prototype.encoding: string`
+        - Example: `new TextDecoder("utf-8").encoding // "utf-8"`
+        - Details: Confirms encoding reflects the canonical name of the encoding resolved from the label passed to the constructor.
+    - [ ] Implement `TextDecoder.prototype.fatal`
+      - Story:
+        - Signature: `TextDecoder.prototype.fatal: boolean`
+        - Example: `new TextDecoder("utf-8", { fatal: true }).fatal // true`
+        - Details: Confirms fatal reflects the value passed in the options dictionary, defaulting to false when omitted; when true, malformed byte sequences throw a TypeError instead of being replaced.
+    - [ ] Implement `TextDecoder.prototype.ignoreBOM`
+      - Story:
+        - Signature: `TextDecoder.prototype.ignoreBOM: boolean`
+        - Example: `new TextDecoder("utf-8", { ignoreBOM: true }).ignoreBOM // true`
+        - Details: Confirms ignoreBOM reflects the value passed in the options dictionary, defaulting to false when omitted; when false the BOM is stripped from the decoded output if present.
+  - Methods
+    - [ ] Implement `TextDecoder.prototype.decode()`
+      - Story:
+        - Signature: `decode(input?: BufferSource, options?: TextDecodeOptions): string`
+        - Example: `new TextDecoder().decode(new Uint8Array([72, 101, 108, 108, 111])) // "Hello"`
+        - Details: Confirms decode() converts the provided BufferSource from the decoder's encoding into a string, returning an empty string when input is omitted, and throwing a TypeError on malformed input when fatal is true.
+- [ ] Implement `ByteLengthQueuingStrategy` Class
+  - Constructor
+    - [ ] Implement constructor (`new ByteLengthQueuingStrategy({ highWaterMark })`)
+      - Story:
+        - Signature: `new ByteLengthQueuingStrategy({ highWaterMark: number }): ByteLengthQueuingStrategy`
+        - Example: `new ByteLengthQueuingStrategy({ highWaterMark: 1024 }) // creates a strategy that applies backpressure when buffered bytes exceed 1024`
+        - Details: Confirms the constructor accepts a required highWaterMark value in bytes and returns a strategy instance usable with ReadableStream or WritableStream.
+  - Properties
+    - [ ] Implement `ByteLengthQueuingStrategy.prototype.highWaterMark`
+      - Story:
+        - Signature: `ByteLengthQueuingStrategy.prototype.highWaterMark: number`
+        - Example: `new ByteLengthQueuingStrategy({ highWaterMark: 1024 }).highWaterMark // 1024`
+        - Details: Confirms highWaterMark reflects the value passed to the constructor and represents the total byte threshold at which backpressure is applied.
+    - [ ] Implement `ByteLengthQueuingStrategy.prototype.size`
+      - Story:
+        - Signature: `ByteLengthQueuingStrategy.prototype.size: (chunk: ArrayBufferView) => number`
+        - Example: `new ByteLengthQueuingStrategy({ highWaterMark: 1024 }).size(new Uint8Array(64)) // 64`
+        - Details: Confirms size is a function that returns chunk.byteLength, allowing the stream to track backpressure based on the byte size of each enqueued chunk.
+- [ ] Implement `CountQueuingStrategy` Class
+  - Constructor
+    - [ ] Implement constructor (`new CountQueuingStrategy({ highWaterMark })`)
+      - Story:
+        - Signature: `new CountQueuingStrategy({ highWaterMark: number }): CountQueuingStrategy`
+        - Example: `new CountQueuingStrategy({ highWaterMark: 10 }) // creates a strategy that applies backpressure when more than 10 chunks are buffered`
+        - Details: Confirms the constructor accepts a required highWaterMark value representing a chunk count and returns a strategy instance usable with ReadableStream or WritableStream.
+  - Properties
+    - [ ] Implement `CountQueuingStrategy.prototype.highWaterMark`
+      - Story:
+        - Signature: `CountQueuingStrategy.prototype.highWaterMark: number`
+        - Example: `new CountQueuingStrategy({ highWaterMark: 10 }).highWaterMark // 10`
+        - Details: Confirms highWaterMark reflects the value passed to the constructor and represents the maximum number of chunks that may be buffered before backpressure is applied.
+    - [ ] Implement `CountQueuingStrategy.prototype.size`
+      - Story:
+        - Signature: `CountQueuingStrategy.prototype.size: (chunk: any) => 1`
+        - Example: `new CountQueuingStrategy({ highWaterMark: 10 }).size("anything") // 1`
+        - Details: Confirms size is a function that always returns 1 regardless of the chunk value, allowing the stream to track backpressure based purely on the number of enqueued chunks.
+- [ ] Implement `ReadableStream` Class
+  - Constructor
+    - [ ] Implement constructor (`new ReadableStream(underlyingSource, queuingStrategy)`)
+      - Story:
+        - Signature: `new ReadableStream(underlyingSource?: UnderlyingSource, queuingStrategy?: QueuingStrategy): ReadableStream`
+        - Example: `new ReadableStream({ start(controller) { controller.enqueue("chunk"); controller.close() } }) // creates a stream that emits one chunk then closes`
+        - Details: Confirms the constructor accepts an optional underlying source object with lifecycle callbacks and an optional queuing strategy, returning a readable stream that pulls from the source.
+  - Static methods
+    - [ ] Implement `ReadableStream.from(iterable)`
+      - Story:
+        - Signature: `ReadableStream.from(iterable: Iterable | AsyncIterable): ReadableStream`
+        - Example: `ReadableStream.from(["a", "b", "c"]) // creates a stream that emits "a", "b", "c" then closes`
+        - Details: Confirms from() wraps a sync or async iterable into a ReadableStream, emitting each yielded value as a chunk and closing the stream when the iterable is exhausted.
+  - Properties
+    - [ ] Implement `ReadableStream.prototype.locked`
+      - Story:
+        - Signature: `ReadableStream.prototype.locked: boolean`
+        - Example: `const stream = new ReadableStream(); stream.locked // false; stream.getReader(); stream.locked // true`
+        - Details: Confirms locked is false until a reader is acquired via getReader(), at which point it becomes true and remains so until the reader is released.
+  - Methods
+    - [ ] Implement `ReadableStream.prototype.cancel()`
+      - Story:
+        - Signature: `cancel(reason?: any): Promise<void>`
+        - Example: `await stream.cancel(new Error("no longer needed")) // stream is closed and underlying source cancel callback is invoked`
+        - Details: Confirms cancel() signals that the consumer is done reading, invoking the underlying source's cancel callback with the given reason and closing the stream.
+    - [ ] Implement `ReadableStream.prototype.getReader()`
+      - Story:
+        - Signature: `getReader(options?: { mode?: "byob" }): ReadableStreamDefaultReader | ReadableStreamBYOBReader`
+        - Example: `const reader = stream.getReader() // acquires an exclusive lock on the stream; stream.locked === true`
+        - Details: Confirms getReader() returns a default reader when called with no arguments or mode "byob" returns a BYOB reader for byte streams, and that acquiring a reader locks the stream exclusively.
+    - [ ] Implement `ReadableStream.prototype.pipeThrough()`
+      - Story:
+        - Signature: `pipeThrough(transform: { readable: ReadableStream, writable: WritableStream }, options?: PipeOptions): ReadableStream`
+        - Example: `const encoded = textStream.pipeThrough(new TextEncoderStream()) // returns a new ReadableStream of encoded bytes`
+        - Details: Confirms pipeThrough() pipes the stream through a TransformStream and returns the transform's readable end, allowing chainable stream transformations.
+    - [ ] Implement `ReadableStream.prototype.pipeTo()`
+      - Story:
+        - Signature: `pipeTo(destination: WritableStream, options?: PipeOptions): Promise<void>`
+        - Example: `await readableStream.pipeTo(writableStream) // all chunks are forwarded to writableStream; both streams close on completion`
+        - Details: Confirms pipeTo() forwards all chunks from the readable stream to the writable destination, resolving when the source closes and propagating errors and cancellation per the pipe options.
+    - [ ] Implement `ReadableStream.prototype.tee()`
+      - Story:
+        - Signature: `tee(): [ReadableStream, ReadableStream]`
+        - Example: `const [branch1, branch2] = stream.tee() // both branches receive the same chunks independently`
+        - Details: Confirms tee() splits the stream into two independent readable branches that each receive all chunks, allowing the same stream to be consumed by two separate readers.
+  - `ReadableStreamDefaultReader`
+    - Constructor
+      - [ ] Implement constructor (`new ReadableStreamDefaultReader(stream)`)
+        - Story:
+          - Signature: `new ReadableStreamDefaultReader(stream: ReadableStream): ReadableStreamDefaultReader`
+          - Example: `new ReadableStreamDefaultReader(stream) // acquires a lock on stream; stream.locked === true`
+          - Details: Confirms the constructor accepts an unlocked ReadableStream, acquires an exclusive lock on it, and throws a TypeError if the stream is already locked.
+    - Properties
+      - [ ] Implement `ReadableStreamDefaultReader.prototype.closed`
+        - Story:
+          - Signature: `ReadableStreamDefaultReader.prototype.closed: Promise<void>`
+          - Example: `reader.closed.then(() => streamDone = true) // streamDone becomes true when the stream closes or errors`
+          - Details: Confirms closed is a Promise that resolves when the stream closes normally and rejects when the stream errors, allowing consumers to react to stream termination.
+    - Methods
+      - [ ] Implement `ReadableStreamDefaultReader.prototype.cancel()`
+        - Story:
+          - Signature: `cancel(reason?: any): Promise<void>`
+          - Example: `await reader.cancel(new Error("done")) // stream is cancelled and the reader's lock is released`
+          - Details: Confirms cancel() cancels the stream with the given reason, releasing the reader's lock and invoking the underlying source's cancel callback.
+      - [ ] Implement `ReadableStreamDefaultReader.prototype.read()`
+        - Story:
+          - Signature: `read(): Promise<{ value: any, done: boolean }>`
+          - Example: `await reader.read() // { value: "chunk", done: false }; await reader.read() // { value: undefined, done: true } when stream closes`
+          - Details: Confirms read() returns a Promise resolving to the next available chunk with done false, or done true with value undefined when the stream is closed.
+      - [ ] Implement `ReadableStreamDefaultReader.prototype.releaseLock()`
+        - Story:
+          - Signature: `releaseLock(): void`
+          - Example: `reader.releaseLock() // stream.locked === false; stream can now be read by a new reader`
+          - Details: Confirms releaseLock() releases the reader's exclusive lock on the stream, throwing a TypeError if there are pending read requests at the time of release.
+  - `ReadableStreamBYOBReader`
+    - Constructor
+      - [ ] Implement constructor (`new ReadableStreamBYOBReader(stream)`)
+        - Story:
+          - Signature: `new ReadableStreamBYOBReader(stream: ReadableStream): ReadableStreamBYOBReader`
+          - Example: `new ReadableStreamBYOBReader(byteStream) // acquires a lock on a byte stream for buffer-oriented reading`
+          - Details: Confirms the constructor accepts an unlocked byte-oriented ReadableStream, acquires an exclusive lock, and throws a TypeError if the stream is already locked or is not a byte stream.
+    - Properties
+      - [ ] Implement `ReadableStreamBYOBReader.prototype.closed`
+        - Story:
+          - Signature: `ReadableStreamBYOBReader.prototype.closed: Promise<void>`
+          - Example: `reader.closed.then(() => streamDone = true) // streamDone becomes true when the byte stream closes or errors`
+          - Details: Confirms closed is a Promise that resolves when the stream closes normally and rejects when the stream errors.
+    - Methods
+      - [ ] Implement `ReadableStreamBYOBReader.prototype.cancel()`
+        - Story:
+          - Signature: `cancel(reason?: any): Promise<void>`
+          - Example: `await reader.cancel(new Error("done")) // byte stream is cancelled and the reader's lock is released`
+          - Details: Confirms cancel() cancels the byte stream with the given reason and releases the reader's lock.
+      - [ ] Implement `ReadableStreamBYOBReader.prototype.read()`
+        - Story:
+          - Signature: `read(view: ArrayBufferView): Promise<{ value: ArrayBufferView, done: boolean }>`
+          - Example: `const buf = new Uint8Array(16); await reader.read(buf) // { value: Uint8Array(16), done: false } — buf is filled with up to 16 bytes`
+          - Details: Confirms read() accepts a caller-supplied ArrayBufferView buffer, fills it with available bytes from the stream, and resolves with the filled view and a done flag.
+      - [ ] Implement `ReadableStreamBYOBReader.prototype.releaseLock()`
+        - Story:
+          - Signature: `releaseLock(): void`
+          - Example: `reader.releaseLock() // stream.locked === false; stream can now be read by a new reader`
+          - Details: Confirms releaseLock() releases the reader's exclusive lock on the byte stream, throwing a TypeError if there are pending read requests at the time of release.
+  - `ReadableStreamBYOBRequest`
+    - Properties
+      - [ ] Implement `ReadableStreamBYOBRequest.prototype.view`
+        - Story:
+          - Signature: `ReadableStreamBYOBRequest.prototype.view: ArrayBufferView | null`
+          - Example: `controller.byobRequest.view // Uint8Array into which the underlying source should write bytes`
+          - Details: Confirms view exposes the caller-supplied buffer that the underlying byte source should write into, and is null when there is no active BYOB request.
+    - Methods
+      - [ ] Implement `ReadableStreamBYOBRequest.prototype.respond()`
+        - Story:
+          - Signature: `respond(bytesWritten: number): void`
+          - Example: `controller.byobRequest.respond(16) // signals that 16 bytes were written into the view`
+          - Details: Confirms respond() notifies the stream that the specified number of bytes have been written into the BYOB view, advancing the read request accordingly.
+      - [ ] Implement `ReadableStreamBYOBRequest.prototype.respondWithNewView()`
+        - Story:
+          - Signature: `respondWithNewView(view: ArrayBufferView): void`
+          - Example: `controller.byobRequest.respondWithNewView(new Uint8Array(buffer, 0, 16)) // responds with an alternative view into the same buffer`
+          - Details: Confirms respondWithNewView() allows the underlying source to respond with a different view into the same backing buffer, useful when the source needs to adjust the offset or length of the written region.
+- [ ] Implement `WritableStream` Class
+  - Constructor
+    - [ ] Implement constructor (`new WritableStream(underlyingSink, queuingStrategy)`)
+      - Story:
+        - Signature: `new WritableStream(underlyingSink?: UnderlyingSink, queuingStrategy?: QueuingStrategy): WritableStream`
+        - Example: `new WritableStream({ write(chunk) { received.push(chunk) } }) // creates a stream that collects all written chunks into received`
+        - Details: Confirms the constructor accepts an optional underlying sink object with lifecycle callbacks and an optional queuing strategy, returning a writable stream that forwards chunks to the sink.
+  - Properties
+    - [ ] Implement `WritableStream.prototype.locked`
+      - Story:
+        - Signature: `WritableStream.prototype.locked: boolean`
+        - Example: `const stream = new WritableStream(); stream.locked // false; stream.getWriter(); stream.locked // true`
+        - Details: Confirms locked is false until a writer is acquired via getWriter(), at which point it becomes true and remains so until the writer is released.
+  - Methods
+    - [ ] Implement `WritableStream.prototype.abort()`
+      - Story:
+        - Signature: `abort(reason?: any): Promise<void>`
+        - Example: `await stream.abort(new Error("cancelled")) // stream is aborted; underlying sink abort callback is invoked with the reason`
+        - Details: Confirms abort() signals that the producer is done writing due to an error, invoking the underlying sink's abort callback with the given reason and erroring the stream.
+    - [ ] Implement `WritableStream.prototype.close()`
+      - Story:
+        - Signature: `close(): Promise<void>`
+        - Example: `await stream.close() // all queued chunks are flushed; underlying sink close callback is invoked`
+        - Details: Confirms close() waits for any queued writes to complete, then invokes the underlying sink's close callback and resolves when the stream is fully closed.
+    - [ ] Implement `WritableStream.prototype.getWriter()`
+      - Story:
+        - Signature: `getWriter(): WritableStreamDefaultWriter`
+        - Example: `const writer = stream.getWriter() // acquires an exclusive lock on the stream; stream.locked === true`
+        - Details: Confirms getWriter() returns a WritableStreamDefaultWriter that holds an exclusive lock on the stream, throwing a TypeError if the stream is already locked.
+  - `WritableStreamDefaultWriter`
+    - Constructor
+      - [ ] Implement constructor (`new WritableStreamDefaultWriter(stream)`)
+        - Story:
+          - Signature: `new WritableStreamDefaultWriter(stream: WritableStream): WritableStreamDefaultWriter`
+          - Example: `new WritableStreamDefaultWriter(stream) // acquires a lock on stream; stream.locked === true`
+          - Details: Confirms the constructor accepts an unlocked WritableStream, acquires an exclusive lock on it, and throws a TypeError if the stream is already locked.
+    - Properties
+      - [ ] Implement `WritableStreamDefaultWriter.prototype.closed`
+        - Story:
+          - Signature: `WritableStreamDefaultWriter.prototype.closed: Promise<void>`
+          - Example: `writer.closed.then(() => streamDone = true) // streamDone becomes true when the stream closes or errors`
+          - Details: Confirms closed is a Promise that resolves when the stream closes normally and rejects when the stream errors, allowing producers to react to stream termination.
+      - [ ] Implement `WritableStreamDefaultWriter.prototype.desiredSize`
+        - Story:
+          - Signature: `WritableStreamDefaultWriter.prototype.desiredSize: number | null`
+          - Example: `writer.desiredSize // 1 when the stream is ready for more data; 0 or negative when backpressure is applied; null when the stream is errored`
+          - Details: Confirms desiredSize reflects the difference between the stream's high water mark and the amount of data currently buffered, signalling backpressure to the producer.
+      - [ ] Implement `WritableStreamDefaultWriter.prototype.ready`
+        - Story:
+          - Signature: `WritableStreamDefaultWriter.prototype.ready: Promise<void>`
+          - Example: `await writer.ready // resolves when the stream is ready to accept more data without backpressure`
+          - Details: Confirms ready is a Promise that resolves when desiredSize is greater than zero, allowing producers to wait for backpressure to clear before writing more chunks.
+    - Methods
+      - [ ] Implement `WritableStreamDefaultWriter.prototype.abort()`
+        - Story:
+          - Signature: `abort(reason?: any): Promise<void>`
+          - Example: `await writer.abort(new Error("cancelled")) // stream is aborted; underlying sink abort callback is invoked`
+          - Details: Confirms abort() errors the stream with the given reason, invoking the underlying sink's abort callback and rejecting any pending writes.
+      - [ ] Implement `WritableStreamDefaultWriter.prototype.close()`
+        - Story:
+          - Signature: `close(): Promise<void>`
+          - Example: `await writer.close() // all queued chunks are flushed; underlying sink close callback is invoked`
+          - Details: Confirms close() waits for any pending writes to complete, then invokes the underlying sink's close callback and resolves when the stream is fully closed.
+      - [ ] Implement `WritableStreamDefaultWriter.prototype.releaseLock()`
+        - Story:
+          - Signature: `releaseLock(): void`
+          - Example: `writer.releaseLock() // stream.locked === false; stream can now accept a new writer`
+          - Details: Confirms releaseLock() releases the writer's exclusive lock on the stream, allowing a new writer to be acquired; any pending ready or closed promises are rejected.
+      - [ ] Implement `WritableStreamDefaultWriter.prototype.write(chunk)`
+        - Story:
+          - Signature: `write(chunk?: any): Promise<void>`
+          - Example: `await writer.write("chunk") // chunk is forwarded to the underlying sink's write callback; resolves when the sink has processed it`
+          - Details: Confirms write() enqueues the chunk for delivery to the underlying sink and returns a Promise that resolves when the sink's write callback completes, or rejects if the sink errors.
+- [ ] Implement `TransformStream` Class
+  - Constructor
+    - [ ] Implement constructor (`new TransformStream(transformer, writableStrategy, readableStrategy)`)
+      - Story:
+        - Signature: `new TransformStream(transformer?: Transformer, writableStrategy?: QueuingStrategy, readableStrategy?: QueuingStrategy): TransformStream`
+        - Example: `new TransformStream({ transform(chunk, controller) { controller.enqueue(chunk.toUpperCase()) } }) // creates a stream that uppercases each chunk`
+        - Details: Confirms the constructor accepts an optional transformer object with lifecycle callbacks and optional queuing strategies for both the writable and readable sides, returning a TransformStream that processes chunks through the transformer.
+  - Properties
+    - [ ] Implement `TransformStream.prototype.readable`
+      - Story:
+        - Signature: `TransformStream.prototype.readable: ReadableStream`
+        - Example: `const { readable } = new TransformStream(); readable instanceof ReadableStream // true`
+        - Details: Confirms readable exposes the output end of the transform stream as a ReadableStream from which transformed chunks can be read.
+    - [ ] Implement `TransformStream.prototype.writable`
+      - Story:
+        - Signature: `TransformStream.prototype.writable: WritableStream`
+        - Example: `const { writable } = new TransformStream(); writable instanceof WritableStream // true`
+        - Details: Confirms writable exposes the input end of the transform stream as a WritableStream into which chunks are written for transformation.
+- [ ] Implement `ReadableStreamDefaultController` Class
+  - Properties
+    - [ ] Implement `ReadableStreamDefaultController.prototype.desiredSize`
+      - Story:
+        - Signature: `ReadableStreamDefaultController.prototype.desiredSize: number | null`
+        - Example: `new ReadableStream({ start(controller) { controller.desiredSize } }) // positive when the stream wants more chunks; 0 or negative when backpressure is applied; null when the stream is errored`
+        - Details: Confirms desiredSize reflects the difference between the stream's high water mark and the amount of data currently buffered, allowing the underlying source to pace chunk production.
+  - Methods
+    - [ ] Implement `ReadableStreamDefaultController.prototype.close()`
+      - Story:
+        - Signature: `close(): void`
+        - Example: `new ReadableStream({ start(controller) { controller.enqueue("last"); controller.close() } }) // stream emits "last" then signals end of data`
+        - Details: Confirms close() signals that no more chunks will be enqueued, causing the stream to close after all buffered chunks have been read, and throws a TypeError if called on an already closed or errored stream.
+    - [ ] Implement `ReadableStreamDefaultController.prototype.enqueue()`
+      - Story:
+        - Signature: `enqueue(chunk?: any): void`
+        - Example: `new ReadableStream({ start(controller) { controller.enqueue("a"); controller.enqueue("b") } }) // stream emits "a" then "b"`
+        - Details: Confirms enqueue() adds a chunk to the stream's internal queue for delivery to the next read request, and throws a TypeError if called on a closed or errored stream.
+    - [ ] Implement `ReadableStreamDefaultController.prototype.error()`
+      - Story:
+        - Signature: `error(e?: any): void`
+        - Example: `new ReadableStream({ start(controller) { controller.error(new Error("source failed")) } }) // all pending and future reads reject with the given error`
+        - Details: Confirms error() transitions the stream into an errored state, causing all pending and future read requests to reject with the provided reason.
+- [ ] Implement `ReadableByteStreamController` Class
+  - Properties
+    - [ ] Implement `ReadableByteStreamController.prototype.byobRequest`
+      - Story:
+        - Signature: `ReadableByteStreamController.prototype.byobRequest: ReadableStreamBYOBRequest | null`
+        - Example: `new ReadableStream({ type: "bytes", pull(controller) { controller.byobRequest.view // Uint8Array to write into } }) // byobRequest is set when a BYOB read is pending; null otherwise`
+        - Details: Confirms byobRequest exposes the active BYOB request when a consumer has issued a read with a caller-supplied buffer, allowing the underlying source to write directly into it; null when no BYOB read is pending.
+    - [ ] Implement `ReadableByteStreamController.prototype.desiredSize`
+      - Story:
+        - Signature: `ReadableByteStreamController.prototype.desiredSize: number | null`
+        - Example: `new ReadableStream({ type: "bytes", pull(controller) { controller.desiredSize } }) // positive when the stream wants more bytes; 0 or negative when backpressure is applied; null when errored`
+        - Details: Confirms desiredSize reflects the number of bytes the stream still wants to buffer before backpressure is applied, allowing the underlying byte source to pace its production.
+  - Methods
+    - [ ] Implement `ReadableByteStreamController.prototype.close()`
+      - Story:
+        - Signature: `close(): void`
+        - Example: `new ReadableStream({ type: "bytes", pull(controller) { controller.close() } }) // stream signals end of byte data after all buffered bytes are consumed`
+        - Details: Confirms close() signals that no more bytes will be enqueued, causing the byte stream to close after all buffered data has been read, and throws a TypeError if called on an already closed or errored stream.
+    - [ ] Implement `ReadableByteStreamController.prototype.enqueue()`
+      - Story:
+        - Signature: `enqueue(chunk: ArrayBufferView): void`
+        - Example: `new ReadableStream({ type: "bytes", pull(controller) { controller.enqueue(new Uint8Array([1, 2, 3])) } }) // stream emits a 3-byte chunk`
+        - Details: Confirms enqueue() adds an ArrayBufferView chunk to the byte stream's internal queue, and throws a TypeError if the chunk is not a valid ArrayBufferView or if the stream is closed or errored.
+    - [ ] Implement `ReadableByteStreamController.prototype.error()`
+      - Story:
+        - Signature: `error(e?: any): void`
+        - Example: `new ReadableStream({ type: "bytes", pull(controller) { controller.error(new Error("source failed")) } }) // all pending and future reads reject with the given error`
+        - Details: Confirms error() transitions the byte stream into an errored state, causing all pending and future read requests to reject with the provided reason.
+- [ ] Implement `WritableStreamDefaultController` Class
+  - Properties
+    - [ ] Implement `WritableStreamDefaultController.prototype.signal`
+      - Story:
+        - Signature: `WritableStreamDefaultController.prototype.signal: AbortSignal`
+        - Example: `new WritableStream({ write(chunk, controller) { controller.signal.aborted // true if the stream was aborted while this write was in progress } }) // allows the sink to react to mid-write aborts`
+        - Details: Confirms signal is an AbortSignal that becomes aborted when the stream is aborted, allowing the underlying sink's write or close callbacks to observe and respond to abort during an in-progress operation.
+  - Methods
+    - [ ] Implement `WritableStreamDefaultController.prototype.error()`
+      - Story:
+        - Signature: `error(e?: any): void`
+        - Example: `new WritableStream({ write(chunk, controller) { controller.error(new Error("sink failed")) } }) // all pending and future writes reject with the given error`
+        - Details: Confirms error() transitions the writable stream into an errored state from within a sink callback, causing all pending and future write requests to reject with the provided reason.
+- [ ] Implement `TransformStreamDefaultController` Class
+  - Properties
+    - [ ] Implement `TransformStreamDefaultController.prototype.desiredSize`
+      - Story:
+        - Signature: `TransformStreamDefaultController.prototype.desiredSize: number | null`
+        - Example: `new TransformStream({ transform(chunk, controller) { controller.desiredSize } }) // positive when the readable side wants more chunks; 0 or negative when backpressure is applied; null when the readable side is errored`
+        - Details: Confirms desiredSize reflects the readable side's backpressure signal, allowing the transformer to pace how many chunks it enqueues in response to a single incoming chunk.
+  - Methods
+    - [ ] Implement `TransformStreamDefaultController.prototype.enqueue()`
+      - Story:
+        - Signature: `enqueue(chunk?: any): void`
+        - Example: `new TransformStream({ transform(chunk, controller) { controller.enqueue(chunk.toUpperCase()) } }) // each incoming chunk is transformed and forwarded to the readable side`
+        - Details: Confirms enqueue() adds a transformed chunk to the readable side's queue for delivery to the next read request, and throws a TypeError if called on a closed or errored stream.
+    - [ ] Implement `TransformStreamDefaultController.prototype.error()`
+      - Story:
+        - Signature: `error(e?: any): void`
+        - Example: `new TransformStream({ transform(chunk, controller) { controller.error(new Error("transform failed")) } }) // both the readable and writable sides are errored`
+        - Details: Confirms error() transitions both the readable and writable sides of the transform stream into an errored state, causing all pending and future reads and writes to reject with the provided reason.
+    - [ ] Implement `TransformStreamDefaultController.prototype.terminate()`
+      - Story:
+        - Signature: `terminate(): void`
+        - Example: `new TransformStream({ transform(chunk, controller) { if (chunk === null) controller.terminate() } }) // closes the readable side and errors the writable side when a null chunk is encountered`
+        - Details: Confirms terminate() closes the readable side of the transform stream as if no more chunks will be enqueued, and errors the writable side so that any further writes are rejected.
+- [ ] Implement `TextEncoderStream` Class
+  - Constructor
+    - [ ] Implement constructor (`new TextEncoderStream()`)
+      - Story:
+        - Signature: `new TextEncoderStream(): TextEncoderStream`
+        - Example: `new TextEncoderStream() // creates a transform stream that encodes string chunks to UTF-8 Uint8Array chunks`
+        - Details: Confirms the constructor takes no arguments and returns a TextEncoderStream instance whose writable side accepts string chunks and whose readable side emits corresponding UTF-8 encoded Uint8Array chunks.
+  - Properties
+    - [ ] Implement `TextEncoderStream.prototype.encoding`
+      - Story:
+        - Signature: `TextEncoderStream.prototype.encoding: string`
+        - Example: `new TextEncoderStream().encoding // "utf-8"`
+        - Details: Confirms encoding is always "utf-8" as TextEncoderStream is fixed to UTF-8 encoding per the spec.
+    - [ ] Implement `TextEncoderStream.prototype.readable`
+      - Story:
+        - Signature: `TextEncoderStream.prototype.readable: ReadableStream<Uint8Array>`
+        - Example: `new TextEncoderStream().readable instanceof ReadableStream // true — emits Uint8Array chunks of UTF-8 encoded bytes`
+        - Details: Confirms readable exposes the output end of the encoder as a ReadableStream that emits UTF-8 encoded Uint8Array chunks corresponding to the string chunks written to the writable side.
+    - [ ] Implement `TextEncoderStream.prototype.writable`
+      - Story:
+        - Signature: `TextEncoderStream.prototype.writable: WritableStream<string>`
+        - Example: `new TextEncoderStream().writable instanceof WritableStream // true — accepts string chunks for encoding`
+        - Details: Confirms writable exposes the input end of the encoder as a WritableStream that accepts string chunks, forwarding their UTF-8 encoded bytes to the readable side.
+- [ ] Implement `TextDecoderStream` Class
+  - Constructor
+    - [ ] Implement constructor (`new TextDecoderStream(label, options)`)
+      - Story:
+        - Signature: `new TextDecoderStream(label?: string, options?: TextDecoderOptions): TextDecoderStream`
+        - Example: `new TextDecoderStream("utf-8", { fatal: true }) // creates a transform stream that decodes UTF-8 byte chunks to string chunks, throwing on malformed input`
+        - Details: Confirms the constructor accepts an optional encoding label defaulting to "utf-8" and an optional options dictionary, returning a TextDecoderStream whose writable side accepts BufferSource chunks and whose readable side emits decoded string chunks.
+  - Properties
+    - [ ] Implement `TextDecoderStream.prototype.encoding`
+      - Story:
+        - Signature: `TextDecoderStream.prototype.encoding: string`
+        - Example: `new TextDecoderStream("utf-8").encoding // "utf-8"`
+        - Details: Confirms encoding reflects the canonical name of the encoding resolved from the label passed to the constructor.
+    - [ ] Implement `TextDecoderStream.prototype.fatal`
+      - Story:
+        - Signature: `TextDecoderStream.prototype.fatal: boolean`
+        - Example: `new TextDecoderStream("utf-8", { fatal: true }).fatal // true`
+        - Details: Confirms fatal reflects the value passed in the options dictionary, defaulting to false when omitted; when true, malformed byte sequences error the stream rather than being replaced with the replacement character.
+    - [ ] Implement `TextDecoderStream.prototype.ignoreBOM`
+      - Story:
+        - Signature: `TextDecoderStream.prototype.ignoreBOM: boolean`
+        - Example: `new TextDecoderStream("utf-8", { ignoreBOM: true }).ignoreBOM // true`
+        - Details: Confirms ignoreBOM reflects the value passed in the options dictionary, defaulting to false when omitted; when false the BOM is stripped from the decoded output if present at the start of the stream.
+    - [ ] Implement `TextDecoderStream.prototype.readable`
+      - Story:
+        - Signature: `TextDecoderStream.prototype.readable: ReadableStream<string>`
+        - Example: `new TextDecoderStream().readable instanceof ReadableStream // true — emits decoded string chunks`
+        - Details: Confirms readable exposes the output end of the decoder as a ReadableStream that emits string chunks decoded from the BufferSource chunks written to the writable side.
+    - [ ] Implement `TextDecoderStream.prototype.writable`
+      - Story:
+        - Signature: `TextDecoderStream.prototype.writable: WritableStream<BufferSource>`
+        - Example: `new TextDecoderStream().writable instanceof WritableStream // true — accepts BufferSource chunks for decoding`
+        - Details: Confirms writable exposes the input end of the decoder as a WritableStream that accepts BufferSource chunks, forwarding their decoded string output to the readable side.
+- [ ] Implement `CompressionStream` Class
+  - Constructor
+    - [ ] Implement constructor (`new CompressionStream(format)`)
+      - Story:
+        - Signature: `new CompressionStream(format: string): CompressionStream`
+        - Example: `new CompressionStream("gzip") // creates a transform stream that compresses byte chunks using gzip`
+        - Details: Confirms the constructor accepts a compression format string and returns a CompressionStream whose writable side accepts BufferSource chunks and whose readable side emits compressed Uint8Array chunks, throwing a TypeError for unrecognized format values.
+      - [ ] Implement `"deflate"` format
+        - Story:
+          - Signature: `new CompressionStream("deflate"): CompressionStream`
+          - Example: `new CompressionStream("deflate") // compresses chunks using zlib-wrapped DEFLATE (RFC 1950)`
+          - Details: Confirms the "deflate" format compresses input bytes using zlib-wrapped DEFLATE encoding and that the output is valid zlib data decompressible by a conforming implementation.
+      - [ ] Implement `"deflate-raw"` format
+        - Story:
+          - Signature: `new CompressionStream("deflate-raw"): CompressionStream`
+          - Example: `new CompressionStream("deflate-raw") // compresses chunks using raw DEFLATE without a zlib wrapper (RFC 1951)`
+          - Details: Confirms the "deflate-raw" format compresses input bytes using raw DEFLATE encoding without a zlib wrapper and that the output is valid raw DEFLATE data decompressible by a conforming implementation.
+      - [ ] Implement `"gzip"` format
+        - Story:
+          - Signature: `new CompressionStream("gzip"): CompressionStream`
+          - Example: `new CompressionStream("gzip") // compresses chunks using gzip encoding (RFC 1952)`
+          - Details: Confirms the "gzip" format compresses input bytes using gzip encoding and that the output is a valid gzip file decompressible by a conforming implementation.
+      - [ ] Implement `"brotli"` format
+        - Story:
+          - Signature: `new CompressionStream("brotli"): CompressionStream`
+          - Example: `new CompressionStream("brotli") // compresses chunks using Brotli encoding (RFC 7932)`
+          - Details: Confirms the "brotli" format compresses input bytes using Brotli encoding and that the output is valid Brotli data decompressible by a conforming implementation.
+  - Properties
+    - [ ] Implement `CompressionStream.prototype.readable`
+      - Story:
+        - Signature: `CompressionStream.prototype.readable: ReadableStream<Uint8Array>`
+        - Example: `new CompressionStream("gzip").readable instanceof ReadableStream // true — emits compressed Uint8Array chunks`
+        - Details: Confirms readable exposes the output end of the compressor as a ReadableStream that emits compressed Uint8Array chunks corresponding to the BufferSource chunks written to the writable side.
+    - [ ] Implement `CompressionStream.prototype.writable`
+      - Story:
+        - Signature: `CompressionStream.prototype.writable: WritableStream<BufferSource>`
+        - Example: `new CompressionStream("gzip").writable instanceof WritableStream // true — accepts BufferSource chunks for compression`
+        - Details: Confirms writable exposes the input end of the compressor as a WritableStream that accepts BufferSource chunks, forwarding their compressed output to the readable side.
+- [ ] Implement `DecompressionStream` Class
+  - Constructor
+    - [ ] Implement constructor (`new DecompressionStream(format)`)
+      - Story:
+        - Signature: `new DecompressionStream(format: string): DecompressionStream`
+        - Example: `new DecompressionStream("gzip") // creates a transform stream that decompresses gzip byte chunks into raw byte chunks`
+        - Details: Confirms the constructor accepts a compression format string and returns a DecompressionStream whose writable side accepts compressed BufferSource chunks and whose readable side emits decompressed Uint8Array chunks, throwing a TypeError for unrecognized format values.
+      - [ ] Implement `"deflate"` format
+        - Story:
+          - Signature: `new DecompressionStream("deflate"): DecompressionStream`
+          - Example: `new DecompressionStream("deflate") // decompresses zlib-wrapped DEFLATE chunks (RFC 1950)`
+          - Details: Confirms the "deflate" format decompresses zlib-wrapped DEFLATE input and that the output matches the original uncompressed bytes when given valid zlib data.
+      - [ ] Implement `"deflate-raw"` format
+        - Story:
+          - Signature: `new DecompressionStream("deflate-raw"): DecompressionStream`
+          - Example: `new DecompressionStream("deflate-raw") // decompresses raw DEFLATE chunks without a zlib wrapper (RFC 1951)`
+          - Details: Confirms the "deflate-raw" format decompresses raw DEFLATE input without a zlib wrapper and that the output matches the original uncompressed bytes when given valid raw DEFLATE data.
+      - [ ] Implement `"gzip"` format
+        - Story:
+          - Signature: `new DecompressionStream("gzip"): DecompressionStream`
+          - Example: `new DecompressionStream("gzip") // decompresses gzip chunks (RFC 1952)`
+          - Details: Confirms the "gzip" format decompresses gzip input and that the output matches the original uncompressed bytes when given a valid gzip stream.
+      - [ ] Implement `"brotli"` format
+        - Story:
+          - Signature: `new DecompressionStream("brotli"): DecompressionStream`
+          - Example: `new DecompressionStream("brotli") // decompresses Brotli chunks (RFC 7932)`
+          - Details: Confirms the "brotli" format decompresses Brotli input and that the output matches the original uncompressed bytes when given valid Brotli data.
+  - Properties
+    - [ ] Implement `DecompressionStream.prototype.readable`
+      - Story:
+        - Signature: `DecompressionStream.prototype.readable: ReadableStream<Uint8Array>`
+        - Example: `new DecompressionStream("gzip").readable instanceof ReadableStream // true — emits decompressed Uint8Array chunks`
+        - Details: Confirms readable exposes the output end of the decompressor as a ReadableStream that emits decompressed Uint8Array chunks corresponding to the compressed BufferSource chunks written to the writable side.
+    - [ ] Implement `DecompressionStream.prototype.writable`
+      - Story:
+        - Signature: `DecompressionStream.prototype.writable: WritableStream<BufferSource>`
+        - Example: `new DecompressionStream("gzip").writable instanceof WritableStream // true — accepts compressed BufferSource chunks for decompression`
+        - Details: Confirms writable exposes the input end of the decompressor as a WritableStream that accepts compressed BufferSource chunks, forwarding their decompressed output to the readable side.
+- [ ] Implement `Crypto` Class
+  - Note: exposed as the global `crypto` object; not directly constructable
+  - Properties
+    - [ ] Implement `Crypto.prototype.subtle` (returns `SubtleCrypto` instance)
+      - Story:
+        - Signature: `Crypto.prototype.subtle: SubtleCrypto`
+        - Example: `crypto.subtle instanceof SubtleCrypto // true — accessed via the global crypto object`
+        - Details: Confirms subtle is a SubtleCrypto instance exposed as a read-only property on the global crypto object, providing access to all asymmetric and symmetric cryptographic operations.
+  - Methods
+    - [ ] Implement `Crypto.prototype.getRandomValues(typedArray)`
+      - Story:
+        - Signature: `getRandomValues<T extends ArrayBufferView>(typedArray: T): T`
+        - Example: `const buf = new Uint8Array(16); crypto.getRandomValues(buf) // buf is filled with 16 cryptographically secure random bytes`
+        - Details: Confirms getRandomValues() fills the provided typed array with cryptographically secure random values in place and returns the same array, throwing a QuotaExceededError if the array is larger than 65536 bytes.
+    - [ ] Implement `Crypto.prototype.randomUUID()`
+      - Story:
+        - Signature: `randomUUID(): string`
+        - Example: `crypto.randomUUID() // "a3b4c5d6-e7f8-4a1b-9c2d-3e4f5a6b7c8d" — a version 4 UUID`
+        - Details: Confirms randomUUID() returns a cryptographically secure randomly generated version 4 UUID string in the canonical 8-4-4-4-12 hyphenated format.
+- [ ] Implement `CryptoKey` Class
+  - Note: not directly constructable; returned by `SubtleCrypto` methods
+  - Properties
+    - [ ] Implement `CryptoKey.prototype.type`
+      - Story:
+        - Signature: `CryptoKey.prototype.type: "secret" | "public" | "private"`
+        - Example: `const key = await crypto.subtle.generateKey({ name: "HMAC", hash: "SHA-256" }, true, ["sign"]); key.type // "secret"`
+        - Details: Confirms type reflects whether the key is a symmetric secret key, an asymmetric public key, or an asymmetric private key, as determined by the algorithm used to generate or import it.
+    - [ ] Implement `CryptoKey.prototype.extractable`
+      - Story:
+        - Signature: `CryptoKey.prototype.extractable: boolean`
+        - Example: `const key = await crypto.subtle.generateKey({ name: "HMAC", hash: "SHA-256" }, false, ["sign"]); key.extractable // false`
+        - Details: Confirms extractable reflects the value passed to generateKey or importKey, determining whether the key's raw material can be exported via exportKey or wrapKey.
+    - [ ] Implement `CryptoKey.prototype.algorithm`
+      - Story:
+        - Signature: `CryptoKey.prototype.algorithm: KeyAlgorithm`
+        - Example: `const key = await crypto.subtle.generateKey({ name: "HMAC", hash: "SHA-256" }, true, ["sign"]); key.algorithm // { name: "HMAC", hash: { name: "SHA-256" } }`
+        - Details: Confirms algorithm reflects the algorithm parameters the key was generated or imported with, exposed as a read-only object describing the key's cryptographic algorithm and any associated parameters.
+    - [ ] Implement `CryptoKey.prototype.usages`
+      - Story:
+        - Signature: `CryptoKey.prototype.usages: KeyUsage[]`
+        - Example: `const key = await crypto.subtle.generateKey({ name: "HMAC", hash: "SHA-256" }, true, ["sign", "verify"]); key.usages // ["sign", "verify"]`
+        - Details: Confirms usages reflects the array of permitted operations passed to generateKey or importKey, and that attempting to use a key for an operation not in its usages array throws an InvalidAccessError.
+- [ ] Implement `CryptoKeyPair` dictionary
+    - [ ] Implement `CryptoKeyPair.publicKey`
+      - Story:
+        - Signature: `CryptoKeyPair.publicKey: CryptoKey`
+        - Example: `const { publicKey } = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]); publicKey.type // "public"`
+        - Details: Confirms publicKey is a CryptoKey instance with type "public" returned as part of the key pair generated by an asymmetric key generation algorithm, usable for verification and encryption operations.
+    - [ ] Implement `CryptoKeyPair.privateKey`
+      - Story:
+        - Signature: `CryptoKeyPair.privateKey: CryptoKey`
+        - Example: `const { privateKey } = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]); privateKey.type // "private"`
+        - Details: Confirms privateKey is a CryptoKey instance with type "private" returned as part of the key pair generated by an asymmetric key generation algorithm, usable for signing and decryption operations.
+- [ ] Implement `SubtleCrypto` Class (exposed via `crypto.subtle`)
+  - Note: no constructor; accessed via `Crypto.prototype.subtle`
+  - Cryptography methods
+    - [ ] Implement `SubtleCrypto.prototype.encrypt(algorithm, key, data)`
+      - Story:
+        - Signature: `encrypt(algorithm: AlgorithmIdentifier, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>`
+        - Example: `await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext) // resolves to an ArrayBuffer of encrypted bytes`
+        - Details: Confirms encrypt() encrypts the provided data using the specified algorithm and key, resolving with the ciphertext as an ArrayBuffer, and rejects with an InvalidAccessError if the key does not include the "encrypt" usage.
+    - [ ] Implement `SubtleCrypto.prototype.decrypt(algorithm, key, data)`
+      - Story:
+        - Signature: `decrypt(algorithm: AlgorithmIdentifier, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>`
+        - Example: `await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext) // resolves to an ArrayBuffer of decrypted bytes matching the original plaintext`
+        - Details: Confirms decrypt() decrypts the provided ciphertext using the specified algorithm and key, resolving with the plaintext as an ArrayBuffer, and rejects with an InvalidAccessError if the key does not include the "decrypt" usage.
+    - [ ] Implement `SubtleCrypto.prototype.sign(algorithm, key, data)`
+      - Story:
+        - Signature: `sign(algorithm: AlgorithmIdentifier, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>`
+        - Example: `await crypto.subtle.sign({ name: "HMAC" }, key, data) // resolves to an ArrayBuffer containing the HMAC signature`
+        - Details: Confirms sign() produces a cryptographic signature over the provided data using the specified algorithm and key, resolving with the signature as an ArrayBuffer, and rejects with an InvalidAccessError if the key does not include the "sign" usage.
+    - [ ] Implement `SubtleCrypto.prototype.verify(algorithm, key, signature, data)`
+      - Story:
+        - Signature: `verify(algorithm: AlgorithmIdentifier, key: CryptoKey, signature: BufferSource, data: BufferSource): Promise<boolean>`
+        - Example: `await crypto.subtle.verify({ name: "HMAC" }, key, signature, data) // true if the signature is valid for the data; false otherwise`
+        - Details: Confirms verify() checks whether the provided signature is valid for the given data under the specified algorithm and key, resolving with a boolean result, and rejects with an InvalidAccessError if the key does not include the "verify" usage.
+    - [ ] Implement `SubtleCrypto.prototype.digest(algorithm, data)`
+      - Story:
+        - Signature: `digest(algorithm: AlgorithmIdentifier, data: BufferSource): Promise<ArrayBuffer>`
+        - Example: `await crypto.subtle.digest("SHA-256", data) // resolves to a 32-byte ArrayBuffer containing the SHA-256 hash of data`
+        - Details: Confirms digest() computes a cryptographic hash of the provided data using the specified algorithm, resolving with the digest as an ArrayBuffer.
+  - Key management methods
+    - [ ] Implement `SubtleCrypto.prototype.generateKey(algorithm, extractable, keyUsages)`
+      - Story:
+        - Signature: `generateKey(algorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey | CryptoKeyPair>`
+        - Example: `await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]) // resolves to a CryptoKeyPair with public and private keys`
+        - Details: Confirms generateKey() generates a new key or key pair for the specified algorithm, resolving with a CryptoKey for symmetric algorithms and a CryptoKeyPair for asymmetric algorithms, with extractable and usages set as specified.
+    - [ ] Implement `SubtleCrypto.prototype.deriveKey(algorithm, baseKey, derivedKeyAlgorithm, extractable, keyUsages)`
+      - Story:
+        - Signature: `deriveKey(algorithm: AlgorithmIdentifier, baseKey: CryptoKey, derivedKeyAlgorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey>`
+        - Example: `await crypto.subtle.deriveKey({ name: "HKDF", hash: "SHA-256", salt, info }, baseKey, { name: "AES-GCM", length: 256 }, false, ["encrypt"]) // resolves to a derived AES-GCM key`
+        - Details: Confirms deriveKey() derives a new CryptoKey from a base key using the specified derivation algorithm, with the derived key configured for the target algorithm, extractability, and usages.
+    - [ ] Implement `SubtleCrypto.prototype.deriveBits(algorithm, baseKey, length)`
+      - Story:
+        - Signature: `deriveBits(algorithm: AlgorithmIdentifier, baseKey: CryptoKey, length: number): Promise<ArrayBuffer>`
+        - Example: `await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt, info }, baseKey, 256) // resolves to a 32-byte ArrayBuffer of derived key material`
+        - Details: Confirms deriveBits() derives a specified number of bits from a base key using the given derivation algorithm, resolving with the raw derived bits as an ArrayBuffer.
+    - [ ] Implement `SubtleCrypto.prototype.importKey(format, keyData, algorithm, extractable, keyUsages)`
+      - Story:
+        - Signature: `importKey(format: KeyFormat, keyData: BufferSource | JsonWebKey, algorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey>`
+        - Example: `await crypto.subtle.importKey("raw", rawBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]) // resolves to a CryptoKey for HMAC signing`
+        - Details: Confirms importKey() imports key material in the specified format and constructs a CryptoKey configured for the given algorithm, extractability, and usages, rejecting with a DataError if the key data is invalid for the format or algorithm.
+    - [ ] Implement `SubtleCrypto.prototype.exportKey(format, key)`
+      - Story:
+        - Signature: `exportKey(format: KeyFormat, key: CryptoKey): Promise<ArrayBuffer | JsonWebKey>`
+        - Example: `await crypto.subtle.exportKey("raw", key) // resolves to an ArrayBuffer containing the raw key bytes`
+        - Details: Confirms exportKey() exports the key material in the specified format, resolving with an ArrayBuffer for binary formats or a JsonWebKey object for "jwk" format, and rejects with an InvalidAccessError if the key is not extractable.
+    - [ ] Implement `SubtleCrypto.prototype.wrapKey(format, key, wrappingKey, wrapAlgorithm)`
+      - Story:
+        - Signature: `wrapKey(format: KeyFormat, key: CryptoKey, wrappingKey: CryptoKey, wrapAlgorithm: AlgorithmIdentifier): Promise<ArrayBuffer>`
+        - Example: `await crypto.subtle.wrapKey("raw", keyToWrap, wrappingKey, { name: "AES-KW" }) // resolves to an ArrayBuffer of the wrapped key`
+        - Details: Confirms wrapKey() exports the key in the specified format then encrypts it with the wrapping key using the wrap algorithm, resolving with the wrapped key as an ArrayBuffer, and rejects if the key is not extractable or the wrapping key lacks the "wrapKey" usage.
+    - [ ] Implement `SubtleCrypto.prototype.unwrapKey(format, wrappedKey, unwrappingKey, unwrapAlgorithm, unwrappedKeyAlgorithm, extractable, keyUsages)`
+      - Story:
+        - Signature: `unwrapKey(format: KeyFormat, wrappedKey: BufferSource, unwrappingKey: CryptoKey, unwrapAlgorithm: AlgorithmIdentifier, unwrappedKeyAlgorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey>`
+        - Example: `await crypto.subtle.unwrapKey("raw", wrappedKey, unwrappingKey, { name: "AES-KW" }, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]) // resolves to the unwrapped CryptoKey`
+        - Details: Confirms unwrapKey() decrypts the wrapped key using the unwrapping key and algorithm, then imports the result as a CryptoKey configured for the specified algorithm, extractability, and usages, rejecting if the unwrapping key lacks the "unwrapKey" usage.
+  - Supported algorithms (sign/verify)
+    - [ ] `RSASSA-PKCS1-v1_5`
+      - Story:
+        - Signature: `sign/verify algorithm: { name: "RSASSA-PKCS1-v1_5" }`
+        - Example: `await crypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5" }, privateKey, data) // resolves to an RSA PKCS#1 v1.5 signature`
+        - Details: Confirms RSASSA-PKCS1-v1_5 is supported for sign and verify operations, producing and validating RSA PKCS#1 v1.5 signatures with the hash algorithm specified at key generation or import time.
+    - [ ] `RSA-PSS`
+      - Story:
+        - Signature: `sign/verify algorithm: { name: "RSA-PSS", saltLength: number }`
+        - Example: `await crypto.subtle.sign({ name: "RSA-PSS", saltLength: 32 }, privateKey, data) // resolves to an RSA-PSS signature with a 32-byte salt`
+        - Details: Confirms RSA-PSS is supported for sign and verify operations, producing and validating RSA-PSS signatures with the specified salt length and hash algorithm.
+    - [ ] `ECDSA`
+      - Story:
+        - Signature: `sign/verify algorithm: { name: "ECDSA", hash: string }`
+        - Example: `await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, privateKey, data) // resolves to a DER-encoded ECDSA signature`
+        - Details: Confirms ECDSA is supported for sign and verify operations over the named curve specified at key generation, using the given hash algorithm.
+    - [ ] `Ed25519`
+      - Story:
+        - Signature: `sign/verify algorithm: { name: "Ed25519" }`
+        - Example: `await crypto.subtle.sign({ name: "Ed25519" }, privateKey, data) // resolves to a 64-byte Ed25519 signature`
+        - Details: Confirms Ed25519 is supported for sign and verify operations, producing and validating 64-byte signatures using the Ed25519 elliptic curve signature scheme.
+    - [ ] `HMAC`
+      - Story:
+        - Signature: `sign/verify algorithm: { name: "HMAC" }`
+        - Example: `await crypto.subtle.sign({ name: "HMAC" }, key, data) // resolves to an HMAC tag computed with the hash algorithm specified at key generation`
+        - Details: Confirms HMAC is supported for sign and verify operations, producing and validating HMAC tags using the hash algorithm associated with the key.
+  - Supported algorithms (encrypt/decrypt)
+    - [ ] `RSA-OAEP`
+      - Story:
+        - Signature: `encrypt/decrypt algorithm: { name: "RSA-OAEP", label?: BufferSource }`
+        - Example: `await crypto.subtle.encrypt({ name: "RSA-OAEP" }, publicKey, plaintext) // resolves to RSA-OAEP encrypted ciphertext`
+        - Details: Confirms RSA-OAEP is supported for encrypt and decrypt operations, with an optional label parameter, using the hash algorithm specified at key generation or import time.
+    - [ ] `AES-CTR`
+      - Story:
+        - Signature: `encrypt/decrypt algorithm: { name: "AES-CTR", counter: BufferSource, length: number }`
+        - Example: `await crypto.subtle.encrypt({ name: "AES-CTR", counter, length: 64 }, key, plaintext) // resolves to AES-CTR encrypted ciphertext`
+        - Details: Confirms AES-CTR is supported for encrypt and decrypt operations using the provided counter block and bit length of the counter portion.
+    - [ ] `AES-CBC`
+      - Story:
+        - Signature: `encrypt/decrypt algorithm: { name: "AES-CBC", iv: BufferSource }`
+        - Example: `await crypto.subtle.encrypt({ name: "AES-CBC", iv }, key, plaintext) // resolves to AES-CBC encrypted ciphertext with PKCS#7 padding`
+        - Details: Confirms AES-CBC is supported for encrypt and decrypt operations using the provided initialization vector, with PKCS#7 padding applied automatically.
+    - [ ] `AES-GCM`
+      - Story:
+        - Signature: `encrypt/decrypt algorithm: { name: "AES-GCM", iv: BufferSource, additionalData?: BufferSource, tagLength?: number }`
+        - Example: `await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext) // resolves to AES-GCM ciphertext with a 128-bit authentication tag appended`
+        - Details: Confirms AES-GCM is supported for encrypt and decrypt operations using the provided IV and optional additional authenticated data, with the authentication tag appended to the ciphertext.
+  - Supported algorithms (digest)
+    - [ ] `SHA-1`
+      - Story:
+        - Signature: `digest algorithm: "SHA-1" | { name: "SHA-1" }`
+        - Example: `await crypto.subtle.digest("SHA-1", data) // resolves to a 20-byte ArrayBuffer containing the SHA-1 hash`
+        - Details: Confirms SHA-1 is supported for digest operations, resolving with a 20-byte hash; note SHA-1 is considered cryptographically weak and should not be used for security-sensitive purposes.
+    - [ ] `SHA-256`
+      - Story:
+        - Signature: `digest algorithm: "SHA-256" | { name: "SHA-256" }`
+        - Example: `await crypto.subtle.digest("SHA-256", data) // resolves to a 32-byte ArrayBuffer containing the SHA-256 hash`
+        - Details: Confirms SHA-256 is supported for digest operations, resolving with a 32-byte hash.
+    - [ ] `SHA-384`
+      - Story:
+        - Signature: `digest algorithm: "SHA-384" | { name: "SHA-384" }`
+        - Example: `await crypto.subtle.digest("SHA-384", data) // resolves to a 48-byte ArrayBuffer containing the SHA-384 hash`
+        - Details: Confirms SHA-384 is supported for digest operations, resolving with a 48-byte hash.
+    - [ ] `SHA-512`
+      - Story:
+        - Signature: `digest algorithm: "SHA-512" | { name: "SHA-512" }`
+        - Example: `await crypto.subtle.digest("SHA-512", data) // resolves to a 64-byte ArrayBuffer containing the SHA-512 hash`
+        - Details: Confirms SHA-512 is supported for digest operations, resolving with a 64-byte hash.
+  - Supported algorithms (deriveKey/deriveBits)
+    - [ ] `ECDH`
+      - Story:
+        - Signature: `deriveKey/deriveBits algorithm: { name: "ECDH", public: CryptoKey }`
+        - Example: `await crypto.subtle.deriveBits({ name: "ECDH", public: theirPublicKey }, myPrivateKey, 256) // resolves to 32 bytes of shared secret material`
+        - Details: Confirms ECDH is supported for deriveKey and deriveBits operations, producing shared secret material from the local private key and the remote party's public key.
+    - [ ] `X25519`
+      - Story:
+        - Signature: `deriveKey/deriveBits algorithm: { name: "X25519", public: CryptoKey }`
+        - Example: `await crypto.subtle.deriveBits({ name: "X25519", public: theirPublicKey }, myPrivateKey, 256) // resolves to 32 bytes of X25519 shared secret material`
+        - Details: Confirms X25519 is supported for deriveKey and deriveBits operations, producing shared secret material using the X25519 Diffie-Hellman function.
+    - [ ] `HKDF`
+      - Story:
+        - Signature: `deriveKey/deriveBits algorithm: { name: "HKDF", hash: string, salt: BufferSource, info: BufferSource }`
+        - Example: `await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt, info }, baseKey, 256) // resolves to 32 bytes of HKDF-derived key material`
+        - Details: Confirms HKDF is supported for deriveKey and deriveBits operations, expanding input key material into derived key material using the specified hash, salt, and context info.
+    - [ ] `PBKDF2`
+      - Story:
+        - Signature: `deriveKey/deriveBits algorithm: { name: "PBKDF2", hash: string, salt: BufferSource, iterations: number }`
+        - Example: `await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: 100000 }, passwordKey, 256) // resolves to 32 bytes of derived key material`
+        - Details: Confirms PBKDF2 is supported for deriveKey and deriveBits operations, stretching a password-based key using the specified hash, salt, and iteration count.
+  - Supported algorithms (wrapKey/unwrapKey)
+    - [ ] `RSA-OAEP`
+      - Story:
+        - Signature: `wrapKey/unwrapKey algorithm: { name: "RSA-OAEP", label?: BufferSource }`
+        - Example: `await crypto.subtle.wrapKey("raw", keyToWrap, wrappingKey, { name: "RSA-OAEP" }) // resolves to the RSA-OAEP encrypted key material`
+        - Details: Confirms RSA-OAEP is supported for wrapKey and unwrapKey operations, encrypting and decrypting exported key material using RSA-OAEP with the hash algorithm specified at key generation or import time.
+    - [ ] `AES-CTR`
+      - Story:
+        - Signature: `wrapKey/unwrapKey algorithm: { name: "AES-CTR", counter: BufferSource, length: number }`
+        - Example: `await crypto.subtle.wrapKey("raw", keyToWrap, wrappingKey, { name: "AES-CTR", counter, length: 64 }) // resolves to the AES-CTR encrypted key material`
+        - Details: Confirms AES-CTR is supported for wrapKey and unwrapKey operations, encrypting and decrypting exported key material using AES in counter mode.
+    - [ ] `AES-CBC`
+      - Story:
+        - Signature: `wrapKey/unwrapKey algorithm: { name: "AES-CBC", iv: BufferSource }`
+        - Example: `await crypto.subtle.wrapKey("raw", keyToWrap, wrappingKey, { name: "AES-CBC", iv }) // resolves to the AES-CBC encrypted key material`
+        - Details: Confirms AES-CBC is supported for wrapKey and unwrapKey operations, encrypting and decrypting exported key material using AES in cipher block chaining mode with PKCS#7 padding.
+    - [ ] `AES-GCM`
+      - Story:
+        - Signature: `wrapKey/unwrapKey algorithm: { name: "AES-GCM", iv: BufferSource, additionalData?: BufferSource, tagLength?: number }`
+        - Example: `await crypto.subtle.wrapKey("raw", keyToWrap, wrappingKey, { name: "AES-GCM", iv }) // resolves to the AES-GCM encrypted key material with authentication tag`
+        - Details: Confirms AES-GCM is supported for wrapKey and unwrapKey operations, encrypting and decrypting exported key material using AES in Galois/Counter Mode with authentication.
+    - [ ] `AES-KW`
+      - Story:
+        - Signature: `wrapKey/unwrapKey algorithm: { name: "AES-KW" }`
+        - Example: `await crypto.subtle.wrapKey("raw", keyToWrap, wrappingKey, { name: "AES-KW" }) // resolves to the AES Key Wrap encrypted key material`
+        - Details: Confirms AES-KW is supported for wrapKey and unwrapKey operations, encrypting and decrypting exported key material using the AES Key Wrap algorithm as defined in RFC 3394.
