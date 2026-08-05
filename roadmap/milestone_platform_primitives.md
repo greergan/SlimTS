@@ -1,10 +1,3 @@
-Check the specs and create a Story indention for 1 task or set of related tasks at a time. Then display the markdown so that I can dopy it.
-example start
-- [ ] Implement `reportError` Function
-  - Story: `reportError(new TypeError("bad input"))` dispatches an `error` event on the global scope, matching browser behavior for uncaught exceptions.
-example end
-
-
 # Milestone: Platform Primitives
 - [ ] Global functions
   - [ ] Implement `queueMicrotask` Function
