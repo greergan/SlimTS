@@ -1,11 +1,8 @@
-#ifndef __SLIM__PLUGIN__LOADER__HPP
-#define __SLIM__PLUGIN__LOADER__HPP
+#pragma once
 #include <v8.h>
-#include <unordered_map>
-#include <slim/path.h>
+#include <string_view>
+
 namespace slim::plugin::loader {
-    void destroy();
     void load(const v8::FunctionCallbackInfo<v8::Value>& args);
-    void load_plugin(v8::Isolate* isolate, const std::string plugin_name, const bool global_scope);
+    void load_plugin(v8::Isolate* isolate, std::string plugin_name, bool global_scope);
 }
-#endif

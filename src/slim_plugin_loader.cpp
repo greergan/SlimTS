@@ -1,5 +1,7 @@
 #include <dlfcn.h>
 #include <filesystem>
+#include <format>
+#include <string_view>
 #include <unordered_map>
 #include <v8.h>
 #include "config.h"
@@ -12,94 +14,88 @@
 
 namespace slim::common {}
 namespace slim::plugin::loader {
+    using namespace slim;
     using namespace slim::common;
     std::string plugin_library_path = slim::path::getExecutableDir() + "/../lib/SlimTS/";
     std::unordered_map<std::string, void*> loaded_plugins;
 }
-void slim::plugin::loader::destroy() {
-#ifdef ENABLE_LOGGING
-    log::trace(log::Message("slim::plugin::loader::destroy()", "begins", __FILE__, __LINE__));
-#endif
-    for(auto [plugin_name_string, plugin] : loaded_plugins) {
-#ifdef ENABLE_LOGGING
-        log::debug(log::Message("slim::plugin::loader::destroy()", plugin_name_string.c_str(), __FILE__, __LINE__));
-#endif
-        dlclose(loaded_plugins[plugin_name_string]);
-    }
-#ifdef ENABLE_LOGGING
-    log::trace(log::Message("slim::plugin::loader::destroy()", "begins", __FILE__, __LINE__));
-#endif
-}
+
 void slim::plugin::loader::load(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    #ifdef ENABLE_LOGGING
+        log::trace({__func__, "begins", __FILE__, __LINE__});
+    #endif
     auto isolate = args.GetIsolate();
-    auto package_name = slim::utilities::v8ValueToString(isolate, args[0]);
-#ifdef ENABLE_LOGGING
-    log::trace(log::Message("slim::plugin::loader::load()", "begins, package name => " + package_name, __FILE__, __LINE__));
-#endif
+    auto plugin_name = utilities::v8ValueToString(isolate, args[0]);
+    #ifdef ENABLE_LOGGING
+        log::debug({__func__, std::format("loading => {}", plugin_name), __FILE__, __LINE__});
+    #endif
     v8::HandleScope scope(isolate);
     if(args.Length() == 0) {
-        isolate->ThrowException(slim::utilities::StringToValue(isolate, "slim.load(package_name, [bool]"));
+        isolate->ThrowException(utilities::StringToValue(isolate, "slim.load(plugin_name, [bool]"));
     }
     if(!args[0]->IsString()) {
-        isolate->ThrowException(slim::utilities::StringToValue(isolate, "argument 1 must be a string"));
+        isolate->ThrowException(utilities::StringToValue(isolate, "argument 1 must be a string"));
     }
     if(args.Length() > 1 && !args[1]->IsBoolean()) {
-        isolate->ThrowException(slim::utilities::StringToValue(isolate, "argument 2 must be true or false"));
+        isolate->ThrowException(utilities::StringToValue(isolate, "argument 2 must be true or false"));
     }
 
     auto global_scope = args.Length() > 1 && args[1]->IsBoolean() ? args[1]->BooleanValue(isolate) : false;
-    load_plugin(isolate, package_name, global_scope);
+    load_plugin(isolate, plugin_name, global_scope);
 #ifdef ENABLE_LOGGING
-    log::trace(log::Message("slim::plugin::loader::load()", "ends, package name => " + package_name, __FILE__, __LINE__));
+    log::trace({__func__, "ends", __FILE__, __LINE__});
 #endif
 };
-void slim::plugin::loader::load_plugin(v8::Isolate* isolate, const std::string plugin_name_string, const bool global_scope) {
+void slim::plugin::loader::load_plugin(v8::Isolate* isolate, std::string plugin_name, bool global_scope) {
 #ifdef ENABLE_LOGGING
-    log::trace(log::Message("slim::plugin::loader::load_plugin()", "begins, plugin name => " + plugin_name_string, __FILE__, __LINE__));
+    log::trace({__func__, "begins", __FILE__, __LINE__});
+    log::debug({__func__, std::format("loading => {}", plugin_name), __FILE__, __LINE__});
 #endif
     auto open_bits = global_scope ? RTLD_NOW | RTLD_GLOBAL : RTLD_NOW;
-    std::string plugin_so_path = plugin_library_path + plugin_name_string + ".so";
+    std::string plugin_so_path = std::format("{}{}.so", plugin_library_path, plugin_name);
     if(!std::filesystem::exists(plugin_so_path)) {
-        std::string file_not_found_string = "error loading plugin name => " + plugin_name_string + " file not found => " + plugin_so_path;
 #ifdef ENABLE_LOGGING
-        log::error(log::Message("slim::plugin::loader::load_plugin()", file_not_found_string, __FILE__, __LINE__));
+        log::error({__func__, std::format("plugin not found => {}", plugin_so_path), __FILE__, __LINE__});
 #endif
-        isolate->ThrowException(slim::utilities::StringToValue(isolate, file_not_found_string));
+        isolate->ThrowException(utilities::StringToValue(isolate, std::format("error loading plugin => {}", plugin_so_path)));
         return;
     }
 #ifdef ENABLE_LOGGING
-    log::debug(log::Message("slim::plugin::loader::load_plugin()", "loading plugin => " + plugin_name_string + " from => " + plugin_so_path, __FILE__, __LINE__));
+    log::debug({__func__, std::format("calling dlopen => {}", plugin_so_path), __FILE__, __LINE__});
 #endif
-    loaded_plugins[plugin_name_string] = dlopen(plugin_so_path.c_str(), open_bits);
-    if(!loaded_plugins[plugin_name_string]) {
+    loaded_plugins[plugin_name] = dlopen(plugin_so_path.c_str(), open_bits);
+    if(!loaded_plugins[plugin_name]) {
         std::string error_string = dlerror();
 #ifdef ENABLE_LOGGING
-        log::error(log::Message("slim::plugin::loader::load_plugin()", "error loading plugin => " + plugin_name_string + " error => " + error_string, __FILE__, __LINE__));
+        log::error({__func__, std::format("dlopen failed => {}", error_string), __FILE__, __LINE__});
 #endif
-        isolate->ThrowException(slim::utilities::StringToValue(isolate, "error loading plugin name => " + plugin_name_string + " error => " + error_string));
+        isolate->ThrowException(utilities::StringToValue(isolate, std::format("error loading plugin => {}", error_string)));
         return;
     }
     else {
         typedef void (*expose_plugin_t)(v8::Isolate* isolate);
-        expose_plugin_t expose_plugin = (expose_plugin_t) dlsym(loaded_plugins[plugin_name_string], "expose_plugin");
+        expose_plugin_t expose_plugin = (expose_plugin_t) dlsym(loaded_plugins[plugin_name], "expose_plugin");
         if(!expose_plugin) {
             std::string error_string = dlerror();
 #ifdef ENABLE_LOGGING
-            log::error(log::Message("slim::plugin::loader::load_plugin()", "error loading symbols for plugin => " + plugin_name_string + " error => " + error_string, __FILE__, __LINE__));
+            log::error({__func__, std::format("dlsym failed => {} => error => {}", plugin_name, error_string), __FILE__, __LINE__});
 #endif
-            isolate->ThrowException(slim::utilities::StringToValue(isolate, "error loading symbols for plugin name => " + plugin_name_string + " error => " + error_string));
-            dlclose(loaded_plugins[plugin_name_string]);
+            isolate->ThrowException(utilities::StringToValue(isolate, std::format("error loading symbols => {}", error_string)));
+            dlclose(loaded_plugins[plugin_name]);
             return;
         }
         else {
 #ifdef ENABLE_LOGGING
-            log::debug(log::Message("slim::plugin::loader::load_plugin()", "exposing plugin => " + plugin_name_string, __FILE__, __LINE__));
+            log::debug({__func__, std::format("exposing plugin => {}", plugin_name), __FILE__, __LINE__});
 #endif
             expose_plugin(isolate);
             expose_plugin = nullptr;
+#ifdef ENABLE_LOGGING
+            log::debug({__func__, std::format("exposed plugin => {}", plugin_name), __FILE__, __LINE__});
+#endif
         }
     }
 #ifdef ENABLE_LOGGING
-    log::trace(log::Message("slim::plugin::loader::load_plugin()", "ends, plugin name => " + plugin_name_string, __FILE__, __LINE__));
+    log::trace({__func__, "ends", __FILE__, __LINE__});
 #endif
 }

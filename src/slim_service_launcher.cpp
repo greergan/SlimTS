@@ -63,10 +63,11 @@ void slim::service::launcher::launch(std::string_view specifier_uri) {
 #ifdef ENABLE_LOGGING
     log::debug({__func__, "created slim load function", __FILE__, __LINE__});
 #endif
+    slim::plugin::loader::load_plugin(isolate, "assert", true);
+    slim::plugin::loader::load_plugin(isolate, "module", true);
+    slim::plugin::loader::load_plugin(isolate, "path", true);
     slim::plugin::loader::load_plugin(isolate, "require", true);
-#ifdef ENABLE_LOGGING
-    log::debug({__func__, "loaded require plugin", __FILE__, __LINE__});
-#endif
+
     auto module_import_specifier_optional = slim::module::resolver::resolve_imports(isolate, specifier_uri, true);
 #ifdef ENABLE_LOGGING
     log::debug({__func__, std::format("resolve_imports returned has_value => {}", module_import_specifier_optional.has_value()), __FILE__, __LINE__});

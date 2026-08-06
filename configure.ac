@@ -146,11 +146,13 @@ AC_CONFIG_FILES([
     Makefile
     src/Makefile
     src/plugins/Makefile
+    src/plugins/assert/Makefile
     src/plugins/console/Makefile
     src/plugins/color-console/Makefile
     src/plugins/fs/Makefile
     src/plugins/http_package/Makefile
     src/plugins/http/Makefile
+    src/plugins/module/Makefile
     src/plugins/memoryAdaptor/Makefile
     src/plugins/os/Makefile
     src/plugins/path/Makefile

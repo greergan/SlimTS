@@ -21,7 +21,7 @@
 namespace slim::module::resolver {
 	using namespace slim;
 	using namespace slim::common;
-	static std::set<std::string> plugins_set{"console","fs","http","kafka","os","path","process","memoryAdaptor","queue","require"};
+	static std::set<std::string> plugins_set{"assert","console","fs","http","kafka","os","module","path","process","memoryAdaptor","queue","require"};
 	static specifier_cache cache;
 	// maps synthetic module identity hash to plugin name, used by synthetic_module_evaluation_steps
 	static std::map<int, std::string> synthetic_module_plugin_names;
@@ -84,6 +84,10 @@ v8::MaybeLocal<v8::Module> slim::module::resolver::module_call_back_resolver(v8:
 	log::debug({__func__, std::format("referrer hash_id => {}", referrer.IsEmpty() ? -1 : referrer->GetIdentityHash()), __FILE__, __LINE__});
 #endif
 	int current_module_hash_id = -1;
+	// strip node: prefix for built-in aliases
+	if(specifier_name_string.starts_with("node:")) {
+		specifier_name_string = specifier_name_string.substr(5);
+	}
 	if(plugins_set.contains(specifier_name_string)) {
 #ifdef ENABLE_LOGGING
 		log::debug({__func__, std::format("specifier is a plugin => {}", specifier_name_string), __FILE__, __LINE__});

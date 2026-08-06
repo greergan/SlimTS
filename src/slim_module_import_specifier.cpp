@@ -323,6 +323,13 @@ void slim::module::import_specifier::resolve_module_path(std::string_view specif
                     import_value = get_string_export(root_obj, "main");
                 }
                 if(import_value.empty()) {
+                    // fallback to index.js
+                    std::filesystem::path index_path = current_working_search_path / "index.js";
+                    if(std::filesystem::exists(index_path)) {
+                        import_value = "index.js";
+                    }
+                }
+                if(import_value.empty()) {
                     isolate_->ThrowException(slim::utilities::StringToV8String(isolate_,
                         std::format("no resolvable export entry in package.json => {}", package_json_path.string()).c_str()));
                     return;
