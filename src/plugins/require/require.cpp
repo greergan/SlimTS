@@ -1,4 +1,3 @@
-#define ENABLE_LOGGING
 #include <format>
 #include <string>
 #include <v8.h>
@@ -47,10 +46,43 @@ namespace slim::plugin::require {
         log::trace({__func__, "ends", __FILE__, __LINE__});
 #endif
     }
+    void resolve(const v8::FunctionCallbackInfo<v8::Value>& args) {
+#ifdef ENABLE_LOGGING
+        log::trace({__func__, "begins", __FILE__, __LINE__});
+#endif
+        auto isolate = args.GetIsolate();
+        if(args.Length() < 1 || !args[0]->IsString()) {
+            isolate->ThrowException(utilities::StringToV8String(isolate, "require.resolve: expected a string argument"));
+            return;
+        }
+        std::string specifier_string = utilities::v8StringToString(isolate, args[0].As<v8::String>());
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, std::format("resolve => {}", specifier_string), __FILE__, __LINE__});
+#endif
+        // strip node: prefix for built-in aliases
+        if(specifier_string.starts_with("node:")) {
+            specifier_string = specifier_string.substr(5);
+        }
+        slim::module::import_specifier spec(isolate, specifier_string, false, v8::Local<v8::Module>());
+        std::string uri = spec.specifier_uri();
+        // strip file:// prefix for filesystem paths
+        if(uri.starts_with("file://")) {
+            uri = uri.substr(7);
+        }
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, std::format("resolved => {}", uri), __FILE__, __LINE__});
+#endif
+        args.GetReturnValue().Set(utilities::StringToV8String(isolate, uri));
+#ifdef ENABLE_LOGGING
+        log::trace({__func__, "ends", __FILE__, __LINE__});
+#endif
+    }
 }
 extern "C" void expose_plugin(v8::Isolate* isolate) {
     using namespace slim;
     auto context = isolate->GetCurrentContext();
     auto require_fn = v8::FunctionTemplate::New(isolate, plugin::require::require)->GetFunction(context).ToLocalChecked();
+    auto resolve_fn = v8::FunctionTemplate::New(isolate, plugin::require::resolve)->GetFunction(context).ToLocalChecked();
+    require_fn->Set(context, utilities::StringToV8String(isolate, "resolve"), resolve_fn).Check();
     context->Global()->Set(context, utilities::StringToV8String(isolate, "require"), require_fn).Check();
 }
