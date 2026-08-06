@@ -103,7 +103,7 @@ bool slim::configuration_handler::is_watching() {
     return result;
 }
 
-std::span<std::string> library_path() {
+std::span<std::string> slim::configuration_handler::library_path() {
     return module_lib_path;
 }
 
