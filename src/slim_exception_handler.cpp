@@ -1,9 +1,11 @@
+#define ENABLE_LOGGING
 #include <sstream>
 #include <v8.h>
 #include "config.h"
 #ifdef ENABLE_LOGGING
 #include <slim/common/log.h>
 #endif
+#include <slim/exception.h>
 #include <slim/exception_handler.h>
 #include <slim/utilities.h>
 
@@ -109,5 +111,5 @@ void slim::exception_handler::v8_try_catch_handler(v8::TryCatch* try_catch) {
 #ifdef ENABLE_LOGGING
 	log::trace(log::Message("slim::exception_handler::try_catch_handler()","ends",__FILE__, __LINE__));
 #endif
-	throw(exception_string.str());
+    throw SlimException(exception_string.str().c_str());
 }
