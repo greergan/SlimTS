@@ -1,3 +1,4 @@
+#define ENABLE_LOGGING
 #include <filesystem>
 #include <format>
 #include <string>
