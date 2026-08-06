@@ -1,0 +1,40 @@
+#include <format>
+#include <string>
+#include <v8.h>
+#include "config.h"
+#ifdef ENABLE_LOGGING
+#include <slim/common/log.h>
+#endif
+#include <slim/module/import_specifier.h>
+#include <slim/plugin.hpp>
+#include <slim/utilities.h>
+
+namespace slim::plugin::require {
+    using namespace slim;
+    using namespace slim::common;
+    void require(const v8::FunctionCallbackInfo<v8::Value>& args) {
+#ifdef ENABLE_LOGGING
+        log::trace({__func__, "begins", __FILE__, __LINE__});
+#endif
+        auto isolate = args.GetIsolate();
+        if(args.Length() < 1 || !args[0]->IsString()) {
+            isolate->ThrowException(utilities::StringToV8String(isolate, "require: expected a string argument"));
+            return;
+        }
+        std::string specifier_string = utilities::v8StringToString(isolate, args[0].As<v8::String>());
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, std::format("require => {}", specifier_string), __FILE__, __LINE__});
+#endif
+        module::import_specifier spec(isolate, specifier_string, false, v8::Local<v8::Module>());
+        args.GetReturnValue().Set(spec.cjs_exports());
+#ifdef ENABLE_LOGGING
+        log::trace({__func__, "ends", __FILE__, __LINE__});
+#endif
+    }
+}
+
+extern "C" void expose_plugin(v8::Isolate* isolate) {
+    auto context = isolate->GetCurrentContext();
+    auto require_fn = v8::FunctionTemplate::New(isolate, slim::plugin::require::require)->GetFunction(context).ToLocalChecked();
+    context->Global()->Set(context,slim::utilities::StringToV8String(isolate, "require"), require_fn).Check();
+}

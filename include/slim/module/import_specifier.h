@@ -15,6 +15,7 @@ namespace slim::module {
 		void compile_module();
 		void instantiate_module();
 		v8::Local<v8::Module>& v8_module();
+		v8::Local<v8::Object> cjs_exports() const;
 		const std::string& specifier_uri() const;
 		static v8::MaybeLocal<v8::Value> cjs_evaluation_steps(
 		    v8::Local<v8::Context> context,

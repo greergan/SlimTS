@@ -21,7 +21,7 @@
 namespace slim::module::resolver {
 	using namespace slim;
 	using namespace slim::common;
-	static std::set<std::string> plugins_set{"console","fs","http","kafka","os","path","process","memoryAdaptor","queue"};
+	static std::set<std::string> plugins_set{"console","fs","http","kafka","os","path","process","memoryAdaptor","queue","require"};
 	static specifier_cache cache;
 	// maps synthetic module identity hash to plugin name, used by synthetic_module_evaluation_steps
 	static std::map<int, std::string> synthetic_module_plugin_names;

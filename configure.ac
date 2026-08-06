@@ -156,6 +156,7 @@ AC_CONFIG_FILES([
     src/plugins/path/Makefile
     src/plugins/process/Makefile
     src/plugins/queue/Makefile
+    src/plugins/require/Makefile
     slimts.pc:slimts.pc.in
 ])
 
