@@ -143,9 +143,15 @@ void slim::module::import_specifier::compile_module() {
     else {
         src = std::string_view(reinterpret_cast<const char*>(fetched_mjs_source_.body.data()), fetched_mjs_source_.body.size());
     }
+    v8::Local<v8::String> source_string = v8::String::NewFromUtf8(
+        isolate_,
+        src.data(),
+        v8::NewStringType::kNormal,
+        static_cast<int>(src.size())  // explicit length, no strlen
+    ).ToLocalChecked();
 
     v8::ScriptOrigin origin(slim::utilities::StringToV8Value(isolate_, origin_string.data()), 0, 0, false, -1, slim::utilities::StringToV8Value(isolate_, ""), false, false, true);
-    v8::ScriptCompiler::Source v8_module_source(slim::utilities::StringToV8String(isolate_, src.data()), origin);
+    v8::ScriptCompiler::Source v8_module_source(source_string, origin);
     v8::ScriptCompiler::CompileOptions module_compile_options(v8::ScriptCompiler::kProduceCompileHints);
     v8::ScriptCompiler::NoCacheReason module_no_cache_reason(v8::ScriptCompiler::kNoCacheNoReason);
     v8::MaybeLocal<v8::Module> temporary_module = v8::ScriptCompiler::CompileModule(isolate_, &v8_module_source, module_compile_options, module_no_cache_reason);
