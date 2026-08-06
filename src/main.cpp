@@ -8,7 +8,7 @@
 #include <system_error>
 #include <vector>
 #include <slim/command_line_handler.h>
-#include <slim/common/exception.h>
+#include <slim/exception.h>
 #include <slim/common/io/error_codes.h>
 #include <slim/configuration_handler.h>
 #include <slim/slim.h>
@@ -90,11 +90,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Exception caught\n";
         std::cerr << error.what() << std::endl;
     }
-    catch (const slim::common::SlimFileException& error) {
-        std::cerr << "Exception caught\n";
-        std::cerr << error.message << ", path => " << error.path << std::endl;
-    }
-    catch (const slim::common::SlimException& error) {
+    catch (const slim::SlimException& error) {
         std::cerr << "Exception caught\n";
         std::cerr << error.message << std::endl;
     }

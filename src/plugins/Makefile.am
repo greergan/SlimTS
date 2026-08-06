@@ -1,1 +1,1 @@
-SUBDIRS = console http
+SUBDIRS = console http require

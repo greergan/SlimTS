@@ -16,6 +16,14 @@ namespace slim::module {
     using namespace slim::common;
 }
 
+v8::Local<v8::Object> slim::module::import_specifier::cjs_exports() const {
+#ifdef ENABLE_LOGGING
+    log::trace({__func__, "begins", __FILE__, __LINE__});
+    log::trace({__func__, "ends", __FILE__, __LINE__});
+#endif
+    return cjs_exports_;
+}
+
 void slim::module::import_specifier::evaluate_as_cjs() {
 #ifdef ENABLE_LOGGING
     log::trace({__func__, "begins", __FILE__, __LINE__});

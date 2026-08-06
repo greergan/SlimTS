@@ -4,6 +4,7 @@
 #ifdef ENABLE_LOGGING
 #include <slim/common/log.h>
 #endif
+#include <slim/exception.h>
 #include <slim/exception_handler.h>
 #include <slim/utilities.h>
 
@@ -34,7 +35,7 @@ namespace slim::exception_handler {
 
 void slim::exception_handler::v8_try_catch_handler(v8::TryCatch* try_catch) {
 #ifdef ENABLE_LOGGING
-	log::trace(log::Message("slim::exception_handler::try_catch_handler()","begins",__FILE__, __LINE__));
+	log::trace({"slim::exception_handler::try_catch_handler()","begins",__FILE__, __LINE__});
 #endif
 	auto* isolate = try_catch->Message()->GetIsolate();
 	auto context = isolate->GetCurrentContext();
@@ -49,65 +50,38 @@ void slim::exception_handler::v8_try_catch_handler(v8::TryCatch* try_catch) {
 	int line_number = message->GetLineNumber(context).FromMaybe(-1);
 
 #ifdef ENABLE_LOGGING
-	log::debug(log::Message("script_origin.ScriptId()", std::to_string(script_origin.ScriptId()),__FILE__, __LINE__));
+	log::debug({"script_origin.ScriptId()", std::to_string(script_origin.ScriptId()),__FILE__, __LINE__});
+	log::debug({"script_origin.ColumnOffset()", std::to_string(script_origin.ColumnOffset()),__FILE__, __LINE__});
+	log::debug({"script_origin.LineOffset()", std::to_string(script_origin.LineOffset()),__FILE__, __LINE__});
+	log::debug({"script_origin.ResourceName()", utilities::v8ValueToString(isolate, script_origin.ResourceName()),__FILE__, __LINE__});
+	log::debug({"message->Get()", utilities::v8StringToString(isolate, message->Get()),__FILE__, __LINE__});
+	log::debug({"message->GetScriptResourceName()", utilities::v8ValueToString(isolate, message->GetScriptResourceName()),__FILE__, __LINE__});
+	log::debug({"message->GetLineNumber()", std::to_string(line_number), __FILE__, __LINE__});
+	log::debug({"message->GetSourceLine()", utilities::v8StringToString(isolate, message->GetSourceLine(context).ToLocalChecked()),__FILE__, __LINE__});
+	log::debug({"message->ErrorLevel()", std::to_string(message->ErrorLevel()),__FILE__, __LINE__});
+	log::debug({"message->GetStartColumn()", std::to_string(message->GetStartColumn()),__FILE__, __LINE__});
+	log::debug({"message->GetEndColumn()", std::to_string(message->GetEndColumn()),__FILE__, __LINE__});
+	log::debug({"message->GetStartPosition()", std::to_string(message->GetStartPosition()),__FILE__, __LINE__});
+	log::debug({"message->GetEndPosition()", std::to_string(message->GetEndPosition()),__FILE__, __LINE__});
 #endif
-#ifdef ENABLE_LOGGING
-	log::debug(log::Message("script_origin.ColumnOffset()", std::to_string(script_origin.ColumnOffset()),__FILE__, __LINE__));
-#endif
-#ifdef ENABLE_LOGGING
-	log::debug(log::Message("script_origin.LineOffset()", std::to_string(script_origin.LineOffset()),__FILE__, __LINE__));
-#endif
-#ifdef ENABLE_LOGGING
-	log::debug(log::Message("script_origin.ResourceName()", utilities::v8ValueToString(isolate, script_origin.ResourceName()),__FILE__, __LINE__));
-#endif
-#ifdef ENABLE_LOGGING
-	log::debug(log::Message("message->Get()", utilities::v8StringToString(isolate, message->Get()),__FILE__, __LINE__));
-#endif
-#ifdef ENABLE_LOGGING
-	log::debug(log::Message("message->GetScriptResourceName()", utilities::v8ValueToString(isolate, message->GetScriptResourceName()),__FILE__, __LINE__));
-#endif
-#ifdef ENABLE_LOGGING
-	log::debug(log::Message("message->GetLineNumber()", std::to_string(line_number), __FILE__, __LINE__));
-#endif
-#ifdef ENABLE_LOGGING
-	log::debug(log::Message("message->GetSourceLine()", utilities::v8StringToString(isolate, message->GetSourceLine(context).ToLocalChecked()),__FILE__, __LINE__));
-#endif
-#ifdef ENABLE_LOGGING
-	log::debug(log::Message("message->ErrorLevel()", std::to_string(message->ErrorLevel()),__FILE__, __LINE__));
-#endif
-#ifdef ENABLE_LOGGING
-	log::debug(log::Message("message->GetStartColumn()", std::to_string(message->GetStartColumn()),__FILE__, __LINE__));
-#endif
-#ifdef ENABLE_LOGGING
-	log::debug(log::Message("message->GetEndColumn()", std::to_string(message->GetEndColumn()),__FILE__, __LINE__));
-#endif
-#ifdef ENABLE_LOGGING
-	log::debug(log::Message("message->GetStartPosition()", std::to_string(message->GetStartPosition()),__FILE__, __LINE__));
-#endif
-#ifdef ENABLE_LOGGING
-	log::debug(log::Message("message->GetEndPosition()", std::to_string(message->GetEndPosition()),__FILE__, __LINE__));
-#endif
-	std::stringstream exception_string;
+	std::string exception_string;
 	if(!script_origin.ResourceName()->IsUndefined()) {
-		exception_string << "\n" << utilities::v8ValueToString(isolate, script_origin.ResourceName());
+		exception_string += std::format("\n{}", utilities::v8ValueToString(isolate, script_origin.ResourceName()));
 	}
 	if(line_number > 0) {
-		exception_string << "\nLine number: " << std::to_string(line_number) << "\n";
+		exception_string += std::format("\nLine number: {}\n", line_number);
 	}
 	if(try_catch->HasCaught()) {
-		exception_string << "\n" << utilities::v8ValueToString(isolate, try_catch->Exception()) << "\n";
+		exception_string += std::format("\n{}\n", utilities::v8ValueToString(isolate, try_catch->Exception()));
 	}
-	exception_string << utilities::v8ValueToString(isolate, message->GetSourceLine(context).ToLocalChecked()) << "\n";
-	for(int column = 0; column < message->GetStartColumn(); column++) {
-		exception_string << " ";
-	}
-	exception_string << "^" << std::endl;
+	exception_string += std::format("{}\n", utilities::v8ValueToString(isolate, message->GetSourceLine(context).ToLocalChecked()));
+	exception_string += std::string(message->GetStartColumn(), ' ');
+	exception_string += "^\n";
 	if(!stack_trace.IsEmpty()) {
-	    exception_string << "\nStackTrace:\n";
-		exception_string << utilities::v8ValueToString(isolate, stack_trace);
+		exception_string += std::format("\nStackTrace:\n{}", utilities::v8ValueToString(isolate, stack_trace));
 	}
 #ifdef ENABLE_LOGGING
-	log::trace(log::Message("slim::exception_handler::try_catch_handler()","ends",__FILE__, __LINE__));
+	log::trace({"slim::exception_handler::try_catch_handler()","ends",__FILE__, __LINE__});
 #endif
-	throw(exception_string.str());
+	throw SlimException(exception_string.c_str());
 }
