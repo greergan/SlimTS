@@ -1,4 +1,3 @@
-#define ENABLE_LOGGING
 #include <format>
 #include <vector>
 #include <v8.h>

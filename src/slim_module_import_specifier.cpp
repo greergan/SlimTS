@@ -1,11 +1,7 @@
-#define ENABLE_LOGGING
 #include <filesystem>
 #include <format>
-#include <set>
 #include <string>
-#include <sstream>
 #include <unordered_set>
-#include <vector>
 #include <v8.h>
 #include "config.h"
 #ifdef ENABLE_LOGGING
@@ -22,7 +18,7 @@
 namespace slim::module {
     using namespace slim;
     using namespace slim::common;
-    std::set<std::string> file_extensions = {".ts", ".mjs"};
+    std::unordered_set<std::string> file_extensions = {".ts", ".mjs"};
 }
 
 slim::module::import_specifier::import_specifier(v8::Isolate* isolate, std::string_view specifier_string, v8::Local<v8::Module> synthetic_module)
