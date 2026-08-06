@@ -28,7 +28,7 @@ set -- "${ARGS[@]:-}"
 BASE_URL="https://codeberg.org/api/v1"
 CODEBERG_USER="greergan"
 CODEBERG_REPO="SlimTS"
-CODEBERG_TOKEN="9c319d4778149e6dc2b9f96c38620c404e631dfc"
+CODEBERG_TOKEN="token"
 
 # ---------------------------------------------------------------------------
 
