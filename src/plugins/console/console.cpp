@@ -415,7 +415,7 @@ void slim::console::local_print(const v8::FunctionCallbackInfo<v8::Value>& args,
         }
     };
     if(listening) {
-        log_message = v8::Object::New(isolate);           
+        log_message = v8::Object::New(isolate);
         auto result = log_message->DefineOwnProperty(
             context,
             slim::utilities::StringToName(isolate, "logLevel"),
@@ -440,38 +440,52 @@ void slim::console::local_print(const v8::FunctionCallbackInfo<v8::Value>& args,
     }
     for(int index = 0; index < args.Length(); index++) {
         auto value = args[index];
-        if(value->IsObject()) {
-            auto json_string_value = v8::JSON::Stringify(isolate->GetCurrentContext(), value);
-            std::string string_value = slim::utilities::v8StringToString(isolate, json_string_value.ToLocalChecked());
-            if(listening) {
-                output << string_value;
-                if(output_when_listening) {
-                    color_output << string_value;
-                }
-            }
-            else {
-                color_output << string_value;
-            }
+        std::string out;
+
+        if(value->IsFunction()) {
+            auto name = value.As<v8::Function>()->GetName();
+            std::string name_str = slim::utilities::v8ValueToString(isolate, name);
+            out = "Function " + (name_str.empty() ? "(anonymous)" : name_str);
+        }
+        else if(value->IsArray()) {
+            auto json_string_value = v8::JSON::Stringify(context, value);
+            out = "Array(" + std::to_string(value.As<v8::Array>()->Length()) + ") " +
+                slim::utilities::v8StringToString(isolate, json_string_value.ToLocalChecked());
+        }
+        else if(value->IsObject()) {
+            auto json_string_value = v8::JSON::Stringify(context, value);
+            out = slim::utilities::v8StringToString(isolate, json_string_value.ToLocalChecked());
+        }
+        else if(value->IsNull()) {
+            out = "null";
+        }
+        else if(value->IsUndefined()) {
+            out = "undefined";
+        }
+        else if(value->IsSymbol()) {
+            auto desc = value.As<v8::Symbol>()->Description(isolate);
+            out = "Symbol(" + slim::utilities::v8ValueToString(isolate, desc) + ")";
+        }
+        else if(value->IsBigInt()) {
+            bool lossless;
+            out = std::to_string(value.As<v8::BigInt>()->Int64Value(&lossless)) + "n";
         }
         else {
-            if(listening) {
-                output << slim::utilities::v8ValueToString(isolate, value);
-                if(output_when_listening) {
-                    color_output << slim::utilities::v8ValueToString(isolate, value);
-                }
-            }
-            else {
-                color_output << slim::utilities::v8ValueToString(isolate, value);
-            }
+            out = slim::utilities::v8ValueToString(isolate, value);
         }
+
+        if(listening) {
+            output << out;
+            if(output_when_listening) color_output << out;
+        } else {
+            color_output << out;
+        }
+
         if(index != args.Length() - 1) {
             if(listening) {
                 output << " ";
-                if(output_when_listening) {
-                    color_output << " ";
-                }
-            }
-            else {
+                if(output_when_listening) color_output << " ";
+            } else {
                 color_output << " ";
             }
         }
@@ -642,7 +656,7 @@ extern "C" void expose_plugin(v8::Isolate* isolate) {
         sublevel_plugin.add_property("dim",              &configuration->dim);
         sublevel_plugin.add_property("expand_objects",   &configuration->expand_objects);
         sublevel_plugin.add_property("inverse",          &configuration->inverse);
-        sublevel_plugin.add_property("italic",           &configuration->italic);      
+        sublevel_plugin.add_property("italic",           &configuration->italic);
         sublevel_plugin.add_property("show",             &configuration->show);
         sublevel_plugin.add_property("text_color",       &configuration->text_color);
         sublevel_plugin.add_property("underline",        &configuration->underline);
