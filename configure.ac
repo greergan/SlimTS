@@ -151,6 +151,7 @@ AC_CONFIG_FILES([
     src/plugins/fs/Makefile
     src/plugins/http_package/Makefile
     src/plugins/http/Makefile
+    src/plugins/module/Makefile
     src/plugins/memoryAdaptor/Makefile
     src/plugins/os/Makefile
     src/plugins/path/Makefile

@@ -26,6 +26,7 @@ namespace slim::plugin::module_plugin {
 }
 
 extern "C" void expose_plugin(v8::Isolate* isolate) {
+    using namespace slim;
     using namespace slim::common;
 #ifdef ENABLE_LOGGING
     log::trace({"expose_plugin", "begins", __FILE__, __LINE__});
