@@ -1,0 +1,60 @@
+fs/promises Functions
+
+fsPromises.access(path: PathLike, mode?: number): Promise<void>
+fsPromises.appendFile(path: PathLike | FileHandle, data: string | NodeJS.ArrayBufferView, options?: BufferEncoding | ObjectEncodingOptions & { mode?: Mode; flag?: OpenMode; flush?: boolean }): Promise<void>
+fsPromises.chmod(path: PathLike, mode: Mode): Promise<void>
+fsPromises.chown(path: PathLike, uid: number, gid: number): Promise<void>
+fsPromises.copyFile(src: PathLike, dest: PathLike, mode?: number): Promise<void>
+fsPromises.cp(source: string | URL, destination: string | URL, options?: CopyOptions): Promise<void>
+fsPromises.glob(pattern: string | readonly string[], options?: GlobOptions): AsyncIterator<string | Dirent>
+fsPromises.lchmod(path: PathLike, mode: Mode): Promise<void>
+fsPromises.lchown(path: PathLike, uid: number, gid: number): Promise<void>
+fsPromises.link(existingPath: PathLike, newPath: PathLike): Promise<void>
+fsPromises.lstat(path: PathLike, opts?: StatOptions & { bigint?: false }): Promise<Stats>
+fsPromises.lstat(path: PathLike, opts: StatOptions & { bigint: true }): Promise<BigIntStats>
+fsPromises.lutimes(path: PathLike, atime: TimeLike, mtime: TimeLike): Promise<void>
+fsPromises.mkdir(path: PathLike, options?: Mode | MakeDirectoryOptions & { recursive?: false }): Promise<void>
+fsPromises.mkdir(path: PathLike, options: MakeDirectoryOptions & { recursive: true }): Promise<string | undefined>
+fsPromises.mkdtemp(prefix: string | Buffer | URL, options?: BufferEncoding | ObjectEncodingOptions): Promise<string | Buffer>
+fsPromises.mkdtempDisposable(prefix: string | Buffer | URL, options?: BufferEncoding | ObjectEncodingOptions): Promise<DisposableDirectory>
+fsPromises.open(path: PathLike, flags?: string | number, mode?: Mode): Promise<FileHandle>
+fsPromises.opendir(path: PathLike, options?: OpenDirOptions): Promise<Dir>
+fsPromises.readFile(path: PathLike | FileHandle, options?: BufferEncoding | ObjectEncodingOptions & Abortable): Promise<Buffer | string>
+fsPromises.readlink(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): Promise<string | Buffer>
+fsPromises.readdir(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions & { recursive?: false; withFileTypes?: false }): Promise<string[] | Buffer[]>
+fsPromises.readdir(path: PathLike, options: ObjectEncodingOptions & { withFileTypes: true; recursive?: false }): Promise<Dirent[]>
+fsPromises.readdir(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions & { recursive: true; withFileTypes?: false }): Promise<string[] | Buffer[]>
+fsPromises.readdir(path: PathLike, options: ObjectEncodingOptions & { recursive: true; withFileTypes: true }): Promise<Dirent[]>
+fsPromises.realpath(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): Promise<string | Buffer>
+fsPromises.rename(oldPath: PathLike, newPath: PathLike): Promise<void>
+fsPromises.rm(path: PathLike, options?: RmOptions): Promise<void>
+fsPromises.rmdir(path: PathLike): Promise<void>
+fsPromises.stat(path: PathLike, opts?: StatOptions & { bigint?: false; throwIfNoEntry?: true }): Promise<Stats>
+fsPromises.stat(path: PathLike, opts: StatOptions & { bigint: true; throwIfNoEntry?: true }): Promise<BigIntStats>
+fsPromises.stat(path: PathLike, opts: StatOptions & { throwIfNoEntry: false }): Promise<Stats | undefined>
+fsPromises.statfs(path: PathLike, opts?: StatFsOptions & { bigint?: false }): Promise<StatsFs>
+fsPromises.statfs(path: PathLike, opts: StatFsOptions & { bigint: true }): Promise<BigIntStatsFs>
+fsPromises.symlink(target: PathLike, path: PathLike, type?: string | null): Promise<void>
+fsPromises.truncate(path: PathLike, len?: number): Promise<void>
+fsPromises.unlink(path: PathLike): Promise<void>
+fsPromises.utimes(path: PathLike, atime: TimeLike, mtime: TimeLike): Promise<void>
+fsPromises.watch(filename: PathLike, options?: WatchOptions): AsyncIterator<FileChangeInfo<string>>
+fsPromises.writeFile(file: PathLike | FileHandle, data: string | NodeJS.ArrayBufferView | Iterable<NodeJS.ArrayBufferView | string> | AsyncIterable<NodeJS.ArrayBufferView | string>, options?: BufferEncoding | ObjectEncodingOptions & { mode?: Mode; flag?: OpenMode; flush?: boolean } & Abortable): Promise<void>
+
+fs/promises Classes / Return Objects
+
+fsPromises.Dir
+fsPromises.Dirent
+fsPromises.FileHandle
+fsPromises.Stats
+fsPromises.BigIntStats
+fsPromises.StatsFs
+fsPromises.BigIntStatsFs
+
+fs/promises Constants
+
+fsPromises.constants
+
+fs/promises Special Properties / Functions
+
+fsPromises.constants

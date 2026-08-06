@@ -16,14 +16,19 @@ namespace slim::module {
 		void instantiate_module();
 		v8::Local<v8::Module>& v8_module();
 		const std::string& specifier_uri() const;
+		static v8::MaybeLocal<v8::Value> cjs_evaluation_steps(
+		    v8::Local<v8::Context> context,
+		    v8::Local<v8::Module> module);
 		private:
 			bool is_entry_point_ = false;
 			bool is_synthetic_module_ = false;
 			bool is_src_transpiled = false;
+			bool is_cjs_ = false;
 			v8::Isolate* isolate_;
 			v8::Local<v8::Context> context_;
 			v8::Local<v8::Module> v8_module_;
 			v8::Local<v8::Module> referrer_;
+			v8::Local<v8::Object> cjs_exports_;
 			std::string specifier_uri_;
 			std::string specifier_protocol_;
 			std::filesystem::path cache_directory_path_;
@@ -32,5 +37,6 @@ namespace slim::module {
 			slim::common::http::Response fetched_mjs_source_;
 			void resolve_module_path(std::string_view specifier);
 			void specifier_uri(std::string_view s);
+			void evaluate_as_cjs();
 	};
 }

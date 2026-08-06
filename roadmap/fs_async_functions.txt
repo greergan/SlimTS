@@ -1,0 +1,84 @@
+fs Async Functions
+
+fs.access(path: PathLike, mode: number | undefined, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.appendFile(path: PathLike | number, data: string | Uint8Array, options: ObjectEncodingOptions | BufferEncoding | undefined, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.chmod(path: PathLike, mode: Mode, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.chown(path: PathLike, uid: number, gid: number, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.close(fd: number, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.copyFile(src: PathLike, dest: PathLike, mode: number | undefined, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.cp(source: string | URL, destination: string | URL, options: CopyOptions, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.exists(path: PathLike, callback: (exists: boolean) => void): void
+fs.fchmod(fd: number, mode: Mode, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.fchown(fd: number, uid: number, gid: number, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.fdatasync(fd: number, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.fstat(fd: number, opts?: StatOptions & { bigint?: false }, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void
+fs.fstat(fd: number, opts: StatOptions & { bigint: true }, callback: (err: NodeJS.ErrnoException | null, stats: BigIntStats) => void): void
+fs.fsync(fd: number, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.ftruncate(fd: number, len: number | undefined, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.futimes(fd: number, atime: TimeLike, mtime: TimeLike, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.glob(pattern: string | string[], options: GlobOptions, callback: (err: NodeJS.ErrnoException | null, matches: string[] | Dirent[]) => void): void
+fs.glob(pattern: string | string[], callback: (err: NodeJS.ErrnoException | null, matches: string[]) => void): void
+fs.lchmod(path: PathLike, mode: Mode, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.lchown(path: PathLike, uid: number, gid: number, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.link(existingPath: PathLike, newPath: PathLike, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.lstat(path: PathLike, opts?: StatOptions & { bigint?: false }, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void
+fs.lstat(path: PathLike, opts: StatOptions & { bigint: true }, callback: (err: NodeJS.ErrnoException | null, stats: BigIntStats) => void): void
+fs.lutimes(path: PathLike, atime: TimeLike, mtime: TimeLike, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.mkdir(path: PathLike, options: Mode | MakeDirectoryOptions | undefined, callback: (err: NodeJS.ErrnoException | null, path?: string) => void): void
+fs.mkdtemp(prefix: string, options: BufferEncoding | ObjectEncodingOptions | undefined, callback: (err: NodeJS.ErrnoException | null, folder: string) => void): void
+fs.open(path: PathLike, flags: string | number | undefined, mode: Mode | undefined, callback: (err: NodeJS.ErrnoException | null, fd: number) => void): void
+fs.opendir(path: PathLike, options: OpenDirOptions | undefined, callback: (err: NodeJS.ErrnoException | null, dir: Dir) => void): void
+fs.read<TBuffer extends NodeJS.TypedArray | DataView>(fd: number, buffer: TBuffer, offset: number, length: number, position: number | null, callback: (err: NodeJS.ErrnoException | null, bytesRead: number, buffer: TBuffer) => void): void
+fs.read<TBuffer extends NodeJS.TypedArray | DataView>(fd: number, buffer: TBuffer, options: ReadOptions<TBuffer>, callback: (err: NodeJS.ErrnoException | null, bytesRead: number, buffer: TBuffer) => void): void
+fs.readFile(path: PathLike | number, options: BufferEncoding | ObjectEncodingOptions | undefined, callback: (err: NodeJS.ErrnoException | null, data: Buffer | string) => void): void
+fs.readlink(path: PathLike, options: BufferEncoding | ObjectEncodingOptions | undefined, callback: (err: NodeJS.ErrnoException | null, linkString: string | Buffer) => void): void
+fs.readv(fd: number, buffers: ArrayBufferView[], position: number | undefined, callback: (err: NodeJS.ErrnoException | null, bytesRead: number, buffers: ArrayBufferView[]) => void): void
+fs.readdir(path: PathLike, options: BufferEncoding | ObjectEncodingOptions | undefined, callback: (err: NodeJS.ErrnoException | null, files: string[] | Buffer[] | Dirent[]) => void): void
+fs.realpath(path: PathLike, options: BufferEncoding | ObjectEncodingOptions | undefined, callback: (err: NodeJS.ErrnoException | null, resolvedPath: string | Buffer) => void): void
+fs.realpath.native(path: PathLike, options: BufferEncoding | ObjectEncodingOptions | undefined, callback: (err: NodeJS.ErrnoException | null, resolvedPath: string | Buffer) => void): void
+fs.rename(oldPath: PathLike, newPath: PathLike, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.rm(path: PathLike, options: RmDirOptions | undefined, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.rmdir(path: PathLike, options: RmDirOptions | undefined, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.stat(path: PathLike, opts?: StatOptions & { bigint?: false; throwIfNoEntry?: true }, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void
+fs.stat(path: PathLike, opts: StatOptions & { bigint: true; throwIfNoEntry?: true }, callback: (err: NodeJS.ErrnoException | null, stats: BigIntStats) => void): void
+fs.stat(path: PathLike, opts: StatOptions & { throwIfNoEntry: false }, callback: (err: NodeJS.ErrnoException | null, stats: Stats | undefined) => void): void
+fs.statfs(path: PathLike, opts?: StatFsOptions & { bigint?: false }, callback: (err: NodeJS.ErrnoException | null, stats: StatsFs) => void): void
+fs.statfs(path: PathLike, opts: StatFsOptions & { bigint: true }, callback: (err: NodeJS.ErrnoException | null, stats: BigIntStatsFs) => void): void
+fs.symlink(target: PathLike, path: PathLike, type: string | null | undefined, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.truncate(path: PathLike, len: number | undefined, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.unlink(path: PathLike, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.utimes(path: PathLike, atime: TimeLike, mtime: TimeLike, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.watch(filename: PathLike, options: BufferEncoding | WatchOptions, listener?: (eventType: string, filename: string | Buffer | null) => void): FSWatcher
+fs.watch(filename: PathLike, listener?: (eventType: string, filename: string | Buffer | null) => void): FSWatcher
+fs.watchFile(filename: PathLike, options: WatchFileOptions, listener: (current: Stats, previous: Stats) => void): StatWatcher
+fs.watchFile(filename: PathLike, listener: (current: Stats, previous: Stats) => void): StatWatcher
+fs.unwatchFile(filename: PathLike, listener?: (current: Stats, previous: Stats) => void): void
+fs.write<TBuffer extends NodeJS.TypedArray | DataView>(fd: number, buffer: TBuffer, offset: number, length: number, position: number | null, callback: (err: NodeJS.ErrnoException | null, bytesWritten: number, buffer: TBuffer) => void): void
+fs.write<TBuffer extends NodeJS.TypedArray | DataView>(fd: number, buffer: TBuffer, options: WriteOptions<TBuffer>, callback: (err: NodeJS.ErrnoException | null, bytesWritten: number, buffer: TBuffer) => void): void
+fs.write(fd: number, data: string, position: number | null | undefined, encoding: BufferEncoding | undefined, callback: (err: NodeJS.ErrnoException | null, bytesWritten: number, string: string) => void): void
+fs.writeFile(file: PathLike | number, data: string | NodeJS.ArrayBufferView | Iterable<NodeJS.ArrayBufferView | string> | AsyncIterable<NodeJS.ArrayBufferView | string>, options: WriteFileOptions | BufferEncoding | undefined, callback: (err: NodeJS.ErrnoException | null) => void): void
+fs.writev(fd: number, buffers: ArrayBufferView[], position: number | undefined, callback: (err: NodeJS.ErrnoException | null, bytesWritten: number, buffers: ArrayBufferView[]) => void): void
+
+fs Async Classes / Return Objects
+
+fs.Dir
+fs.Dirent
+fs.FileHandle
+fs.FSWatcher
+fs.StatWatcher
+fs.Stats
+fs.BigIntStats
+fs.StatsFs
+fs.BigIntStatsFs
+
+fs Async Constants
+
+fs.constants
+
+fs Async Special Properties / Functions
+
+fs.promises
+fs.realpath.native
+fs.watch
+fs.watchFile
+fs.unwatchFile

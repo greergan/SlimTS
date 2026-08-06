@@ -1,0 +1,86 @@
+Path Functions
+
+path.basename(path: string, suffix?: string): string
+path.dirname(path: string): string
+path.extname(path: string): string
+path.format(pathObject: PathObject): string
+path.isAbsolute(path: string): boolean
+path.join(...paths: string[]): string
+path.matchesGlob(path: string, pattern: string): boolean
+path.normalize(path: string): string
+path.parse(path: string): ParsedPath
+path.relative(from: string, to: string): string
+path.resolve(...paths: string[]): string
+path.toNamespacedPath(path: string): string
+
+Path Properties
+
+path.delimiter: string
+path.sep: string
+
+Path Platform Implementations
+
+path.posix: typeof path
+path.win32: typeof path
+
+Path POSIX Functions
+
+path.posix.basename(path: string, suffix?: string): string
+path.posix.dirname(path: string): string
+path.posix.extname(path: string): string
+path.posix.format(pathObject: PathObject): string
+path.posix.isAbsolute(path: string): boolean
+path.posix.join(...paths: string[]): string
+path.posix.matchesGlob(path: string, pattern: string): boolean
+path.posix.normalize(path: string): string
+path.posix.parse(path: string): ParsedPath
+path.posix.relative(from: string, to: string): string
+path.posix.resolve(...paths: string[]): string
+path.posix.toNamespacedPath(path: string): string
+
+Path POSIX Properties
+
+path.posix.delimiter: string
+path.posix.sep: string
+
+Path Windows Functions
+
+path.win32.basename(path: string, suffix?: string): string
+path.win32.dirname(path: string): string
+path.win32.extname(path: string): string
+path.win32.format(pathObject: PathObject): string
+path.win32.isAbsolute(path: string): boolean
+path.win32.join(...paths: string[]): string
+path.win32.matchesGlob(path: string, pattern: string): boolean
+path.win32.normalize(path: string): string
+path.win32.parse(path: string): ParsedPath
+path.win32.relative(from: string, to: string): string
+path.win32.resolve(...paths: string[]): string
+path.win32.toNamespacedPath(path: string): string
+
+Path Windows Properties
+
+path.win32.delimiter: string
+path.win32.sep: string
+
+Path Types
+
+PathObject
+PathObject.dir: string
+PathObject.root: string
+PathObject.base: string
+PathObject.name: string
+PathObject.ext: string
+
+ParsedPath
+ParsedPath.root: string
+ParsedPath.dir: string
+ParsedPath.base: string
+ParsedPath.ext: string
+ParsedPath.name: string
+
+Path Module Entry Points
+
+path
+path/posix
+path/win32

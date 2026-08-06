@@ -1,0 +1,785 @@
+# Milestone: Fetch API
+- [ ] Implement `fetch()` Global Function
+  - [ ] (Implement `fetch()` Global Function) Support consuming `Request` object or URL string/`URL` object as the first argument
+    - Story:
+      - Signature: `fetch(input: Request | string | URL, init?: RequestInit): Promise<Response>`
+      - Example: `await fetch("https://example.com") // resolves to a Response; await fetch(new URL("https://example.com")) // same`
+      - Details: Confirms fetch() accepts a URL string, URL object, or Request object as its first argument and returns a Promise resolving to a Response.
+  - [ ] (Implement `fetch()` Global Function) Support `Init` options object as the second argument
+    - Story:
+      - Signature: `fetch(input: Request | string | URL, init?: RequestInit): Promise<Response>`
+      - Example: `await fetch("https://example.com", { method: "POST", body: "data" }) // sends a POST request with the given body`
+      - Details: Confirms fetch() accepts an optional RequestInit dictionary as its second argument, merging its properties with any defaults from the input Request object.
+  - [ ] (Implement `fetch()` Global Function) Return a `Promise` resolving to a fully populated `Response` object
+    - Story:
+      - Signature: `fetch(input: Request | string | URL, init?: RequestInit): Promise<Response>`
+      - Example: `const res = await fetch("https://example.com"); res.status // 200; res.headers // Headers; res.body // ReadableStream`
+      - Details: Confirms the resolved Response has all properties fully populated including status, headers, and a readable body stream.
+  - [ ] (Implement `fetch()` Global Function) Implement Redirect Handling
+    - [ ] (Implement `fetch()` Global Function > Implement Redirect Handling) Implement `follow` mode
+      - Story:
+        - Signature: `fetch(input, { redirect: "follow" }): Promise<Response>`
+        - Example: `await fetch("https://example.com/redirect", { redirect: "follow" }) // transparently follows redirects and resolves with the final Response`
+        - Details: Confirms that redirect responses are automatically followed up to the redirect limit, with the final Response reflecting the last URL in the chain and Response.prototype.redirected set to true.
+    - [ ] (Implement `fetch()` Global Function > Implement Redirect Handling) Implement `error` mode
+      - Story:
+        - Signature: `fetch(input, { redirect: "error" }): Promise<Response>`
+        - Example: `await fetch("https://example.com/redirect", { redirect: "error" }) // rejects with a TypeError when a redirect is encountered`
+        - Details: Confirms that any redirect response causes the fetch Promise to reject with a TypeError rather than following the redirect.
+    - [ ] (Implement `fetch()` Global Function > Implement Redirect Handling) Implement `manual` mode
+      - Story:
+        - Signature: `fetch(input, { redirect: "manual" }): Promise<Response>`
+        - Example: `await fetch("https://example.com/redirect", { redirect: "manual" }) // resolves with an opaque redirect Response with type "opaqueredirect"`
+        - Details: Confirms that redirect responses are returned as-is with type "opaqueredirect", allowing the caller to inspect and handle the redirect manually.
+  - [ ] (Implement `fetch()` Global Function) Implement CORS Mode
+    - [ ] (Implement `fetch()` Global Function > Implement CORS Mode) Implement `same-origin` mode
+      - Story:
+        - Signature: `fetch(input, { mode: "same-origin" }): Promise<Response>`
+        - Example: `await fetch("https://other.com/api", { mode: "same-origin" }) // rejects with a TypeError if the request is cross-origin`
+        - Details: Confirms that requests to a different origin are rejected with a TypeError when mode is "same-origin", preventing cross-origin requests entirely.
+    - [ ] (Implement `fetch()` Global Function > Implement CORS Mode) Implement `no-cors` mode
+      - Story:
+        - Signature: `fetch(input, { mode: "no-cors" }): Promise<Response>`
+        - Example: `await fetch("https://other.com/api", { mode: "no-cors" }) // resolves with an opaque Response with type "opaque" and no accessible body or headers`
+        - Details: Confirms that cross-origin requests in no-cors mode succeed but return an opaque Response with type "opaque", empty status, and inaccessible headers and body.
+    - [ ] (Implement `fetch()` Global Function > Implement CORS Mode) Implement `cors` mode
+      - Story:
+        - Signature: `fetch(input, { mode: "cors" }): Promise<Response>`
+        - Example: `await fetch("https://other.com/api", { mode: "cors" }) // sends a CORS request; resolves if the server responds with valid CORS headers`
+        - Details: Confirms that cross-origin requests in cors mode include the appropriate CORS request headers and reject with a TypeError if the server's response does not include valid CORS headers.
+  - [ ] (Implement `fetch()` Global Function) Implement Credentials Management
+    - [ ] (Implement `fetch()` Global Function > Implement Credentials Management) Implement `omit` mode
+      - Story:
+        - Signature: `fetch(input, { credentials: "omit" }): Promise<Response>`
+        - Example: `await fetch("https://example.com/api", { credentials: "omit" }) // sends request with no cookies or auth headers`
+        - Details: Confirms that credentials are never sent with the request and are never stored from the response when credentials mode is "omit".
+    - [ ] (Implement `fetch()` Global Function > Implement Credentials Management) Implement `same-origin` mode
+      - Story:
+        - Signature: `fetch(input, { credentials: "same-origin" }): Promise<Response>`
+        - Example: `await fetch("https://example.com/api", { credentials: "same-origin" }) // sends cookies only if the request is same-origin`
+        - Details: Confirms that credentials are included for same-origin requests and excluded for cross-origin requests when credentials mode is "same-origin".
+    - [ ] (Implement `fetch()` Global Function > Implement Credentials Management) Implement `include` mode
+      - Story:
+        - Signature: `fetch(input, { credentials: "include" }): Promise<Response>`
+        - Example: `await fetch("https://other.com/api", { credentials: "include" }) // sends cookies and auth headers regardless of origin`
+        - Details: Confirms that credentials are always included with the request regardless of whether it is same-origin or cross-origin when credentials mode is "include".
+  - [ ] (Implement `fetch()` Global Function) Implement Cache Modes
+    - [ ] (Implement `fetch()` Global Function > Implement Cache Modes) Implement `default` mode
+      - Story:
+        - Signature: `fetch(input, { cache: "default" }): Promise<Response>`
+        - Example: `await fetch("https://example.com/data", { cache: "default" }) // uses standard HTTP cache semantics; serves from cache if fresh, revalidates if stale`
+        - Details: Confirms that the fetch follows standard HTTP caching rules, serving cached responses when fresh and revalidating with the server when stale.
+    - [ ] (Implement `fetch()` Global Function > Implement Cache Modes) Implement `no-store` mode
+      - Story:
+        - Signature: `fetch(input, { cache: "no-store" }): Promise<Response>`
+        - Example: `await fetch("https://example.com/data", { cache: "no-store" }) // always fetches from network; response is never written to cache`
+        - Details: Confirms that the request bypasses the cache entirely and the response is not stored in the cache.
+    - [ ] (Implement `fetch()` Global Function > Implement Cache Modes) Implement `reload` mode
+      - Story:
+        - Signature: `fetch(input, { cache: "reload" }): Promise<Response>`
+        - Example: `await fetch("https://example.com/data", { cache: "reload" }) // always fetches from network; response updates the cache`
+        - Details: Confirms that the request always goes to the network regardless of cached state, and the fresh response is written back to the cache.
+    - [ ] (Implement `fetch()` Global Function > Implement Cache Modes) Implement `no-cache` mode
+      - Story:
+        - Signature: `fetch(input, { cache: "no-cache" }): Promise<Response>`
+        - Example: `await fetch("https://example.com/data", { cache: "no-cache" }) // always revalidates with server even if a cached response exists`
+        - Details: Confirms that a conditional request is always sent to the server to revalidate any cached response before it is used.
+    - [ ] (Implement `fetch()` Global Function > Implement Cache Modes) Implement `force-cache` mode
+      - Story:
+        - Signature: `fetch(input, { cache: "force-cache" }): Promise<Response>`
+        - Example: `await fetch("https://example.com/data", { cache: "force-cache" }) // serves cached response regardless of staleness; only fetches from network if no cache entry exists`
+        - Details: Confirms that any cached response is returned regardless of its freshness, falling back to a network request only when no cached entry exists.
+    - [ ] (Implement `fetch()` Global Function > Implement Cache Modes) Implement `only-if-cached` mode
+      - Story:
+        - Signature: `fetch(input, { cache: "only-if-cached" }): Promise<Response>`
+        - Example: `await fetch("https://example.com/data", { cache: "only-if-cached", mode: "same-origin" }) // resolves from cache or rejects with a network error if no cache entry exists`
+        - Details: Confirms that the response is served from cache only, rejecting with a network error if no cached entry exists and never making a network request.
+  - [ ] (Implement `fetch()` Global Function) Implement SRI Integrity Verification
+    - [ ] (Implement `fetch()` Global Function > Implement SRI Integrity Verification) Implement hash extraction from `Request.prototype.integrity`
+      - Story:
+        - Signature: `fetch(input, { integrity: string }): Promise<Response>`
+        - Example: `await fetch("https://example.com/script.js", { integrity: "sha256-abc123==" }) // extracts the hash algorithm and digest from the integrity string`
+        - Details: Confirms that the integrity string is parsed into its algorithm and Base64-encoded digest components, throwing a TypeError for malformed integrity values.
+    - [ ] (Implement `fetch()` Global Function > Implement SRI Integrity Verification) Implement response body digest verification (SHA-256/384/512)
+      - Story:
+        - Signature: `fetch(input, { integrity: "sha256-<base64>" | "sha384-<base64>" | "sha512-<base64>" }): Promise<Response>`
+        - Example: `await fetch("https://example.com/script.js", { integrity: "sha256-abc123==" }) // computes SHA-256 digest of response body and compares to extracted hash`
+        - Details: Confirms that the response body is fully consumed and its digest is computed using the specified algorithm, then compared against the expected hash before the Promise resolves.
+    - [ ] (Implement `fetch()` Global Function > Implement SRI Integrity Verification) Implement integrity mismatch failure (`"NetworkError"`)
+      - Story:
+        - Signature: `fetch(input, { integrity: string }): Promise<Response>`
+        - Example: `await fetch("https://example.com/script.js", { integrity: "sha256-wronghash==" }) // rejects with a NetworkError DOMException when the digest does not match`
+        - Details: Confirms that a mismatch between the computed response body digest and the expected hash causes the fetch Promise to reject with a DOMException of type "NetworkError".
+- [ ] Implement `Request` Class
+  - Constructor
+    - [ ] (Implement `Request` Class > Constructor) Implement constructor (`new Request(input, init)`)
+      - Story:
+        - Signature: `new Request(input: string | URL | Request, init?: RequestInit): Request`
+        - Example: `new Request("https://example.com", { method: "POST", body: "data" }) // creates a Request with method POST and a string body`
+        - Details: Confirms the constructor accepts a URL string, URL object, or existing Request as input and merges it with the optional init dictionary, throwing a TypeError for invalid input or incompatible init options.
+  - Properties
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.method`
+      - Story:
+        - Signature: `Request.prototype.method: string`
+        - Example: `new Request("https://example.com", { method: "POST" }).method // "POST"`
+        - Details: Confirms method reflects the uppercased HTTP method from the init dictionary, defaulting to "GET" when omitted.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.url`
+      - Story:
+        - Signature: `Request.prototype.url: string`
+        - Example: `new Request("https://example.com/path?q=1").url // "https://example.com/path?q=1"`
+        - Details: Confirms url reflects the serialized absolute URL of the request, throwing a TypeError if the input cannot be parsed as a valid URL.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.headers`
+      - Story:
+        - Signature: `Request.prototype.headers: Headers`
+        - Example: `new Request("https://example.com", { headers: { "Content-Type": "application/json" } }).headers.get("content-type") // "application/json"`
+        - Details: Confirms headers is a Headers instance reflecting the headers from the init dictionary merged with any headers from an input Request, with request guard applied.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.destination`
+      - Story:
+        - Signature: `Request.prototype.destination: RequestDestination`
+        - Example: `new Request("https://example.com").destination // ""`
+        - Details: Confirms destination reflects the request's destination type, defaulting to an empty string for fetch() requests not associated with a specific resource type.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.referrer`
+      - Story:
+        - Signature: `Request.prototype.referrer: string`
+        - Example: `new Request("https://example.com", { referrer: "https://referrer.com" }).referrer // "https://referrer.com"`
+        - Details: Confirms referrer reflects the referrer URL string from the init dictionary, defaulting to "about:client" when omitted.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.referrerPolicy`
+      - Story:
+        - Signature: `Request.prototype.referrerPolicy: ReferrerPolicy`
+        - Example: `new Request("https://example.com", { referrerPolicy: "no-referrer" }).referrerPolicy // "no-referrer"`
+        - Details: Confirms referrerPolicy reflects the value from the init dictionary, defaulting to "" when omitted, and that invalid values throw a TypeError.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.mode`
+      - Story:
+        - Signature: `Request.prototype.mode: RequestMode`
+        - Example: `new Request("https://example.com", { mode: "cors" }).mode // "cors"`
+        - Details: Confirms mode reflects the value from the init dictionary, defaulting to "cors" for requests constructed from a URL string.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.credentials`
+      - Story:
+        - Signature: `Request.prototype.credentials: RequestCredentials`
+        - Example: `new Request("https://example.com", { credentials: "include" }).credentials // "include"`
+        - Details: Confirms credentials reflects the value from the init dictionary, defaulting to "same-origin" when omitted.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.cache`
+      - Story:
+        - Signature: `Request.prototype.cache: RequestCache`
+        - Example: `new Request("https://example.com", { cache: "no-store" }).cache // "no-store"`
+        - Details: Confirms cache reflects the value from the init dictionary, defaulting to "default" when omitted.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.redirect`
+      - Story:
+        - Signature: `Request.prototype.redirect: RequestRedirect`
+        - Example: `new Request("https://example.com", { redirect: "follow" }).redirect // "follow"`
+        - Details: Confirms redirect reflects the value from the init dictionary, defaulting to "follow" when omitted.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.integrity`
+      - Story:
+        - Signature: `Request.prototype.integrity: string`
+        - Example: `new Request("https://example.com", { integrity: "sha256-abc123==" }).integrity // "sha256-abc123=="`
+        - Details: Confirms integrity reflects the SRI integrity string from the init dictionary, defaulting to "" when omitted.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.keepalive`
+      - Story:
+        - Signature: `Request.prototype.keepalive: boolean`
+        - Example: `new Request("https://example.com", { keepalive: true }).keepalive // true`
+        - Details: Confirms keepalive reflects the value from the init dictionary, defaulting to false when omitted.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.duplex`
+      - Story:
+        - Signature: `Request.prototype.duplex: string`
+        - Example: `new Request("https://example.com", { method: "POST", body: stream, duplex: "half" }).duplex // "half"`
+        - Details: Confirms duplex reflects the value from the init dictionary and is required when a streaming body is provided, throwing a TypeError if a streaming body is set without duplex being "half".
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.signal`
+      - Story:
+        - Signature: `Request.prototype.signal: AbortSignal`
+        - Example: `const ac = new AbortController(); new Request("https://example.com", { signal: ac.signal }).signal === ac.signal // true`
+        - Details: Confirms signal reflects the AbortSignal from the init dictionary, defaulting to a new non-aborted signal when omitted, and that aborting the signal causes an in-flight fetch to reject with an AbortError.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.priority`
+      - Story:
+        - Signature: `Request.prototype.priority: RequestPriority`
+        - Example: `new Request("https://example.com", { priority: "high" }).priority // "high"`
+        - Details: Confirms priority reflects the value from the init dictionary, defaulting to "auto" when omitted.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.body` (Body Mixin via Streams)
+      - Story:
+        - Signature: `Request.prototype.body: ReadableStream | null`
+        - Example: `new Request("https://example.com", { method: "POST", body: "data" }).body instanceof ReadableStream // true`
+        - Details: Confirms body exposes the request body as a ReadableStream, or null for requests with no body such as GET or HEAD requests.
+    - [ ] (Implement `Request` Class > Properties) Implement `Request.prototype.bodyUsed` (Body Mixin)
+      - Story:
+        - Signature: `Request.prototype.bodyUsed: boolean`
+        - Example: `const req = new Request("https://example.com", { method: "POST", body: "data" }); req.bodyUsed // false; await req.text(); req.bodyUsed // true`
+        - Details: Confirms bodyUsed is false until a body consumption method is called, after which it becomes true and further consumption attempts throw a TypeError.
+  - Methods
+    - [ ] (Implement `Request` Class > Methods) Implement `Request.prototype.clone()`
+      - Story:
+        - Signature: `clone(): Request`
+        - Example: `const req = new Request("https://example.com", { method: "POST", body: "data" }); const clone = req.clone(); clone !== req // true; clone.method // "POST"`
+        - Details: Confirms clone() returns a new Request with identical properties and an independent copy of the body stream, throwing a TypeError if the original request's body has already been consumed.
+    - [ ] (Implement `Request` Class > Methods) Implement `Request.prototype.arrayBuffer()` (Body Mixin)
+      - Story:
+        - Signature: `arrayBuffer(): Promise<ArrayBuffer>`
+        - Example: `await new Request("https://example.com", { method: "POST", body: "data" }).arrayBuffer() // resolves to an ArrayBuffer of the UTF-8 encoded body bytes`
+        - Details: Confirms arrayBuffer() fully consumes the request body and resolves with its contents as an ArrayBuffer, setting bodyUsed to true.
+    - [ ] (Implement `Request` Class > Methods) Implement `Request.prototype.blob()` (Body Mixin)
+      - Story:
+        - Signature: `blob(): Promise<Blob>`
+        - Example: `await new Request("https://example.com", { method: "POST", body: "data" }).blob() // resolves to a Blob with type matching the Content-Type header`
+        - Details: Confirms blob() fully consumes the request body and resolves with its contents as a Blob whose type is set from the Content-Type header, setting bodyUsed to true.
+    - [ ] (Implement `Request` Class > Methods) Implement `Request.prototype.formData()` (Body Mixin)
+      - Story:
+        - Signature: `formData(): Promise<FormData>`
+        - Example: `await new Request("https://example.com", { method: "POST", body: formData }).formData() // resolves to a FormData object with the parsed fields`
+        - Details: Confirms formData() fully consumes the request body, parses it as multipart/form-data or application/x-www-form-urlencoded, and resolves with the resulting FormData object, setting bodyUsed to true.
+    - [ ] (Implement `Request` Class > Methods) Implement `Request.prototype.json()` (Body Mixin)
+      - Story:
+        - Signature: `json(): Promise<any>`
+        - Example: `await new Request("https://example.com", { method: "POST", body: JSON.stringify({ a: 1 }) }).json() // resolves to { a: 1 }`
+        - Details: Confirms json() fully consumes the request body, parses it as JSON, and resolves with the resulting value, rejecting with a SyntaxError if the body is not valid JSON.
+    - [ ] (Implement `Request` Class > Methods) Implement `Request.prototype.text()` (Body Mixin)
+      - Story:
+        - Signature: `text(): Promise<string>`
+        - Example: `await new Request("https://example.com", { method: "POST", body: "hello" }).text() // "hello"`
+        - Details: Confirms text() fully consumes the request body, decodes it as UTF-8, and resolves with the resulting string, setting bodyUsed to true.
+- [ ] Implement `Response` Class
+  - Constructor & Static Methods
+    - [ ] (Implement `Response` Class > Constructor & Static Methods) Implement constructor (`new Response(body, init)`)
+      - Story:
+        - Signature: `new Response(body?: BodyInit | null, init?: ResponseInit): Response`
+        - Example: `new Response("hello", { status: 201, headers: { "Content-Type": "text/plain" } }) // creates a 201 Response with a text body`
+        - Details: Confirms the constructor accepts an optional body and init dictionary, throwing a RangeError for invalid status codes and a TypeError for invalid header values.
+    - [ ] (Implement `Response` Class > Constructor & Static Methods) Implement `Response.error()` static method
+      - Story:
+        - Signature: `Response.error(): Response`
+        - Example: `Response.error().type // "error"; Response.error().status // 0`
+        - Details: Confirms error() returns a network error Response with type "error", status 0, and an empty body, representing a failed fetch.
+    - [ ] (Implement `Response` Class > Constructor & Static Methods) Implement `Response.redirect()` static method
+      - Story:
+        - Signature: `Response.redirect(url: string | URL, status?: number): Response`
+        - Example: `Response.redirect("https://example.com/new", 301) // returns a 301 Response with a Location header set to the target URL`
+        - Details: Confirms redirect() returns a redirect Response with the given status (defaulting to 302) and a Location header set to the serialized URL, throwing a RangeError for non-redirect status codes.
+    - [ ] (Implement `Response` Class > Constructor & Static Methods) Implement `Response.json()` static method
+      - Story:
+        - Signature: `Response.json(data: any, init?: ResponseInit): Response`
+        - Example: `Response.json({ ok: true }) // returns a 200 Response with Content-Type "application/json" and a JSON-serialized body`
+        - Details: Confirms json() serializes the provided value as JSON, sets the Content-Type header to "application/json", and returns a Response with the serialized body.
+  - Properties
+    - [ ] (Implement `Response` Class > Properties) Implement `Response.prototype.type`
+      - Story:
+        - Signature: `Response.prototype.type: ResponseType`
+        - Example: `new Response("hello").type // "default"; Response.error().type // "error"`
+        - Details: Confirms type reflects the response's type — "basic", "cors", "default", "error", "opaque", or "opaqueredirect" — as determined by the fetch process.
+    - [ ] (Implement `Response` Class > Properties) Implement `Response.prototype.url`
+      - Story:
+        - Signature: `Response.prototype.url: string`
+        - Example: `const res = await fetch("https://example.com"); res.url // "https://example.com/"`
+        - Details: Confirms url reflects the final URL of the response after any redirects, or an empty string for responses constructed directly.
+    - [ ] (Implement `Response` Class > Properties) Implement `Response.prototype.redirected`
+      - Story:
+        - Signature: `Response.prototype.redirected: boolean`
+        - Example: `const res = await fetch("https://example.com/redirect", { redirect: "follow" }); res.redirected // true`
+        - Details: Confirms redirected is true if the response is the result of one or more redirects being followed, and false otherwise.
+    - [ ] (Implement `Response` Class > Properties) Implement `Response.prototype.status`
+      - Story:
+        - Signature: `Response.prototype.status: number`
+        - Example: `new Response("hello", { status: 201 }).status // 201`
+        - Details: Confirms status reflects the HTTP status code from the init dictionary, defaulting to 200 when omitted, and that values outside the 200-599 range throw a RangeError.
+    - [ ] (Implement `Response` Class > Properties) Implement `Response.prototype.ok`
+      - Story:
+        - Signature: `Response.prototype.ok: boolean`
+        - Example: `new Response("hello", { status: 200 }).ok // true; new Response("error", { status: 404 }).ok // false`
+        - Details: Confirms ok is true when status is in the range 200-299 inclusive and false otherwise.
+    - [ ] (Implement `Response` Class > Properties) Implement `Response.prototype.statusText`
+      - Story:
+        - Signature: `Response.prototype.statusText: string`
+        - Example: `new Response("hello", { status: 200, statusText: "OK" }).statusText // "OK"`
+        - Details: Confirms statusText reflects the reason phrase from the init dictionary, defaulting to "" when omitted.
+    - [ ] (Implement `Response` Class > Properties) Implement `Response.prototype.headers`
+      - Story:
+        - Signature: `Response.prototype.headers: Headers`
+        - Example: `new Response("hello", { headers: { "Content-Type": "text/plain" } }).headers.get("content-type") // "text/plain"`
+        - Details: Confirms headers is a Headers instance reflecting the headers from the init dictionary, with response guard applied preventing modification after construction.
+    - [ ] (Implement `Response` Class > Properties) Implement `Response.prototype.body` (Body Mixin via Streams)
+      - Story:
+        - Signature: `Response.prototype.body: ReadableStream | null`
+        - Example: `new Response("hello").body instanceof ReadableStream // true; new Response(null).body // null`
+        - Details: Confirms body exposes the response body as a ReadableStream, or null for responses with no body.
+    - [ ] (Implement `Response` Class > Properties) Implement `Response.prototype.bodyUsed` (Body Mixin)
+      - Story:
+        - Signature: `Response.prototype.bodyUsed: boolean`
+        - Example: `const res = new Response("hello"); res.bodyUsed // false; await res.text(); res.bodyUsed // true`
+        - Details: Confirms bodyUsed is false until a body consumption method is called, after which it becomes true and further consumption attempts throw a TypeError.
+  - Methods
+    - [ ] (Implement `Response` Class > Methods) Implement `Response.prototype.clone()`
+      - Story:
+        - Signature: `clone(): Response`
+        - Example: `const res = new Response("hello"); const clone = res.clone(); clone !== res // true; await clone.text() // "hello"`
+        - Details: Confirms clone() returns a new Response with identical properties and an independent copy of the body stream, throwing a TypeError if the original response body has already been consumed.
+    - [ ] (Implement `Response` Class > Methods) Implement `Response.prototype.arrayBuffer()` (Body Mixin)
+      - Story:
+        - Signature: `arrayBuffer(): Promise<ArrayBuffer>`
+        - Example: `await new Response("hello").arrayBuffer() // resolves to an ArrayBuffer of the UTF-8 encoded body bytes`
+        - Details: Confirms arrayBuffer() fully consumes the response body and resolves with its contents as an ArrayBuffer, setting bodyUsed to true.
+    - [ ] (Implement `Response` Class > Methods) Implement `Response.prototype.blob()` (Body Mixin)
+      - Story:
+        - Signature: `blob(): Promise<Blob>`
+        - Example: `await new Response("hello").blob() // resolves to a Blob with type matching the Content-Type header`
+        - Details: Confirms blob() fully consumes the response body and resolves with its contents as a Blob whose type is set from the Content-Type header, setting bodyUsed to true.
+    - [ ] (Implement `Response` Class > Methods) Implement `Response.prototype.formData()` (Body Mixin)
+      - Story:
+        - Signature: `formData(): Promise<FormData>`
+        - Example: `await new Response(formData).formData() // resolves to a FormData object with the parsed fields`
+        - Details: Confirms formData() fully consumes the response body, parses it as multipart/form-data or application/x-www-form-urlencoded, and resolves with the resulting FormData object, setting bodyUsed to true.
+    - [ ] (Implement `Response` Class > Methods) Implement `Response.prototype.json()` (Body Mixin)
+      - Story:
+        - Signature: `json(): Promise<any>`
+        - Example: `await new Response(JSON.stringify({ a: 1 })).json() // resolves to { a: 1 }`
+        - Details: Confirms json() fully consumes the response body, parses it as JSON, and resolves with the resulting value, rejecting with a SyntaxError if the body is not valid JSON.
+    - [ ] (Implement `Response` Class > Methods) Implement `Response.prototype.text()` (Body Mixin)
+      - Story:
+        - Signature: `text(): Promise<string>`
+        - Example: `await new Response("hello").text() // "hello"`
+        - Details: Confirms text() fully consumes the response body, decodes it as UTF-8, and resolves with the resulting string, setting bodyUsed to true.
+- [ ] Implement `URL` Class
+  - Constructor & Static Methods
+    - [ ] (Implement `URL` Class > Constructor & Static Methods) Implement constructor (`new URL(url, base)`)
+      - Story:
+        - Signature: `new URL(url: string, base?: string | URL): URL`
+        - Example: `new URL("/path", "https://example.com").href // "https://example.com/path"`
+        - Details: Confirms the constructor parses the url string relative to the optional base, throwing a TypeError if the resulting URL is not valid.
+    - [ ] (Implement `URL` Class > Constructor & Static Methods) Implement `URL.canParse()` static method
+      - Story:
+        - Signature: `URL.canParse(url: string, base?: string | URL): boolean`
+        - Example: `URL.canParse("/path", "https://example.com") // true; URL.canParse("not a url") // false`
+        - Details: Confirms canParse() returns true if the url and base combination would produce a valid URL and false otherwise, without throwing.
+    - [ ] (Implement `URL` Class > Constructor & Static Methods) Implement `URL.parse()` static method
+      - Story:
+        - Signature: `URL.parse(url: string, base?: string | URL): URL | null`
+        - Example: `URL.parse("/path", "https://example.com") // URL instance; URL.parse("not a url") // null`
+        - Details: Confirms parse() returns a URL instance if the url and base combination is valid, or null if parsing fails, without throwing.
+  - Properties
+    - [ ] (Implement `URL` Class > Properties) Implement `URL.prototype.href`
+      - Story:
+        - Signature: `URL.prototype.href: string`
+        - Example: `new URL("https://example.com/path?q=1#hash").href // "https://example.com/path?q=1#hash"`
+        - Details: Confirms href returns the full serialized URL string and can be set to re-parse the URL, throwing a TypeError if the new value is not a valid URL.
+    - [ ] (Implement `URL` Class > Properties) Implement `URL.prototype.origin`
+      - Story:
+        - Signature: `URL.prototype.origin: string`
+        - Example: `new URL("https://example.com/path").origin // "https://example.com"`
+        - Details: Confirms origin returns the read-only serialized origin of the URL — scheme, host, and port — as defined by the URL spec.
+    - [ ] (Implement `URL` Class > Properties) Implement `URL.prototype.protocol`
+      - Story:
+        - Signature: `URL.prototype.protocol: string`
+        - Example: `new URL("https://example.com").protocol // "https:"`
+        - Details: Confirms protocol returns the URL's scheme followed by a colon and can be set to change the scheme, ignoring the update if the new value is not a valid scheme.
+    - [ ] (Implement `URL` Class > Properties) Implement `URL.prototype.username`
+      - Story:
+        - Signature: `URL.prototype.username: string`
+        - Example: `new URL("https://user:pass@example.com").username // "user"`
+        - Details: Confirms username returns the percent-encoded username from the URL and can be set to update it.
+    - [ ] (Implement `URL` Class > Properties) Implement `URL.prototype.password`
+      - Story:
+        - Signature: `URL.prototype.password: string`
+        - Example: `new URL("https://user:pass@example.com").password // "pass"`
+        - Details: Confirms password returns the percent-encoded password from the URL and can be set to update it.
+    - [ ] (Implement `URL` Class > Properties) Implement `URL.prototype.host`
+      - Story:
+        - Signature: `URL.prototype.host: string`
+        - Example: `new URL("https://example.com:8080/path").host // "example.com:8080"`
+        - Details: Confirms host returns the hostname and port combined and can be set to update both together.
+    - [ ] (Implement `URL` Class > Properties) Implement `URL.prototype.hostname`
+      - Story:
+        - Signature: `URL.prototype.hostname: string`
+        - Example: `new URL("https://example.com:8080/path").hostname // "example.com"`
+        - Details: Confirms hostname returns only the host without the port and can be set to update the host independently of the port.
+    - [ ] (Implement `URL` Class > Properties) Implement `URL.prototype.port`
+      - Story:
+        - Signature: `URL.prototype.port: string`
+        - Example: `new URL("https://example.com:8080/path").port // "8080"; new URL("https://example.com/path").port // ""`
+        - Details: Confirms port returns the port as a string, or an empty string if the port is the default for the scheme or not specified, and can be set to update it.
+    - [ ] (Implement `URL` Class > Properties) Implement `URL.prototype.pathname`
+      - Story:
+        - Signature: `URL.prototype.pathname: string`
+        - Example: `new URL("https://example.com/path/to/resource").pathname // "/path/to/resource"`
+        - Details: Confirms pathname returns the percent-encoded path of the URL and can be set to update it.
+    - [ ] (Implement `URL` Class > Properties) Implement `URL.prototype.search`
+      - Story:
+        - Signature: `URL.prototype.search: string`
+        - Example: `new URL("https://example.com/path?q=1&page=2").search // "?q=1&page=2"`
+        - Details: Confirms search returns the query string including the leading "?" or an empty string if no query is present, and can be set to update it.
+    - [ ] (Implement `URL` Class > Properties) Implement `URL.prototype.searchParams`
+      - Story:
+        - Signature: `URL.prototype.searchParams: URLSearchParams`
+        - Example: `new URL("https://example.com/path?q=1").searchParams.get("q") // "1"`
+        - Details: Confirms searchParams returns a live URLSearchParams object reflecting the URL's query string, where mutations to searchParams are reflected in the URL's search property.
+    - [ ] (Implement `URL` Class > Properties) Implement `URL.prototype.hash`
+      - Story:
+        - Signature: `URL.prototype.hash: string`
+        - Example: `new URL("https://example.com/path#section").hash // "#section"`
+        - Details: Confirms hash returns the fragment identifier including the leading "#" or an empty string if no fragment is present, and can be set to update it.
+  - Methods
+    - [ ] (Implement `URL` Class > Methods) Implement `URL.prototype.toString()`
+      - Story:
+        - Signature: `toString(): string`
+        - Example: `new URL("https://example.com/path").toString() // "https://example.com/path"`
+        - Details: Confirms toString() returns the same value as href — the full serialized URL string.
+    - [ ] (Implement `URL` Class > Methods) Implement `URL.prototype.toJSON()`
+      - Story:
+        - Signature: `toJSON(): string`
+        - Example: `JSON.stringify(new URL("https://example.com/path")) // '"https://example.com/path"'`
+        - Details: Confirms toJSON() returns the full serialized URL string, allowing URL instances to serialize correctly when passed to JSON.stringify.
+- [ ] Implement `URLSearchParams` Class
+  - Constructor
+    - [ ] (Implement `URLSearchParams` Class > Constructor) Implement constructor (`new URLSearchParams(init)`)
+      - Story:
+        - Signature: `new URLSearchParams(init?: string | URLSearchParams | Record<string, string> | [string, string][]): URLSearchParams`
+        - Example: `new URLSearchParams("q=1&page=2").get("q") // "1"; new URLSearchParams({ q: "1" }).get("q") // "1"`
+        - Details: Confirms the constructor accepts a query string, an existing URLSearchParams, a plain object, or an array of key-value pairs, parsing each into an ordered list of name-value entries.
+  - Properties
+    - [ ] (Implement `URLSearchParams` Class > Properties) Implement `URLSearchParams.prototype.size`
+      - Story:
+        - Signature: `URLSearchParams.prototype.size: number`
+        - Example: `new URLSearchParams("q=1&page=2").size // 2`
+        - Details: Confirms size returns the total number of name-value pairs currently in the list.
+  - Methods
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype.append()`
+      - Story:
+        - Signature: `append(name: string, value: string): void`
+        - Example: `const p = new URLSearchParams("q=1"); p.append("q", "2"); p.getAll("q") // ["1", "2"]`
+        - Details: Confirms append() adds a new name-value pair to the end of the list without removing existing entries with the same name.
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype.delete()`
+      - Story:
+        - Signature: `delete(name: string, value?: string): void`
+        - Example: `const p = new URLSearchParams("q=1&q=2&page=1"); p.delete("q"); p.toString() // "page=1"`
+        - Details: Confirms delete() removes all entries with the given name, or only entries matching both name and value when the optional value argument is provided.
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype.get()`
+      - Story:
+        - Signature: `get(name: string): string | null`
+        - Example: `new URLSearchParams("q=1&q=2").get("q") // "1"; new URLSearchParams("q=1").get("missing") // null`
+        - Details: Confirms get() returns the value of the first entry with the given name, or null if no entry exists.
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype.getAll()`
+      - Story:
+        - Signature: `getAll(name: string): string[]`
+        - Example: `new URLSearchParams("q=1&q=2").getAll("q") // ["1", "2"]`
+        - Details: Confirms getAll() returns an array of all values for the given name in list order, or an empty array if no entries exist.
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype.has()`
+      - Story:
+        - Signature: `has(name: string, value?: string): boolean`
+        - Example: `new URLSearchParams("q=1").has("q") // true; new URLSearchParams("q=1").has("q", "2") // false`
+        - Details: Confirms has() returns true if any entry matches the given name, or if both name and value match when the optional value argument is provided.
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype.set()`
+      - Story:
+        - Signature: `set(name: string, value: string): void`
+        - Example: `const p = new URLSearchParams("q=1&q=2"); p.set("q", "3"); p.getAll("q") // ["3"]`
+        - Details: Confirms set() updates the value of the first entry with the given name and removes all subsequent entries with the same name, or appends a new entry if none exists.
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype.sort()`
+      - Story:
+        - Signature: `sort(): void`
+        - Example: `const p = new URLSearchParams("b=2&a=1"); p.sort(); p.toString() // "a=1&b=2"`
+        - Details: Confirms sort() sorts all name-value pairs by their names in Unicode code unit order, preserving the relative order of entries with equal names.
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype.forEach()`
+      - Story:
+        - Signature: `forEach(callback: (value: string, name: string, parent: URLSearchParams) => void): void`
+        - Example: `new URLSearchParams("q=1&page=2").forEach((value, name) => { collected.push([name, value]) }) // [["q", "1"], ["page", "2"]]`
+        - Details: Confirms forEach() iterates over all name-value pairs in list order, invoking the callback with value, name, and the URLSearchParams instance for each entry.
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype.entries()`
+      - Story:
+        - Signature: `entries(): IterableIterator<[string, string]>`
+        - Example: `[...new URLSearchParams("q=1&page=2").entries()] // [["q", "1"], ["page", "2"]]`
+        - Details: Confirms entries() returns an iterator of [name, value] pairs in list order.
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype.keys()`
+      - Story:
+        - Signature: `keys(): IterableIterator<string>`
+        - Example: `[...new URLSearchParams("q=1&page=2").keys()] // ["q", "page"]`
+        - Details: Confirms keys() returns an iterator of all names in list order, including duplicates.
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype.values()`
+      - Story:
+        - Signature: `values(): IterableIterator<string>`
+        - Example: `[...new URLSearchParams("q=1&page=2").values()] // ["1", "2"]`
+        - Details: Confirms values() returns an iterator of all values in list order.
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype.toString()`
+      - Story:
+        - Signature: `toString(): string`
+        - Example: `new URLSearchParams({ q: "hello world", page: "2" }).toString() // "q=hello+world&page=2"`
+        - Details: Confirms toString() serializes all name-value pairs to an application/x-www-form-urlencoded string with spaces encoded as "+" and special characters percent-encoded.
+    - [ ] (Implement `URLSearchParams` Class > Methods) Implement `URLSearchParams.prototype[Symbol.iterator]()`
+      - Story:
+        - Signature: `[Symbol.iterator](): IterableIterator<[string, string]>`
+        - Example: `[...new URLSearchParams("q=1&page=2")] // [["q", "1"], ["page", "2"]]`
+        - Details: Confirms URLSearchParams is iterable and that its default iterator yields [name, value] pairs in list order, equivalent to entries().
+- [ ] Implement `Headers` Class
+  - Constructor
+    - [ ] (Implement `Headers` Class > Constructor) Implement constructor (`new Headers(init)`)
+      - Story:
+        - Signature: `new Headers(init?: HeadersInit): Headers`
+        - Example: `new Headers({ "Content-Type": "application/json", "Accept": "text/html" }).get("content-type") // "application/json"`
+        - Details: Confirms the constructor accepts an optional HeadersInit — a plain object, an array of name-value pairs, or an existing Headers instance — parsing each into a case-insensitive ordered list of header entries.
+  - Methods
+    - [ ] (Implement `Headers` Class > Methods) Implement `Headers.prototype.append()`
+      - Story:
+        - Signature: `append(name: string, value: string): void`
+        - Example: `const h = new Headers(); h.append("Accept", "text/html"); h.append("Accept", "application/json"); h.get("accept") // "text/html, application/json"`
+        - Details: Confirms append() adds a new name-value pair to the header list, combining with existing entries of the same name per the HTTP header combining rules.
+    - [ ] (Implement `Headers` Class > Methods) Implement `Headers.prototype.delete()`
+      - Story:
+        - Signature: `delete(name: string): void`
+        - Example: `const h = new Headers({ "Content-Type": "text/plain" }); h.delete("content-type"); h.has("content-type") // false`
+        - Details: Confirms delete() removes all entries with the given header name from the list, and is a no-op if the name does not exist.
+    - [ ] (Implement `Headers` Class > Methods) Implement `Headers.prototype.get()`
+      - Story:
+        - Signature: `get(name: string): string | null`
+        - Example: `new Headers({ "Accept": "text/html" }).get("accept") // "text/html"; new Headers().get("accept") // null`
+        - Details: Confirms get() returns the combined value of all entries with the given name joined by ", ", or null if no entry exists, with name matching being case-insensitive.
+    - [ ] (Implement `Headers` Class > Methods) Implement `Headers.prototype.getSetCookie()`
+      - Story:
+        - Signature: `getSetCookie(): string[]`
+        - Example: `const h = new Headers(); h.append("Set-Cookie", "a=1"); h.append("Set-Cookie", "b=2"); h.getSetCookie() // ["a=1", "b=2"]`
+        - Details: Confirms getSetCookie() returns an array of all Set-Cookie header values as separate entries rather than combining them, since Set-Cookie headers must not be joined.
+    - [ ] (Implement `Headers` Class > Methods) Implement `Headers.prototype.has()`
+      - Story:
+        - Signature: `has(name: string): boolean`
+        - Example: `new Headers({ "Content-Type": "text/plain" }).has("content-type") // true; new Headers().has("content-type") // false`
+        - Details: Confirms has() returns true if any entry with the given name exists in the list, with name matching being case-insensitive.
+    - [ ] (Implement `Headers` Class > Methods) Implement `Headers.prototype.set()`
+      - Story:
+        - Signature: `set(name: string, value: string): void`
+        - Example: `const h = new Headers({ "Accept": "text/html" }); h.set("accept", "application/json"); h.get("accept") // "application/json"`
+        - Details: Confirms set() replaces all existing entries with the given name with a single new entry, or appends a new entry if none exists.
+    - [ ] (Implement `Headers` Class > Methods) Implement `Headers.prototype.forEach()`
+      - Story:
+        - Signature: `forEach(callback: (value: string, name: string, parent: Headers) => void): void`
+        - Example: `new Headers({ "Content-Type": "text/plain", "Accept": "text/html" }).forEach((value, name) => { collected.push([name, value]) }) // [["accept", "text/html"], ["content-type", "text/plain"]]`
+        - Details: Confirms forEach() iterates over all header entries in sorted order by name, invoking the callback with value, name, and the Headers instance for each entry.
+    - [ ] (Implement `Headers` Class > Methods) Implement `Headers.prototype.entries()`
+      - Story:
+        - Signature: `entries(): IterableIterator<[string, string]>`
+        - Example: `[...new Headers({ "Content-Type": "text/plain" }).entries()] // [["content-type", "text/plain"]]`
+        - Details: Confirms entries() returns an iterator of [name, value] pairs in sorted order by name.
+    - [ ] (Implement `Headers` Class > Methods) Implement `Headers.prototype.keys()`
+      - Story:
+        - Signature: `keys(): IterableIterator<string>`
+        - Example: `[...new Headers({ "Content-Type": "text/plain", "Accept": "text/html" }).keys()] // ["accept", "content-type"]`
+        - Details: Confirms keys() returns an iterator of all header names in sorted order.
+    - [ ] (Implement `Headers` Class > Methods) Implement `Headers.prototype.values()`
+      - Story:
+        - Signature: `values(): IterableIterator<string>`
+        - Example: `[...new Headers({ "Content-Type": "text/plain", "Accept": "text/html" }).values()] // ["text/html", "text/plain"]`
+        - Details: Confirms values() returns an iterator of all header values in name-sorted order.
+    - [ ] (Implement `Headers` Class > Methods) Implement `Headers.prototype[Symbol.iterator]()`
+      - Story:
+        - Signature: `[Symbol.iterator](): IterableIterator<[string, string]>`
+        - Example: `[...new Headers({ "Content-Type": "text/plain" })] // [["content-type", "text/plain"]]`
+        - Details: Confirms Headers is iterable and that its default iterator yields [name, value] pairs in sorted order, equivalent to entries().
+  - Guard Logic
+    - [ ] (Implement `Headers` Class > Guard Logic) Implement `none` guard logic
+      - Story:
+        - Signature: `Headers (guard: "none")`
+        - Example: `const h = new Headers(); h.set("X-Custom", "value") // succeeds — no restrictions on mutation`
+        - Details: Confirms that Headers with no guard applied allow any header name and value to be appended, set, or deleted without restriction.
+    - [ ] (Implement `Headers` Class > Guard Logic) Implement `request` guard logic
+      - Story:
+        - Signature: `Headers (guard: "request")`
+        - Example: `const req = new Request("https://example.com"); req.headers.set("Accept", "text/html") // succeeds; req.headers.set("Cookie", "a=1") // throws TypeError — forbidden request header`
+        - Details: Confirms that request-guarded Headers reject mutations to forbidden request headers such as Cookie and Host, throwing a TypeError on violation.
+    - [ ] (Implement `Headers` Class > Guard Logic) Implement `request-no-cors` guard logic
+      - Story:
+        - Signature: `Headers (guard: "request-no-cors")`
+        - Example: `const req = new Request("https://example.com", { mode: "no-cors" }); req.headers.set("Content-Type", "text/plain") // succeeds; req.headers.set("X-Custom", "value") // throws TypeError`
+        - Details: Confirms that request-no-cors-guarded Headers only allow CORS-safelisted request headers to be set, throwing a TypeError for any non-safelisted header name.
+    - [ ] (Implement `Headers` Class > Guard Logic) Implement `response` guard logic
+      - Story:
+        - Signature: `Headers (guard: "response")`
+        - Example: `const res = new Response("hello"); res.headers.set("Content-Type", "text/plain") // succeeds; res.headers.set("Set-Cookie", "a=1") // throws TypeError — forbidden response header`
+        - Details: Confirms that response-guarded Headers reject mutations to forbidden response headers, throwing a TypeError on violation.
+    - [ ] (Implement `Headers` Class > Guard Logic) Implement `immutable` guard logic
+      - Story:
+        - Signature: `Headers (guard: "immutable")`
+        - Example: `const res = Response.error(); res.headers.set("X-Custom", "value") // throws TypeError — immutable Headers cannot be modified`
+        - Details: Confirms that immutable-guarded Headers throw a TypeError on any attempt to append, set, or delete a header, regardless of the header name.
+- [ ] Implement `CookieChangeEvent` Class (extends `Event`)
+  - Properties
+    - [ ] (Implement `CookieChangeEvent` Class (extends `Event`) > Properties) Implement `CookieChangeEvent.prototype.changed`
+      - Story:
+        - Signature: `CookieChangeEvent.prototype.changed: CookieListItem[]`
+        - Example: `cookieStore.addEventListener("change", e => e.changed) // array of cookie descriptors that were added or updated`
+        - Details: Confirms changed is an array of cookie descriptor objects representing cookies that were created or had their value updated since the last change event.
+    - [ ] (Implement `CookieChangeEvent` Class (extends `Event`) > Properties) Implement `CookieChangeEvent.prototype.deleted`
+      - Story:
+        - Signature: `CookieChangeEvent.prototype.deleted: CookieListItem[]`
+        - Example: `cookieStore.addEventListener("change", e => e.deleted) // array of cookie descriptors that were removed`
+        - Details: Confirms deleted is an array of cookie descriptor objects representing cookies that were deleted or expired since the last change event.
+- [ ] Implement `CookieStore` Class (extends `EventTarget`)
+  - Methods
+    - [ ] (Implement `CookieStore` Class (extends `EventTarget`) > Methods) Implement `CookieStore.prototype.get()`
+      - Story:
+        - Signature: `get(name: string): Promise<CookieListItem | null>`
+        - Example: `await cookieStore.get("session") // { name: "session", value: "abc123", ... } or null if not found`
+        - Details: Confirms get() resolves with the first matching cookie descriptor for the given name, or null if no matching cookie exists.
+    - [ ] (Implement `CookieStore` Class (extends `EventTarget`) > Methods) Implement `CookieStore.prototype.getAll()`
+      - Story:
+        - Signature: `getAll(name?: string): Promise<CookieListItem[]>`
+        - Example: `await cookieStore.getAll() // array of all accessible cookie descriptors; await cookieStore.getAll("session") // only cookies named "session"`
+        - Details: Confirms getAll() resolves with an array of all matching cookie descriptors, returning all accessible cookies when name is omitted.
+    - [ ] (Implement `CookieStore` Class (extends `EventTarget`) > Methods) Implement `CookieStore.prototype.set()`
+      - Story:
+        - Signature: `set(name: string, value: string): Promise<void>`
+        - Example: `await cookieStore.set("session", "abc123") // sets a cookie named "session" with value "abc123"`
+        - Details: Confirms set() creates or updates a cookie with the given name and value, resolving when the operation is complete and dispatching a change event.
+    - [ ] (Implement `CookieStore` Class (extends `EventTarget`) > Methods) Implement `CookieStore.prototype.delete()`
+      - Story:
+        - Signature: `delete(name: string): Promise<void>`
+        - Example: `await cookieStore.delete("session") // removes the cookie named "session"`
+        - Details: Confirms delete() removes the cookie with the given name, resolving when the operation is complete and dispatching a change event with the deleted cookie in the deleted array.
+  - Events
+    - [ ] (Implement `CookieStore` Class (extends `EventTarget`) > Events) Implement `change` event (`CookieChangeEvent`)
+      - Story:
+        - Signature: `cookieStore.addEventListener("change", listener: (event: CookieChangeEvent) => void)`
+        - Example: `cookieStore.addEventListener("change", e => { e.changed; e.deleted }) // fires when cookies are added, updated, or removed`
+        - Details: Confirms the change event fires on the CookieStore whenever cookies are created, updated, or deleted, with the CookieChangeEvent populated with the changed and deleted arrays reflecting what occurred.
+- [ ] Implement `CookieStoreManager` Class
+  - Methods
+    - [ ] (Implement `CookieStoreManager` Class > Methods) Implement `CookieStoreManager.prototype.getSubscriptions()`
+      - Story:
+        - Signature: `getSubscriptions(): Promise<CookieStoreGetOptions[]>`
+        - Example: `await cookieStoreManager.getSubscriptions() // [{ name: "session", url: "/path" }]`
+        - Details: Confirms getSubscriptions() resolves with the list of cookie change subscriptions currently registered for the service worker, each describing the name and URL scope of the subscription.
+    - [ ] (Implement `CookieStoreManager` Class > Methods) Implement `CookieStoreManager.prototype.subscribe()`
+      - Story:
+        - Signature: `subscribe(subscriptions: CookieStoreGetOptions[]): Promise<void>`
+        - Example: `await cookieStoreManager.subscribe([{ name: "session", url: "/path" }]) // service worker will now receive change events for the "session" cookie under /path`
+        - Details: Confirms subscribe() registers the given cookie change subscriptions for the service worker, resolving when the subscriptions are recorded.
+    - [ ] (Implement `CookieStoreManager` Class > Methods) Implement `CookieStoreManager.prototype.unsubscribe()`
+      - Story:
+        - Signature: `unsubscribe(subscriptions: CookieStoreGetOptions[]): Promise<void>`
+        - Example: `await cookieStoreManager.unsubscribe([{ name: "session", url: "/path" }]) // service worker will no longer receive change events for the "session" cookie under /path`
+        - Details: Confirms unsubscribe() removes the given cookie change subscriptions for the service worker, resolving when the subscriptions are removed.
+- [ ] Implement `Blob` Class
+  - Constructor
+    - [ ] (Implement `Blob` Class > Constructor) Implement constructor (`new Blob(blobParts, options)`)
+      - Story:
+        - Signature: `new Blob(blobParts?: BlobPart[], options?: BlobPropertyBag): Blob`
+        - Example: `new Blob(["hello", " world"], { type: "text/plain" }) // creates a Blob with content "hello world" and MIME type "text/plain"`
+        - Details: Confirms the constructor accepts an optional array of BlobParts — strings, ArrayBuffers, ArrayBufferViews, or other Blobs — concatenating them into a single immutable byte sequence with the given MIME type.
+  - Properties
+    - [ ] (Implement `Blob` Class > Properties) Implement `Blob.prototype.size`
+      - Story:
+        - Signature: `Blob.prototype.size: number`
+        - Example: `new Blob(["hello"]).size // 5`
+        - Details: Confirms size returns the total number of bytes in the Blob's data.
+    - [ ] (Implement `Blob` Class > Properties) Implement `Blob.prototype.type`
+      - Story:
+        - Signature: `Blob.prototype.type: string`
+        - Example: `new Blob(["hello"], { type: "text/plain" }).type // "text/plain"`
+        - Details: Confirms type returns the MIME type string passed to the constructor, defaulting to "" when omitted, normalized to lowercase.
+  - Methods
+    - [ ] (Implement `Blob` Class > Methods) Implement `Blob.prototype.slice()`
+      - Story:
+        - Signature: `slice(start?: number, end?: number, contentType?: string): Blob`
+        - Example: `new Blob(["hello world"]).slice(6, 11) // Blob containing "world"`
+        - Details: Confirms slice() returns a new Blob containing the bytes from start up to but not including end, with an optional new MIME type, following the same negative-index semantics as Array.prototype.slice.
+    - [ ] (Implement `Blob` Class > Methods) Implement `Blob.prototype.stream()`
+      - Story:
+        - Signature: `stream(): ReadableStream<Uint8Array>`
+        - Example: `new Blob(["hello"]).stream() // ReadableStream that emits the Blob's bytes as Uint8Array chunks`
+        - Details: Confirms stream() returns a ReadableStream that emits the Blob's data as one or more Uint8Array chunks.
+    - [ ] (Implement `Blob` Class > Methods) Implement `Blob.prototype.text()`
+      - Story:
+        - Signature: `text(): Promise<string>`
+        - Example: `await new Blob(["hello"]).text() // "hello"`
+        - Details: Confirms text() reads the Blob's data and resolves with it decoded as a UTF-8 string.
+    - [ ] (Implement `Blob` Class > Methods) Implement `Blob.prototype.arrayBuffer()`
+      - Story:
+        - Signature: `arrayBuffer(): Promise<ArrayBuffer>`
+        - Example: `await new Blob(["hello"]).arrayBuffer() // ArrayBuffer of 5 bytes`
+        - Details: Confirms arrayBuffer() reads the Blob's data and resolves with its raw bytes as an ArrayBuffer.
+- [ ] Implement `File` Class (inheriting from `Blob`)
+  - Constructor
+    - [ ] (Implement `File` Class (inheriting from `Blob`) > Constructor) Implement constructor (`new File(fileBits, fileName, options)`)
+      - Story:
+        - Signature: `new File(fileBits: BlobPart[], fileName: string, options?: FilePropertyBag): File`
+        - Example: `new File(["hello"], "hello.txt", { type: "text/plain" }) // creates a File named "hello.txt" with text content`
+        - Details: Confirms the constructor accepts the same BlobParts as Blob plus a required file name string and optional options including type and lastModified, returning a File that is also a valid Blob.
+  - Properties
+    - [ ] (Implement `File` Class (inheriting from `Blob`) > Properties) Implement `File.prototype.name`
+      - Story:
+        - Signature: `File.prototype.name: string`
+        - Example: `new File(["hello"], "hello.txt").name // "hello.txt"`
+        - Details: Confirms name returns the file name string passed to the constructor.
+    - [ ] (Implement `File` Class (inheriting from `Blob`) > Properties) Implement `File.prototype.lastModified`
+      - Story:
+        - Signature: `File.prototype.lastModified: number`
+        - Example: `new File(["hello"], "hello.txt", { lastModified: 1000 }).lastModified // 1000`
+        - Details: Confirms lastModified returns the value from the options dictionary as a Unix timestamp in milliseconds, defaulting to the current time when omitted.
+- [ ] Implement `FormData` Class
+  - Constructor
+    - [ ] (Implement `FormData` Class > Constructor) Implement constructor (`new FormData()`)
+      - Story:
+        - Signature: `new FormData(): FormData`
+        - Example: `const fd = new FormData(); fd.append("name", "Alice") // creates an empty FormData and appends a field`
+        - Details: Confirms the constructor takes no arguments server-side (no HTML form element support) and returns an empty FormData instance ready for manual population.
+  - Methods
+    - [ ] (Implement `FormData` Class > Methods) Implement `FormData.prototype.append()`
+      - Story:
+        - Signature: `append(name: string, value: string | Blob, fileName?: string): void`
+        - Example: `const fd = new FormData(); fd.append("file", new Blob(["data"]), "file.txt"); fd.get("file") // File { name: "file.txt" }`
+        - Details: Confirms append() adds a new entry to the FormData list, accepting a string value or a Blob with an optional filename, without removing existing entries with the same name.
+    - [ ] (Implement `FormData` Class > Methods) Implement `FormData.prototype.delete()`
+      - Story:
+        - Signature: `delete(name: string): void`
+        - Example: `const fd = new FormData(); fd.append("q", "1"); fd.delete("q"); fd.has("q") // false`
+        - Details: Confirms delete() removes all entries with the given name from the FormData list.
+    - [ ] (Implement `FormData` Class > Methods) Implement `FormData.prototype.get()`
+      - Story:
+        - Signature: `get(name: string): FormDataEntryValue | null`
+        - Example: `const fd = new FormData(); fd.append("q", "1"); fd.get("q") // "1"; fd.get("missing") // null`
+        - Details: Confirms get() returns the value of the first entry with the given name, or null if no entry exists.
+    - [ ] (Implement `FormData` Class > Methods) Implement `FormData.prototype.getAll()`
+      - Story:
+        - Signature: `getAll(name: string): FormDataEntryValue[]`
+        - Example: `const fd = new FormData(); fd.append("q", "1"); fd.append("q", "2"); fd.getAll("q") // ["1", "2"]`
+        - Details: Confirms getAll() returns an array of all values for the given name in list order, or an empty array if no entries exist.
+    - [ ] (Implement `FormData` Class > Methods) Implement `FormData.prototype.has()`
+      - Story:
+        - Signature: `has(name: string): boolean`
+        - Example: `const fd = new FormData(); fd.append("q", "1"); fd.has("q") // true; fd.has("missing") // false`
+        - Details: Confirms has() returns true if any entry with the given name exists in the FormData list.
+    - [ ] (Implement `FormData` Class > Methods) Implement `FormData.prototype.set()`
+      - Story:
+        - Signature: `set(name: string, value: string | Blob, fileName?: string): void`
+        - Example: `const fd = new FormData(); fd.append("q", "1"); fd.append("q", "2"); fd.set("q", "3"); fd.getAll("q") // ["3"]`
+        - Details: Confirms set() replaces all existing entries with the given name with a single new entry, or appends a new entry if none exists.
+    - [ ] (Implement `FormData` Class > Methods) Implement `FormData.prototype.forEach()`
+      - Story:
+        - Signature: `forEach(callback: (value: FormDataEntryValue, name: string, parent: FormData) => void): void`
+        - Example: `const fd = new FormData(); fd.append("q", "1"); fd.forEach((value, name) => { collected.push([name, value]) }) // [["q", "1"]]`
+        - Details: Confirms forEach() iterates over all entries in list order, invoking the callback with value, name, and the FormData instance for each entry.
+    - [ ] (Implement `FormData` Class > Methods) Implement `FormData.prototype.entries()`
+      - Story:
+        - Signature: `entries(): IterableIterator<[string, FormDataEntryValue]>`
+        - Example: `const fd = new FormData(); fd.append("q", "1"); [...fd.entries()] // [["q", "1"]]`
+        - Details: Confirms entries() returns an iterator of [name, value] pairs in list order.
+    - [ ] (Implement `FormData` Class > Methods) Implement `FormData.prototype.keys()`
+      - Story:
+        - Signature: `keys(): IterableIterator<string>`
+        - Example: `const fd = new FormData(); fd.append("q", "1"); fd.append("page", "2"); [...fd.keys()] // ["q", "page"]`
+        - Details: Confirms keys() returns an iterator of all entry names in list order, including duplicates.
+    - [ ] (Implement `FormData` Class > Methods) Implement `FormData.prototype.values()`
+      - Story:
+        - Signature: `values(): IterableIterator<FormDataEntryValue>`
+        - Example: `const fd = new FormData(); fd.append("q", "1"); fd.append("page", "2"); [...fd.values()] // ["1", "2"]`
+        - Details: Confirms values() returns an iterator of all entry values in list order.
+    - [ ] (Implement `FormData` Class > Methods) Implement `FormData.prototype[Symbol.iterator]()`
+      - Story:
+        - Signature: `[Symbol.iterator](): IterableIterator<[string, FormDataEntryValue]>`
+        - Example: `const fd = new FormData(); fd.append("q", "1"); [...fd] // [["q", "1"]]`
+        - Details: Confirms FormData is iterable and that its default iterator yields [name, value] pairs in list order, equivalent to entries().
+  - Serialization
+    - [ ] (Implement `FormData` Class > Serialization) Implement multipart/form-data boundary generation
+      - Story:
+        - Signature: `(internal) generateBoundary(): string`
+        - Example: `// boundary generated as a unique string e.g. "----FormBoundary7MA4YWxkTrZu0gW" used to delimit parts in the serialized body`
+        - Details: Confirms that a unique boundary string is generated for each FormData serialization, sufficiently random to avoid collisions with the body content.
+    - [ ] (Implement `FormData` Class > Serialization) Implement multipart/form-data serialization (for request body encoding)
+      - Story:
+        - Signature: `(internal) serializeFormData(fd: FormData): { body: Uint8Array, contentType: string }`
+        - Example: `fetch("https://example.com", { method: "POST", body: formData }) // request body is encoded as multipart/form-data with correct boundaries, part headers, and field values`
+        - Details: Confirms that FormData used as a fetch request body is serialized into a valid multipart/form-data stream with each entry encoded as a separate part including Content-Disposition and optional Content-Type headers.
+    - [ ] (Implement `FormData` Class > Serialization) Implement multipart/form-data parsing (for `formData()` body mixin)
+      - Story:
+        - Signature: `(internal) parseFormData(body: ReadableStream, contentType: string): Promise<FormData>`
+        - Example: `await response.formData() // parses the multipart/form-data response body into a FormData instance with all fields and files accessible by name`
+        - Details: Confirms that a multipart/form-data body received in a Response or Request can be parsed back into a FormData instance, with string fields and file parts correctly reconstructed including file names and MIME types.

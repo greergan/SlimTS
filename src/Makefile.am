@@ -12,6 +12,7 @@ slimts_SOURCES  = main.cpp \
 				slim_file_watcher.cpp \
 				slim_isolate_wake.cpp \
 				slim_module_import_specifier.cpp \
+				slim_module_import_specifier_cjs_support.cpp \
 				slim_module_resolver.cpp \
 				slim_runtime.cpp \
 				slim_path.cpp \

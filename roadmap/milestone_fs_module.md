@@ -1,0 +1,446 @@
+# Milestone: fs Plugin
+- [ ] Implement async fs
+  - [ ] Implement `readFile`
+    - [ ] (Implement async fs / readFile) Support path string, URL, or FileHandle as first argument
+      - Story:
+        - Signature: `readFile(path: PathLike | FileHandle, options?: { encoding?: null; flag?: OpenMode } & Abortable): Promise<Buffer>`
+        - Example: `await readFile('/etc/hosts') // returns Buffer; await readFile(new URL('file:///etc/hosts')) // same`
+        - Details: Confirms readFile accepts a path string, URL object, or FileHandle as its first argument and returns a Promise resolving to a Buffer when no encoding is specified.
+    - [ ] (Implement async fs / readFile) Support encoding option returning a string
+      - Story:
+        - Signature: `readFile(path: PathLike | FileHandle, options: BufferEncoding | { encoding: BufferEncoding }): Promise<string>`
+        - Example: `await readFile('/etc/hosts', { encoding: 'utf8' }) // returns string`
+        - Details: Confirms that when an encoding is provided the resolved value is a decoded string rather than a Buffer.
+    - [ ] (Implement async fs / readFile) Support AbortSignal to cancel an in-progress read
+      - Story:
+        - Signature: `readFile(path: PathLike | FileHandle, options: { signal: AbortSignal }): Promise<Buffer>`
+        - Example: `const ac = new AbortController(); const p = readFile('big.bin', { signal: ac.signal }); ac.abort(); await p // rejects with AbortError`
+        - Details: Confirms that aborting the associated AbortController causes the returned Promise to reject with an AbortError and halts internal buffering.
+  - [ ] (Implement async fs / open) Open a file and return a FileHandle
+    - Story:
+      - Signature: `open(path: PathLike, flags?: string | number, mode?: Mode): Promise<FileHandle>`
+      - Example: `const fh = await open('file.txt', 'r') // resolves to FileHandle`
+      - Details: Confirms open() allocates a FileHandle with a numeric fd, accepting flag strings ('r', 'w', 'r+', etc.) and an optional mode for newly created files.
+  - [ ] (Implement async fs / read) Read bytes from an open FileHandle into a buffer
+    - Story:
+      - Signature: `filehandle.read(buffer: T, offset?: number, length?: number, position?: ReadPosition): Promise<FileReadResult<T>>`
+      - Example: `const buf = Buffer.alloc(1024); const { bytesRead } = await fh.read(buf, 0, 1024, 0)`
+      - Details: Confirms read() fills the provided buffer starting at offset, reads up to length bytes from position, and fulfills with { bytesRead, buffer }.
+  - [ ] (Implement async fs / close) Close a FileHandle releasing the file descriptor
+    - Story:
+      - Signature: `filehandle.close(): Promise<void>`
+      - Example: `await fh.close() // fd is released`
+      - Details: Confirms close() waits for any pending operations on the handle before releasing the underlying file descriptor, fulfilling with undefined on success.
+  - [ ] (Implement async fs / readLines) Stream file contents line by line via a readline Interface
+    - Story:
+      - Signature: `filehandle.readLines(options?: CreateReadStreamOptions): Interface`
+      - Example: `const fh = await open('file.txt', 'r'); for await (const line of fh.readLines()) console.log(line)`
+      - Details: Confirms readLines() creates a readline Interface backed by the FileHandle's read stream, yielding one decoded line per iteration without loading the entire file into memory.
+  - [ ] Implement `createReadStream`
+    - [ ] (Implement async fs / createReadStream) Create a readable stream from a FileHandle
+      - Story:
+        - Signature: `filehandle.createReadStream(options?: CreateReadStreamOptions): ReadStream`
+        - Example: `const fh = await open('file.txt', 'r'); const rs = fh.createReadStream({ encoding: 'utf8' }); rs.pipe(process.stdout)`
+        - Details: Confirms createReadStream() returns a ReadStream with a default highWaterMark of 64 KiB, supporting start/end byte ranges, encoding, and autoClose behavior.
+    - [ ] (Implement async fs / createReadStream) Support start and end byte range options
+      - Story:
+        - Signature: `filehandle.createReadStream(options: { start: number; end: number }): ReadStream`
+        - Example: `fh.createReadStream({ start: 90, end: 99 }) // streams bytes 90–99 inclusive`
+        - Details: Confirms that start and end are both inclusive, zero-based, and restrict the stream to that byte range of the file.
+  - [ ] Implement `writeFile`
+    - [ ] (Implement async fs / writeFile) Support path string, URL, or FileHandle as first argument
+      - Story:
+        - Signature: `writeFile(file: PathLike | FileHandle, data: string | ArrayBufferView | Iterable | AsyncIterable, options?: BufferEncoding | ObjectEncodingOptions & { flag?: OpenMode; flush?: boolean } & Abortable): Promise<void>`
+        - Example: `await writeFile('out.txt', 'hello') // creates or replaces out.txt`
+        - Details: Confirms writeFile accepts a path string, URL, or FileHandle and writes data atomically from the provided string or buffer, replacing the file if it exists.
+    - [ ] (Implement async fs / writeFile) Support encoding option for string data
+      - Story:
+        - Signature: `writeFile(file: PathLike, data: string, options: BufferEncoding | { encoding: BufferEncoding }): Promise<void>`
+        - Example: `await writeFile('out.txt', 'héllo', { encoding: 'utf8' })`
+        - Details: Confirms the encoding option controls how string data is encoded to bytes before writing; encoding is ignored when data is a Buffer.
+    - [ ] (Implement async fs / writeFile) Support AbortSignal to cancel an in-progress write
+      - Story:
+        - Signature: `writeFile(file: PathLike, data: string | ArrayBufferView, options: { signal: AbortSignal }): Promise<void>`
+        - Example: `const ac = new AbortController(); const p = writeFile('out.txt', data, { signal: ac.signal }); ac.abort(); await p // rejects with AbortError`
+        - Details: Confirms aborting cancels internal buffering on a best-effort basis; some data may already have been written to disk before cancellation.
+  - [ ] (Implement async fs / appendFile) Append data to a file, creating it if it does not exist
+    - Story:
+      - Signature: `appendFile(path: PathLike | FileHandle, data: string | ArrayBufferView, options?: BufferEncoding | ObjectEncodingOptions & FlagAndOpenMode & { flush?: boolean }): Promise<void>`
+      - Example: `await appendFile('log.txt', 'new line\n') // appends to log.txt or creates it`
+      - Details: Confirms appendFile opens the file in append mode, writes the data, and fulfills with undefined; the file is created with default permissions if it does not exist.
+  - [ ] Implement `open` / `write` / `close` (FileHandle)
+    - [ ] (Implement async fs / open / write / close) Write a buffer to an open FileHandle
+      - Story:
+        - Signature: `filehandle.write(buffer: TBuffer, offset?: number, length?: number, position?: number): Promise<{ bytesWritten: number; buffer: TBuffer }>`
+        - Example: `const fh = await open('out.txt', 'w'); const buf = Buffer.from('hello'); const { bytesWritten } = await fh.write(buf, 0, buf.length, 0)`
+        - Details: Confirms write() writes length bytes from buffer starting at offset to the file at position, fulfilling with { bytesWritten, buffer }.
+    - [ ] (Implement async fs / open / write / close) Write a string to an open FileHandle
+      - Story:
+        - Signature: `filehandle.write(data: string, position?: number, encoding?: BufferEncoding): Promise<{ bytesWritten: number; buffer: string }>`
+        - Example: `await fh.write('hello', 0, 'utf8')`
+        - Details: Confirms the string overload encodes the string with the given encoding before writing, fulfilling with { bytesWritten, buffer } where buffer is the original string.
+  - [ ] (Implement async fs / createWriteStream) Create a writable stream from a FileHandle
+    - Story:
+      - Signature: `filehandle.createWriteStream(options?: CreateWriteStreamOptions): WriteStream`
+      - Example: `const fh = await open('out.txt', 'w'); const ws = fh.createWriteStream(); ws.write('hello'); ws.end()`
+      - Details: Confirms createWriteStream() returns a WriteStream supporting encoding, highWaterMark, autoClose, and an optional start offset for mid-file writes.
+  - [ ] Implement `readdir`
+    - [ ] (Implement async fs / readdir) Return an array of filenames in a directory
+      - Story:
+        - Signature: `readdir(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions & { recursive?: boolean; withFileTypes?: false }): Promise<string[]>`
+        - Example: `const files = await readdir('/tmp') // ['a.txt', 'b.txt']`
+        - Details: Confirms readdir returns a string array of entry names excluding '.' and '..', with optional recursive traversal.
+    - [ ] (Implement async fs / readdir) Support withFileTypes option returning Dirent objects
+      - Story:
+        - Signature: `readdir(path: PathLike, options: { withFileTypes: true }): Promise<Dirent[]>`
+        - Example: `const entries = await readdir('/tmp', { withFileTypes: true }); entries[0].isFile()`
+        - Details: Confirms that when withFileTypes is true the resolved array contains fs.Dirent objects with type-checking methods (isFile, isDirectory, isSymbolicLink, etc.).
+  - [ ] (Implement async fs / opendir) Open a directory for async iteration
+    - Story:
+      - Signature: `opendir(path: PathLike, options?: OpenDirOptions): Promise<Dir>`
+      - Example: `const dir = await opendir('./'); for await (const dirent of dir) console.log(dirent.name)`
+      - Details: Confirms opendir returns an fs.Dir that supports async iteration via for-await-of, automatically closing the directory handle when the iterator exits.
+  - [ ] Implement `mkdir`
+    - [ ] (Implement async fs / mkdir) Create a directory
+      - Story:
+        - Signature: `mkdir(path: PathLike, options?: Mode | MakeDirectoryOptions & { recursive?: false }): Promise<void>`
+        - Example: `await mkdir('/tmp/newdir') // creates newdir`
+        - Details: Confirms mkdir creates the directory at path with optional mode, rejecting if the directory already exists when recursive is false (the default).
+    - [ ] (Implement async fs / mkdir) Support recursive option creating intermediate directories
+      - Story:
+        - Signature: `mkdir(path: PathLike, options: MakeDirectoryOptions & { recursive: true }): Promise<string | undefined>`
+        - Example: `await mkdir('/tmp/a/b/c', { recursive: true }) // creates all intermediate dirs`
+        - Details: Confirms that when recursive is true mkdir creates all missing parent directories and fulfills with the path of the first directory created, or undefined if all already existed.
+  - [ ] (Implement async fs / mkdtemp) Create a unique temporary directory
+    - Story:
+      - Signature: `mkdtemp(prefix: string, options?: BufferEncoding | ObjectEncodingOptions): Promise<string>`
+      - Example: `const tmpDir = await mkdtemp(join(tmpdir(), 'foo-')) // e.g. '/tmp/foo-a1b2c3'`
+      - Details: Confirms mkdtemp appends six random characters to prefix, creates the directory, and fulfills with the full path of the new directory.
+  - [ ] (Implement async fs / rmdir) Remove an empty directory
+    - Story:
+      - Signature: `rmdir(path: PathLike): Promise<void>`
+      - Example: `await rmdir('/tmp/emptydir')`
+      - Details: Confirms rmdir removes the directory at path, rejecting with ENOENT if it does not exist, ENOTDIR if path is a file, and ENOTEMPTY if the directory is not empty.
+  - [ ] (Implement async fs / rm) Remove files and directories
+    - Story:
+      - Signature: `rm(path: PathLike, options?: RmOptions): Promise<void>`
+      - Example: `await rm('/tmp/dir', { recursive: true, force: true }) // rm -rf equivalent`
+      - Details: Confirms rm removes files and directories, supporting recursive deletion of directory trees and force mode that suppresses errors when path does not exist.
+  - [ ] Implement `stat`
+    - [ ] (Implement async fs / stat) Return Stats object for a path
+      - Story:
+        - Signature: `stat(path: PathLike, opts?: StatOptions & { bigint?: false }): Promise<Stats>`
+        - Example: `const s = await stat('file.txt'); s.size; s.mtime; s.isFile()`
+        - Details: Confirms stat follows symlinks and returns an fs.Stats object with file size, timestamps, and type-checking methods for the resolved path.
+    - [ ] (Implement async fs / stat) Support bigint option returning BigIntStats
+      - Story:
+        - Signature: `stat(path: PathLike, opts: StatOptions & { bigint: true }): Promise<BigIntStats>`
+        - Example: `const s = await stat('file.txt', { bigint: true }); typeof s.size // 'bigint'`
+        - Details: Confirms that when bigint is true all numeric fields in the returned Stats object are BigInt values for nanosecond-precision timestamps.
+  - [ ] (Implement async fs / lstat) Return Stats for a path without following symlinks
+    - Story:
+      - Signature: `lstat(path: PathLike, opts?: StatOptions & { bigint?: false }): Promise<Stats>`
+      - Example: `const s = await lstat('link'); s.isSymbolicLink() // true if link is a symlink`
+      - Details: Confirms lstat behaves identically to stat except that if path is a symbolic link the stats describe the link itself rather than the file it points to.
+  - [ ] (Implement async fs / statfs) Return filesystem statistics for a path
+    - Story:
+      - Signature: `statfs(path: PathLike, opts?: StatFsOptions & { bigint?: false }): Promise<StatsFs>`
+      - Example: `const fs = await statfs('/'); fs.bfree; fs.blocks`
+      - Details: Confirms statfs returns an fs.StatsFs object with filesystem-level metrics including total blocks, free blocks, available blocks, and block size for the filesystem containing path.
+  - [ ] (Implement async fs / access) Test file or directory accessibility
+    - Story:
+      - Signature: `access(path: PathLike, mode?: number): Promise<void>`
+      - Example: `await access('/etc/passwd', constants.R_OK | constants.W_OK) // fulfills if accessible`
+      - Details: Confirms access tests the permissions specified by mode (F_OK, R_OK, W_OK, X_OK) and fulfills with undefined if the check passes, rejects with an Error if it fails.
+  - [ ] (Implement async fs / chmod) Change file permissions
+    - Story:
+      - Signature: `chmod(path: PathLike, mode: Mode): Promise<void>`
+      - Example: `await chmod('script.sh', 0o755)`
+      - Details: Confirms chmod changes the permission bits of the file at path to mode, fulfilling with undefined on success.
+  - [ ] (Implement async fs / chown) Change file owner and group
+    - Story:
+      - Signature: `chown(path: PathLike, uid: number, gid: number): Promise<void>`
+      - Example: `await chown('file.txt', 1000, 1000)`
+      - Details: Confirms chown changes the ownership of the file at path to the specified user ID and group ID, fulfilling with undefined on success.
+  - [ ] (Implement async fs / lchown) Change ownership of a symbolic link
+    - Story:
+      - Signature: `lchown(path: PathLike, uid: number, gid: number): Promise<void>`
+      - Example: `await lchown('mylink', 1000, 1000)`
+      - Details: Confirms lchown changes ownership of the symbolic link itself at path rather than the file the link points to.
+  - [ ] (Implement async fs / utimes) Change file access and modification timestamps
+    - Story:
+      - Signature: `utimes(path: PathLike, atime: TimeLike, mtime: TimeLike): Promise<void>`
+      - Example: `await utimes('file.txt', new Date(), new Date())`
+      - Details: Confirms utimes sets the atime and mtime of the file at path; values may be Unix epoch numbers, Date objects, or numeric strings. Rejects with an Error if values are NaN or Infinity.
+  - [ ] (Implement async fs / lutimes) Change timestamps of a symbolic link without dereferencing
+    - Story:
+      - Signature: `lutimes(path: PathLike, atime: TimeLike, mtime: TimeLike): Promise<void>`
+      - Example: `await lutimes('mylink', new Date(), new Date()) // modifies the link's own timestamps`
+      - Details: Confirms lutimes behaves like utimes except it modifies the timestamps of the symbolic link itself rather than the target file.
+  - [ ] (Implement async fs / rename) Rename or move a file or directory
+    - Story:
+      - Signature: `rename(oldPath: PathLike, newPath: PathLike): Promise<void>`
+      - Example: `await rename('old.txt', 'new.txt')`
+      - Details: Confirms rename atomically renames oldPath to newPath, overwriting newPath if it exists and is not a directory. Rejects if the operation crosses filesystem boundaries on some platforms.
+  - [ ] (Implement async fs / unlink) Remove a file or symbolic link
+    - Story:
+      - Signature: `unlink(path: PathLike): Promise<void>`
+      - Example: `await unlink('file.txt') // removes the file`
+      - Details: Confirms unlink removes the file or symbolic link at path. If path is a symlink the link is removed without affecting its target. Rejects with ENOENT if path does not exist.
+  - [ ] Implement `copyFile`
+    - [ ] (Implement async fs / copyFile) Copy a file to a destination
+      - Story:
+        - Signature: `copyFile(src: PathLike, dest: PathLike, mode?: number): Promise<void>`
+        - Example: `await copyFile('source.txt', 'dest.txt') // dest overwritten if exists`
+        - Details: Confirms copyFile copies src to dest, overwriting dest by default. Supports mode flags including COPYFILE_EXCL to fail if dest exists, and COPYFILE_FICLONE for copy-on-write cloning where supported.
+    - [ ] (Implement async fs / copyFile) Support COPYFILE_EXCL mode to prevent overwriting
+      - Story:
+        - Signature: `copyFile(src: PathLike, dest: PathLike, mode: typeof constants.COPYFILE_EXCL): Promise<void>`
+        - Example: `await copyFile('source.txt', 'dest.txt', constants.COPYFILE_EXCL) // rejects if dest.txt exists`
+        - Details: Confirms that COPYFILE_EXCL causes the operation to reject with an error if the destination file already exists rather than silently overwriting it.
+  - [ ] (Implement async fs / cp) Recursively copy a directory structure
+    - Story:
+      - Signature: `cp(source: string | URL, destination: string | URL, opts?: CopyOptions): Promise<void>`
+      - Example: `await cp('src/', 'dest/', { recursive: true })`
+      - Details: Confirms cp copies the entire directory tree from source to destination including all subdirectories and files, similar to the POSIX cp -r command.
+  - [ ] (Implement async fs / truncate) Truncate a file to a specified length
+    - Story:
+      - Signature: `truncate(path: PathLike, len?: number): Promise<void>`
+      - Example: `await truncate('file.txt', 4) // keeps only first 4 bytes`
+      - Details: Confirms truncate shortens the file to len bytes if larger, or extends it with null bytes if smaller. len defaults to 0 if not provided.
+  - [ ] (Implement async fs / realpath) Resolve the canonical absolute path
+    - Story:
+      - Signature: `realpath(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): Promise<string>`
+      - Example: `await realpath('./relative/../file.txt') // returns absolute path`
+      - Details: Confirms realpath resolves all symlinks, '.', and '..' components and returns the canonicalized absolute pathname using the same semantics as realpath.native.
+  - [ ] (Implement async fs / exists) Check whether a path exists
+    - Story:
+      - Signature: `exists(path: PathLike): Promise<boolean>`
+      - Example: `await exists('file.txt') // true or false`
+      - Details: Confirms exists fulfills with true if path exists on the filesystem and false otherwise, without throwing. Prefer access() for permission-aware existence checks.
+  - [ ] (Implement async fs / glob) Match files using glob patterns
+    - Story:
+      - Signature: `glob(pattern: string | readonly string[], options?: GlobOptions): AsyncIterator<string | Dirent>`
+      - Example: `for await (const f of glob('**/*.ts')) console.log(f)`
+      - Details: Confirms glob returns an AsyncIterator yielding paths matching the pattern. When followSymlinks is enabled, detected symlink cycles are not traversed recursively.
+  - [ ] (Implement async fs / symlink) Create a symbolic link
+    - Story:
+      - Signature: `symlink(target: PathLike, path: PathLike, type?: string | null): Promise<void>`
+      - Example: `await symlink('/etc/hosts', '/tmp/hosts_link')`
+      - Details: Confirms symlink creates a symbolic link at path pointing to target. The type argument ('file', 'dir', 'junction') is used only on Windows; on POSIX it is ignored.
+  - [ ] (Implement async fs / readlink) Read the target of a symbolic link
+    - Story:
+      - Signature: `readlink(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): Promise<string>`
+      - Example: `await readlink('/tmp/hosts_link') // '/etc/hosts'`
+      - Details: Confirms readlink returns the string value of the symbolic link at path (the target it points to) without following the link.
+  - [ ] (Implement async fs / link) Create a hard link
+    - Story:
+      - Signature: `link(existingPath: PathLike, newPath: PathLike): Promise<void>`
+      - Example: `await link('file.txt', 'file_hardlink.txt')`
+      - Details: Confirms link creates a new hard link at newPath pointing to the same inode as existingPath. Both paths must reside on the same filesystem.
+  - [ ] Implement `watch`
+    - [ ] (Implement async fs / watch) Watch a file or directory for changes via async iterator
+      - Story:
+        - Signature: `watch(filename: PathLike, options?: BufferEncoding | WatchOptions): AsyncIterator<FileChangeInfo<string>>`
+        - Example: `const watcher = watch('file.txt', { signal: ac.signal }); for await (const event of watcher) console.log(event.eventType, event.filename)`
+        - Details: Confirms watch returns an AsyncIterator yielding FileChangeInfo objects with eventType ('rename' or 'change') and filename. Supports AbortSignal for cancellation, persistent, recursive, and encoding options.
+    - [ ] (Implement async fs / watch) Support AbortSignal to stop watching
+      - Story:
+        - Signature: `watch(filename: PathLike, options: { signal: AbortSignal }): AsyncIterator<FileChangeInfo<string>>`
+        - Example: `const ac = new AbortController(); const w = watch('dir/', { signal: ac.signal }); setTimeout(() => ac.abort(), 5000)`
+        - Details: Confirms that aborting the AbortController stops the watcher and causes the async iterator to complete cleanly, rejecting with AbortError if caught.
+- [ ] Implement sync fs
+  - [ ] Implement `readFileSync`
+    - [ ] (Implement sync fs / readFileSync) Read entire file contents synchronously
+      - Story:
+        - Signature: `readFileSync(path: PathLike | number, options?: { encoding?: null; flag?: string } | null): Buffer`
+        - Example: `const buf = readFileSync('/etc/hosts') // returns Buffer`
+        - Details: Confirms readFileSync blocks until the file is fully read and returns a Buffer when no encoding is specified, or a string when encoding is provided.
+    - [ ] (Implement sync fs / readFileSync) Support encoding option returning a string
+      - Story:
+        - Signature: `readFileSync(path: PathLike | number, options: BufferEncoding | { encoding: BufferEncoding }): string`
+        - Example: `const text = readFileSync('file.txt', 'utf8') // returns string`
+        - Details: Confirms that providing an encoding causes the return value to be a decoded string rather than a Buffer.
+  - [ ] Implement `openSync` / `readSync` / `closeSync`
+    - [ ] (Implement sync fs / openSync / readSync / closeSync) Open a file synchronously returning a file descriptor
+      - Story:
+        - Signature: `openSync(path: PathLike, flags: string | number, mode?: Mode): number`
+        - Example: `const fd = openSync('file.txt', 'r') // returns numeric fd`
+        - Details: Confirms openSync allocates a numeric file descriptor synchronously, accepting flag strings and an optional mode for newly created files.
+    - [ ] (Implement sync fs / openSync / readSync / closeSync) Read bytes from a file descriptor into a buffer synchronously
+      - Story:
+        - Signature: `readSync(fd: number, buffer: ArrayBufferView, offset: number, length: number, position: ReadPosition | null): number`
+        - Example: `const buf = Buffer.alloc(1024); const bytesRead = readSync(fd, buf, 0, 1024, 0)`
+        - Details: Confirms readSync fills buffer starting at offset with up to length bytes from position in the file, returning the number of bytes actually read.
+    - [ ] (Implement sync fs / openSync / readSync / closeSync) Close a file descriptor synchronously
+      - Story:
+        - Signature: `closeSync(fd: number): void`
+        - Example: `closeSync(fd) // releases the file descriptor`
+        - Details: Confirms closeSync synchronously releases the file descriptor. Failure to call closeSync results in a file descriptor leak.
+  - [ ] (Implement sync fs / writeFileSync) Write data to a file synchronously
+    - Story:
+      - Signature: `writeFileSync(file: PathLike | number, data: string | ArrayBufferView, options?: BufferEncoding | WriteFileOptions | null): void`
+      - Example: `writeFileSync('out.txt', 'hello') // creates or replaces out.txt`
+      - Details: Confirms writeFileSync blocks until the file is written, replacing it if it exists, and supports encoding and flag options.
+  - [ ] (Implement sync fs / appendFileSync) Append data to a file synchronously
+    - Story:
+      - Signature: `appendFileSync(path: PathLike | number, data: string | Uint8Array, options?: BufferEncoding | WriteFileOptions | null): void`
+      - Example: `appendFileSync('log.txt', 'new line\n')`
+      - Details: Confirms appendFileSync opens the file in append mode, writes the data synchronously, and creates the file if it does not exist.
+  - [ ] Implement `openSync` / `writeSync` / `closeSync`
+    - [ ] (Implement sync fs / openSync / writeSync / closeSync) Write bytes from a buffer to a file descriptor synchronously
+      - Story:
+        - Signature: `writeSync(fd: number, buffer: ArrayBufferView, offset?: number, length?: number, position?: number | null): number`
+        - Example: `const buf = Buffer.from('hello'); const written = writeSync(fd, buf, 0, buf.length, 0)`
+        - Details: Confirms writeSync writes length bytes from buffer at offset to the file at position, returning the number of bytes written.
+    - [ ] (Implement sync fs / openSync / writeSync / closeSync) Write a string to a file descriptor synchronously
+      - Story:
+        - Signature: `writeSync(fd: number, string: string, position?: number | null, encoding?: BufferEncoding | null): number`
+        - Example: `writeSync(fd, 'hello', 0, 'utf8')`
+        - Details: Confirms the string overload encodes the string before writing and returns the number of bytes written.
+  - [ ] (Implement sync fs / readdirSync) Read directory contents synchronously
+    - Story:
+      - Signature: `readdirSync(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions & { recursive?: boolean; withFileTypes?: false }): string[]`
+      - Example: `const files = readdirSync('/tmp') // ['a.txt', 'b.txt']`
+      - Details: Confirms readdirSync returns a string array of entry names synchronously, supporting recursive and withFileTypes options matching the async readdir behavior.
+  - [ ] (Implement sync fs / opendirSync) Open a directory for synchronous iteration
+    - Story:
+      - Signature: `opendirSync(path: PathLike, options?: OpenDirOptions): Dir`
+      - Example: `const dir = opendirSync('./'); let entry; while ((entry = dir.readSync()) !== null) console.log(entry.name); dir.closeSync()`
+      - Details: Confirms opendirSync returns an fs.Dir supporting synchronous iteration via readSync() and must be explicitly closed with closeSync() when done.
+  - [ ] Implement `mkdirSync`
+    - [ ] (Implement sync fs / mkdirSync) Create a directory synchronously
+      - Story:
+        - Signature: `mkdirSync(path: PathLike, options?: Mode | MakeDirectoryOptions & { recursive?: false }): void`
+        - Example: `mkdirSync('/tmp/newdir')`
+        - Details: Confirms mkdirSync creates the directory at path synchronously, rejecting if it already exists unless recursive is true.
+    - [ ] (Implement sync fs / mkdirSync) Support recursive option creating intermediate directories
+      - Story:
+        - Signature: `mkdirSync(path: PathLike, options: MakeDirectoryOptions & { recursive: true }): string | undefined`
+        - Example: `mkdirSync('/tmp/a/b/c', { recursive: true })`
+        - Details: Confirms mkdirSync creates all missing parent directories when recursive is true, returning the first directory path created.
+  - [ ] (Implement sync fs / mkdtempSync) Create a unique temporary directory synchronously
+    - Story:
+      - Signature: `mkdtempSync(prefix: string, options?: BufferEncoding | ObjectEncodingOptions): string`
+      - Example: `const tmpDir = mkdtempSync(join(tmpdir(), 'foo-')) // e.g. '/tmp/foo-a1b2c3'`
+      - Details: Confirms mkdtempSync appends six random characters to prefix, creates the directory synchronously, and returns the full path.
+  - [ ] (Implement sync fs / rmdirSync) Remove an empty directory synchronously
+    - Story:
+      - Signature: `rmdirSync(path: PathLike): void`
+      - Example: `rmdirSync('/tmp/emptydir')`
+      - Details: Confirms rmdirSync removes the empty directory at path synchronously, throwing if path does not exist, is not a directory, or is not empty.
+  - [ ] (Implement sync fs / rmSync) Remove files and directories synchronously
+    - Story:
+      - Signature: `rmSync(path: PathLike, options?: RmOptions): void`
+      - Example: `rmSync('/tmp/dir', { recursive: true, force: true })`
+      - Details: Confirms rmSync removes files and directories synchronously, supporting recursive deletion and force mode matching the behavior of the async rm().
+  - [ ] (Implement sync fs / statSync) Return Stats object for a path synchronously
+    - Story:
+      - Signature: `statSync(path: PathLike, opts?: StatOptions & { bigint?: false; throwIfNoEntry?: true }): Stats`
+      - Example: `const s = statSync('file.txt'); s.size; s.isFile()`
+      - Details: Confirms statSync follows symlinks and returns an fs.Stats object synchronously. Supports bigint option and throwIfNoEntry to control behavior when path does not exist.
+  - [ ] (Implement sync fs / lstatSync) Return Stats for a path without following symlinks synchronously
+    - Story:
+      - Signature: `lstatSync(path: PathLike, opts?: StatOptions & { bigint?: false }): Stats`
+      - Example: `const s = lstatSync('link'); s.isSymbolicLink()`
+      - Details: Confirms lstatSync returns stats for the symbolic link itself rather than its target, matching lstat behavior synchronously.
+  - [ ] (Implement sync fs / statfsSync) Return filesystem statistics synchronously
+    - Story:
+      - Signature: `statfsSync(path: PathLike, opts?: StatFsOptions & { bigint?: false }): StatsFs`
+      - Example: `const s = statfsSync('/'); s.bfree`
+      - Details: Confirms statfsSync returns filesystem-level statistics synchronously for the filesystem containing path.
+  - [ ] (Implement sync fs / accessSync) Test file accessibility synchronously
+    - Story:
+      - Signature: `accessSync(path: PathLike, mode?: number): void`
+      - Example: `accessSync('/etc/passwd', constants.R_OK) // throws if not readable`
+      - Details: Confirms accessSync tests permissions synchronously and throws an Error if the check fails, returning undefined on success.
+  - [ ] (Implement sync fs / chmodSync) Change file permissions synchronously
+    - Story:
+      - Signature: `chmodSync(path: PathLike, mode: Mode): void`
+      - Example: `chmodSync('script.sh', 0o755)`
+      - Details: Confirms chmodSync changes permission bits synchronously, matching the behavior of chmod.
+  - [ ] (Implement sync fs / chownSync) Change file owner and group synchronously
+    - Story:
+      - Signature: `chownSync(path: PathLike, uid: number, gid: number): void`
+      - Example: `chownSync('file.txt', 1000, 1000)`
+      - Details: Confirms chownSync changes file ownership synchronously, matching the behavior of chown.
+  - [ ] (Implement sync fs / lchownSync) Change ownership of a symbolic link synchronously
+    - Story:
+      - Signature: `lchownSync(path: PathLike, uid: number, gid: number): void`
+      - Example: `lchownSync('mylink', 1000, 1000)`
+      - Details: Confirms lchownSync changes the ownership of the symbolic link itself synchronously, matching the behavior of lchown.
+  - [ ] (Implement sync fs / utimesSync) Change file timestamps synchronously
+    - Story:
+      - Signature: `utimesSync(path: PathLike, atime: TimeLike, mtime: TimeLike): void`
+      - Example: `utimesSync('file.txt', new Date(), new Date())`
+      - Details: Confirms utimesSync sets atime and mtime synchronously, matching the behavior of utimes.
+  - [ ] (Implement sync fs / lutimesSync) Change symbolic link timestamps synchronously without dereferencing
+    - Story:
+      - Signature: `lutimesSync(path: PathLike, atime: TimeLike, mtime: TimeLike): void`
+      - Example: `lutimesSync('mylink', new Date(), new Date())`
+      - Details: Confirms lutimesSync modifies the timestamps of the symbolic link itself synchronously, matching the behavior of lutimes.
+  - [ ] (Implement sync fs / renameSync) Rename or move a file synchronously
+    - Story:
+      - Signature: `renameSync(oldPath: PathLike, newPath: PathLike): void`
+      - Example: `renameSync('old.txt', 'new.txt')`
+      - Details: Confirms renameSync atomically renames oldPath to newPath synchronously, matching the behavior of rename.
+  - [ ] (Implement sync fs / unlinkSync) Remove a file or symbolic link synchronously
+    - Story:
+      - Signature: `unlinkSync(path: PathLike): void`
+      - Example: `unlinkSync('file.txt')`
+      - Details: Confirms unlinkSync removes the file or symlink at path synchronously, matching the behavior of unlink.
+  - [ ] (Implement sync fs / copyFileSync) Copy a file synchronously
+    - Story:
+      - Signature: `copyFileSync(src: PathLike, dest: PathLike, mode?: number): void`
+      - Example: `copyFileSync('source.txt', 'dest.txt')`
+      - Details: Confirms copyFileSync copies src to dest synchronously, supporting the same mode flags as copyFile including COPYFILE_EXCL and COPYFILE_FICLONE.
+  - [ ] (Implement sync fs / cpSync) Recursively copy a directory structure synchronously
+    - Story:
+      - Signature: `cpSync(source: string | URL, destination: string | URL, opts?: CopyOptions): void`
+      - Example: `cpSync('src/', 'dest/', { recursive: true })`
+      - Details: Confirms cpSync copies the entire directory tree synchronously, matching the behavior of cp.
+  - [ ] (Implement sync fs / truncateSync) Truncate a file synchronously
+    - Story:
+      - Signature: `truncateSync(path: PathLike, len?: number): void`
+      - Example: `truncateSync('file.txt', 4)`
+      - Details: Confirms truncateSync shortens or extends the file to len bytes synchronously, matching the behavior of truncate.
+  - [ ] (Implement sync fs / realpathSync) Resolve canonical absolute path synchronously
+    - Story:
+      - Signature: `realpathSync(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): string`
+      - Example: `realpathSync('./relative/../file.txt') // absolute path`
+      - Details: Confirms realpathSync resolves all symlinks and path components synchronously, matching the behavior of realpath.
+  - [ ] (Implement sync fs / existsSync) Check whether a path exists synchronously
+    - Story:
+      - Signature: `existsSync(path: PathLike): boolean`
+      - Example: `existsSync('file.txt') // true or false`
+      - Details: Confirms existsSync returns true if path exists and false otherwise without throwing, matching the behavior of exists.
+  - [ ] (Implement sync fs / globSync) Match files using glob patterns synchronously
+    - Story:
+      - Signature: `globSync(pattern: string | readonly string[], options?: GlobOptions): string[] | Dirent[]`
+      - Example: `const files = globSync('**/*.ts')`
+      - Details: Confirms globSync returns an array of matching paths synchronously, matching the behavior of glob.
+  - [ ] (Implement sync fs / symlinkSync) Create a symbolic link synchronously
+    - Story:
+      - Signature: `symlinkSync(target: PathLike, path: PathLike, type?: string | null): void`
+      - Example: `symlinkSync('/etc/hosts', '/tmp/hosts_link')`
+      - Details: Confirms symlinkSync creates a symbolic link synchronously, matching the behavior of symlink.
+  - [ ] (Implement sync fs / readlinkSync) Read the target of a symbolic link synchronously
+    - Story:
+      - Signature: `readlinkSync(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): string`
+      - Example: `readlinkSync('/tmp/hosts_link') // '/etc/hosts'`
+      - Details: Confirms readlinkSync returns the symlink target string synchronously, matching the behavior of readlink.
+  - [ ] (Implement sync fs / linkSync) Create a hard link synchronously
+    - Story:
+      - Signature: `linkSync(existingPath: PathLike, newPath: PathLike): void`
+      - Example: `linkSync('file.txt', 'file_hardlink.txt')`
+      - Details: Confirms linkSync creates a hard link synchronously, matching the behavior of link.
+  - [ ] (Implement sync fs / watchFile) Watch a file for changes using polling
+    - Story:
+      - Signature: `watchFile(filename: PathLike, options: { persistent?: boolean; interval?: number } | null, listener: (curr: Stats, prev: Stats) => void): StatWatcher`
+      - Example: `watchFile('file.txt', { interval: 1000 }, (curr, prev) => { if (curr.mtime !== prev.mtime) console.log('changed') })`
+      - Details: Confirms watchFile uses stat polling at the specified interval (default 5007ms) and invokes listener with current and previous Stats objects on each poll. Returns a StatWatcher.
+  - [ ] (Implement sync fs / unwatchFile) Stop watching a file
+    - Story:
+      - Signature: `unwatchFile(filename: PathLike, listener?: (curr: Stats, prev: Stats) => void): void`
+      - Example: `unwatchFile('file.txt') // removes all listeners for file.txt`
+      - Details: Confirms unwatchFile stops polling for the given filename. If a specific listener is provided only that listener is removed; if omitted all listeners for the file are removed.

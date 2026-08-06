@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <filesystem>
 #include <string>
 #include <thread>
@@ -17,8 +18,36 @@ using namespace slim::common;
 std::string default_configuration_file_name = "./slim_configuration.json";
 std::string default_configuration_file = std::filesystem::current_path().string() + std::filesystem::path::preferred_separator
     + default_configuration_file_name;
-static std::jthread watcher_thread;
-static slim::file::watcher::Watcher* file_watcher{nullptr};
+std::jthread watcher_thread;
+slim::file::watcher::Watcher* file_watcher{nullptr};
+std::vector<std::string> module_lib_path;
+
+// keep the order in which module_lib_path is loaded
+void make_lib_path() {
+    module_lib_path.reserve(2);
+    auto prog_dir = std::filesystem::path(slim::configuration_handler::get_script_name()).parent_path();
+    if(prog_dir.filename() == "src") {
+        module_lib_path.push_back(std::format("{}", prog_dir.string() + "/lib"));
+        prog_dir = prog_dir.parent_path();
+    }
+    module_lib_path.push_back(std::format("{}", prog_dir.string() + "/lib"));
+    module_lib_path.push_back((std::filesystem::path(std::getenv("HOME")) / "slimts/lib").string());
+    if(const char* env = std::getenv("SLIMTS_LIB")) {
+    	std::string_view libs(env);
+    	for(size_t start = 0, end; ; start = end + 1) {
+    		end = libs.find(':', start);
+    		auto path = libs.substr(start, end == std::string_view::npos ? end : end - start);
+    		if(!path.empty()) module_lib_path.emplace_back(path);
+    		if(end == std::string_view::npos) break;
+    	}
+    }
+#ifdef ENABLE_LOGGING
+    log::debug(log::Message(__func__, std::format("project directory => {}", prog_dir.string()), __FILE__, __LINE__));
+    for(auto& p : module_lib_path) {
+        log::debug(log::Message(__func__, std::format("project library path => {}", p), __FILE__, __LINE__));
+    }
+#endif
+}
 
 void watch_file_changes() {
 #ifdef ENABLE_LOGGING
@@ -74,6 +103,10 @@ bool slim::configuration_handler::is_watching() {
     return result;
 }
 
+std::span<std::string> slim::configuration_handler::library_path() {
+    return module_lib_path;
+}
+
 void slim::configuration_handler::load() {
 #ifdef ENABLE_LOGGING
     log::trace(log::Message(__func__, "begins", __FILE__, __LINE__));
@@ -84,6 +117,7 @@ void slim::configuration_handler::load() {
 #endif
         watch_file_changes();
     }
+    make_lib_path();
     if(!std::filesystem::exists(default_configuration_file)) {
 #ifdef ENABLE_LOGGING
         log::debug(log::Message(__func__, std::format("configuration file not found => {}", default_configuration_file), __FILE__, __LINE__));

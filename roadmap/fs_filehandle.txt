@@ -1,0 +1,53 @@
+FileHandle Properties
+
+FileHandle.fd: number
+
+FileHandle Methods
+
+FileHandle.appendFile(data: string | NodeJS.ArrayBufferView | AsyncIterable<NodeJS.ArrayBufferView | string> | Iterable<NodeJS.ArrayBufferView | string> | Stream, options?: BufferEncoding | ObjectEncodingOptions & Abortable): Promise<void>
+FileHandle.chmod(mode: Mode): Promise<void>
+FileHandle.chown(uid: number, gid: number): Promise<void>
+FileHandle.close(): Promise<void>
+FileHandle.createReadStream(options?: CreateReadStreamOptions): ReadStream
+FileHandle.createWriteStream(options?: CreateWriteStreamOptions): WriteStream
+FileHandle.datasync(): Promise<void>
+FileHandle.read<TBuffer extends NodeJS.TypedArray | DataView>(buffer: TBuffer, offset?: number, length?: number, position?: number | bigint | null): Promise<FileReadResult<TBuffer>>
+FileHandle.read<TBuffer extends NodeJS.TypedArray | DataView>(options: ReadOptions<TBuffer>): Promise<FileReadResult<TBuffer>>
+FileHandle.readFile(options?: BufferEncoding | ObjectEncodingOptions & Abortable): Promise<Buffer | string>
+FileHandle.readLines(options?: CreateReadStreamOptions): Interface
+FileHandle.readv(buffers: NodeJS.ArrayBufferView[], position?: number | bigint | null): Promise<readvResult>
+FileHandle.readableWebStream(options?: ReadableWebStreamOptions): ReadableStream
+FileHandle.stat(options?: StatOptions & Abortable): Promise<Stats | BigIntStats>
+FileHandle.sync(): Promise<void>
+FileHandle.truncate(len?: number): Promise<void>
+FileHandle.utimes(atime: TimeLike, mtime: TimeLike): Promise<void>
+FileHandle.write<TBuffer extends NodeJS.TypedArray | DataView>(buffer: TBuffer, offset?: number, length?: number, position?: number | bigint | null): Promise<FileWriteResult<TBuffer>>
+FileHandle.write<TBuffer extends NodeJS.TypedArray | DataView>(options: WriteOptions<TBuffer>): Promise<FileWriteResult<TBuffer>>
+FileHandle.write(data: string, position?: number | bigint | null, encoding?: BufferEncoding): Promise<FileWriteResult<string>>
+FileHandle.writeFile(data: string | NodeJS.ArrayBufferView | AsyncIterable<NodeJS.ArrayBufferView | string> | Iterable<NodeJS.ArrayBufferView | string> | Stream, options?: BufferEncoding | ObjectEncodingOptions & Abortable): Promise<void>
+FileHandle.writev(buffers: NodeJS.ArrayBufferView[], position?: number | bigint | null): Promise<writevResult>
+
+FileHandle Disposal
+
+FileHandle[Symbol.asyncDispose](): Promise<void>
+
+FileHandle Events
+
+FileHandle emits: 'close'
+
+FileHandle Experimental Methods
+
+FileHandle.pull(...transforms: Array<Function | Object>, options?: FileHandlePullOptions): AsyncIterable<Uint8Array[]>
+FileHandle.writer(options?: FileHandleWriterOptions): FileHandleWriter
+
+FileHandle Writer Functionality
+
+FileHandleWriter.write(chunk: NodeJS.ArrayBufferView | string, options?: { signal?: AbortSignal }): Promise<void>
+FileHandleWriter.writev(chunks: Array<NodeJS.ArrayBufferView | string>, options?: { signal?: AbortSignal }): Promise<void>
+FileHandleWriter.writeSync(chunk: NodeJS.ArrayBufferView | string): boolean
+FileHandleWriter.writevSync(chunks: Array<NodeJS.ArrayBufferView | string>): boolean
+FileHandleWriter.end(options?: { signal?: AbortSignal }): Promise<number>
+FileHandleWriter.endSync(): number
+FileHandleWriter.fail(reason?: unknown): void
+FileHandleWriter[Symbol.asyncDispose](): Promise<void>
+FileHandleWriter[Symbol.dispose](): void
