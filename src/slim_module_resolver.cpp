@@ -196,6 +196,82 @@ v8::MaybeLocal<v8::Module> slim::module::resolver::module_call_back_resolver(v8:
 	return v8::MaybeLocal<v8::Module>();
 }
 
+v8::MaybeLocal<v8::Promise> slim::module::resolver::dynamic_import_callback(v8::Local<v8::Context> context,
+        v8::Local<v8::Data> host_defined_options, v8::Local<v8::Value> resource_name, v8::Local<v8::String> specifier,
+        v8::Local<v8::FixedArray> import_assertions) {
+#ifdef ENABLE_LOGGING
+    log::trace({__func__, "begins", __FILE__, __LINE__});
+#endif
+    auto isolate = context->GetIsolate();
+    v8::TryCatch try_catch(isolate);
+    std::string specifier_string = utilities::v8StringToString(isolate, specifier);
+#ifdef ENABLE_LOGGING
+    log::debug({__func__, std::format("specifier => {}", specifier_string), __FILE__, __LINE__});
+#endif
+    auto resolver_local = v8::Promise::Resolver::New(context).ToLocalChecked();
+    auto promise = resolver_local->GetPromise();
+
+    // resolve the module through the existing static import pipeline
+    v8::MaybeLocal<v8::Module> maybe_module = module_call_back_resolver(
+        context, specifier, import_assertions, v8::Local<v8::Module>());
+
+    if(maybe_module.IsEmpty() || try_catch.HasCaught()) {
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, std::format("module resolution failed => {}", specifier_string), __FILE__, __LINE__});
+#endif
+        v8::Local<v8::Value> exception = try_catch.HasCaught()
+            ? try_catch.Exception()
+            : utilities::StringToV8String(isolate, std::format("dynamic import failed: {}", specifier_string).c_str()).As<v8::Value>();
+        try_catch.Reset();
+        resolver_local->Reject(context, exception).Check();
+#ifdef ENABLE_LOGGING
+        log::trace({__func__, "ends", __FILE__, __LINE__});
+#endif
+        return promise;
+    }
+
+    v8::Local<v8::Module> mod = maybe_module.ToLocalChecked();
+
+    // evaluate if not already evaluated
+    if(mod->GetStatus() == v8::Module::Status::kInstantiated) {
+        auto eval_result = mod->Evaluate(context);
+        if(eval_result.IsEmpty() || try_catch.HasCaught()) {
+#ifdef ENABLE_LOGGING
+            log::debug({__func__, std::format("module evaluate failed => {}", specifier_string), __FILE__, __LINE__});
+#endif
+            v8::Local<v8::Value> exception = try_catch.HasCaught()
+                ? try_catch.Exception()
+                : utilities::StringToV8String(isolate, std::format("dynamic import evaluate failed: {}", specifier_string).c_str()).As<v8::Value>();
+            try_catch.Reset();
+            resolver_local->Reject(context, exception).Check();
+#ifdef ENABLE_LOGGING
+            log::trace({__func__, "ends", __FILE__, __LINE__});
+#endif
+            return promise;
+        }
+    }
+
+    if(mod->GetStatus() == v8::Module::Status::kErrored) {
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, std::format("module errored after evaluate => {}", specifier_string), __FILE__, __LINE__});
+#endif
+        resolver_local->Reject(context, mod->GetException()).Check();
+#ifdef ENABLE_LOGGING
+        log::trace({__func__, "ends", __FILE__, __LINE__});
+#endif
+        return promise;
+    }
+
+    // resolve with the module namespace object
+    v8::Local<v8::Value> ns = mod->GetModuleNamespace();
+    resolver_local->Resolve(context, ns).Check();
+#ifdef ENABLE_LOGGING
+    log::debug({__func__, std::format("dynamic import resolved => {}", specifier_string), __FILE__, __LINE__});
+    log::trace({__func__, "ends", __FILE__, __LINE__});
+#endif
+    return promise;
+}
+
 std::optional<std::reference_wrapper<slim::module::import_specifier>> slim::module::resolver::resolve_imports(v8::Isolate* isolate,
 		std::string_view specifier_uri, bool is_entry_point = false) {
 #ifdef ENABLE_LOGGING

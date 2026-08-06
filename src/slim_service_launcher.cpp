@@ -76,6 +76,12 @@ void slim::service::launcher::launch(std::string_view specifier_uri) {
     log::debug(log::Message(__func__,"created context scope",__FILE__, __LINE__));
 #endif
 
+    // enable dynamic import() expressions
+    isolate->SetHostImportModuleDynamicallyCallback(slim::module::resolver::dynamic_import_callback);
+#ifdef ENABLE_LOGGING
+    log::debug(log::Message(__func__,"registered dynamic_import_callback",__FILE__, __LINE__));
+#endif
+
     slim::plugin::plugin slim_objects(isolate, "slim");
     slim_objects.add_function("load", slim::plugin::loader::load);
     slim_objects.expose_plugin();
