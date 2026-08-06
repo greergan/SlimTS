@@ -1,4 +1,4 @@
-# Milestone: fs async
+# Milestone: fs
 - [ ] Implement importable functions
   - [ ] (Implement importable functions) Implement `readFile`
     - [ ] (Implement importable functions > readFile) Support path string, URL, or FileHandle as first argument
@@ -17,57 +17,84 @@
         - Example: `const ac = new AbortController(); const p = readFile('big.bin', { signal: ac.signal }); ac.abort(); await p // rejects with AbortError`
         - Details: Aborting the associated AbortController causes the returned Promise to reject with an AbortError and halts internal buffering.
   - [ ] (Implement importable functions) Implement `open`
-    - [ ] (Implement importable functions > open) Open a file and return a FileHandle
+    - [ ] (Implement importable functions > open) Support flag strings to control file access mode
       - Story:
-        - Signature: `open(path: PathLike, flags?: string | number, mode?: Mode): Promise<FileHandle>`
-        - Example: `const fh = await open('file.txt', 'r') // resolves to FileHandle`
-        - Details: Allocates a FileHandle with a numeric fd, accepting flag strings ('r', 'w', 'r+', etc.) and an optional mode for newly created files.
+        - Signature: `open(path: PathLike, flags: string): Promise<FileHandle>`
+        - Example: `await open('file.txt', 'r') // read-only; await open('file.txt', 'w') // write; await open('file.txt', 'r+') // read-write`
+        - Details: Accepts flag strings such as 'r', 'w', 'a', 'r+', 'w+', 'a+' and their exclusive variants (e.g. 'wx') to control how the file is opened.
+    - [ ] (Implement importable functions > open) Support numeric flags to control file access mode
+      - Story:
+        - Signature: `open(path: PathLike, flags: number): Promise<FileHandle>`
+        - Example: `await open('file.txt', constants.O_RDONLY) // read-only via numeric flag`
+        - Details: Accepts numeric flag values (e.g. O_RDONLY, O_WRONLY, O_RDWR, O_CREAT) allowing bitwise combinations of fs.constants open flags.
+    - [ ] (Implement importable functions > open) Support mode option for newly created files
+      - Story:
+        - Signature: `open(path: PathLike, flags: string | number, mode: Mode): Promise<FileHandle>`
+        - Example: `await open('file.txt', 'w', 0o644) // creates file with given permissions`
+        - Details: When a file is created (e.g. with 'w' or O_CREAT), applies the given mode as the permission bits. Defaults to 0o666 if not specified.
   - [ ] (Implement importable functions) Implement `readdir`
     - [ ] (Implement importable functions > readdir) Return an array of filenames in a directory
       - Story:
-        - Signature: `readdir(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions & { recursive?: boolean; withFileTypes?: false }): Promise<string[]>`
+        - Signature: `readdir(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): Promise<string[]>`
         - Example: `const files = await readdir('/tmp') // ['a.txt', 'b.txt']`
-        - Details: Returns a string array of entry names excluding '.' and '..', with optional recursive traversal.
+        - Details: Returns a string array of entry names excluding '.' and '..'.
+    - [ ] (Implement importable functions > readdir) Support recursive option for deep traversal
+      - Story:
+        - Signature: `readdir(path: PathLike, options: { recursive: true }): Promise<string[]>`
+        - Example: `const files = await readdir('/tmp', { recursive: true }) // includes entries in subdirectories`
+        - Details: When recursive is true, traverses all subdirectories and returns a flat array of relative paths for all descendant entries.
     - [ ] (Implement importable functions > readdir) Support withFileTypes option returning Dirent objects
       - Story:
         - Signature: `readdir(path: PathLike, options: { withFileTypes: true }): Promise<Dirent[]>`
         - Example: `const entries = await readdir('/tmp', { withFileTypes: true }); entries[0].isFile()`
         - Details: When withFileTypes is true, resolves with an array of fs.Dirent objects with type-checking methods.
   - [ ] (Implement importable functions) Implement `opendir`
-    - [ ] (Implement importable functions > opendir) Open a directory for async iteration
-      - Story:
-        - Signature: `opendir(path: PathLike, options?: OpenDirOptions): Promise<Dir>`
-        - Example: `const dir = await opendir('./'); for await (const dirent of dir) console.log(dirent.name)`
-        - Details: Returns an fs.Dir that supports async iteration via for-await-of and automatically closes the directory handle when the iterator exits.
+    - Story:
+      - Signature: `opendir(path: PathLike, options?: OpenDirOptions): Promise<Dir>`
+      - Example: `const dir = await opendir('./'); for await (const dirent of dir) console.log(dirent.name)`
+      - Details: Returns an fs.Dir that supports async iteration via for-await-of and automatically closes the directory handle when the iterator exits.
   - [ ] (Implement importable functions) Implement `mkdir`
     - [ ] (Implement importable functions > mkdir) Create a directory
       - Story:
-        - Signature: `mkdir(path: PathLike, options?: Mode | MakeDirectoryOptions & { recursive?: false }): Promise<void>`
+        - Signature: `mkdir(path: PathLike): Promise<void>`
         - Example: `await mkdir('/tmp/newdir') // creates newdir`
-        - Details: Creates the directory at path with optional mode and rejects if the directory already exists when recursive is false.
+        - Details: Creates the directory at path and rejects if the directory already exists.
+    - [ ] (Implement importable functions > mkdir) Support mode option for directory permissions
+      - Story:
+        - Signature: `mkdir(path: PathLike, options: { mode: Mode }): Promise<void>`
+        - Example: `await mkdir('/tmp/newdir', { mode: 0o755 })`
+        - Details: Creates the directory at path with the specified permission bits. Defaults to 0o777 if not provided.
     - [ ] (Implement importable functions > mkdir) Support recursive option creating intermediate directories
       - Story:
         - Signature: `mkdir(path: PathLike, options: MakeDirectoryOptions & { recursive: true }): Promise<string | undefined>`
         - Example: `await mkdir('/tmp/a/b/c', { recursive: true }) // creates all intermediate dirs`
         - Details: When recursive is true, creates all missing parent directories and fulfills with the path of the first directory created, or undefined if all already existed.
   - [ ] (Implement importable functions) Implement `mkdtemp`
-    - [ ] (Implement importable functions > mkdtemp) Create a unique temporary directory
-      - Story:
-        - Signature: `mkdtemp(prefix: string, options?: BufferEncoding | ObjectEncodingOptions): Promise<string>`
-        - Example: `const tmpDir = await mkdtemp(join(tmpdir(), 'foo-')) // e.g. '/tmp/foo-a1b2c3'`
-        - Details: Appends six random characters to prefix, creates the directory, and fulfills with the full path of the new directory.
+    - Story:
+      - Signature: `mkdtemp(prefix: string, options?: BufferEncoding | ObjectEncodingOptions): Promise<string>`
+      - Example: `const tmpDir = await mkdtemp(join(tmpdir(), 'foo-')) // e.g. '/tmp/foo-a1b2c3'`
+      - Details: Appends six random characters to prefix, creates the directory, and fulfills with the full path of the new directory.
   - [ ] (Implement importable functions) Implement `rmdir`
-    - [ ] (Implement importable functions > rmdir) Remove an empty directory
-      - Story:
-        - Signature: `rmdir(path: PathLike): Promise<void>`
-        - Example: `await rmdir('/tmp/emptydir')`
-        - Details: Removes the directory at path and rejects with ENOENT if it does not exist, ENOTDIR if path is a file, and ENOTEMPTY if the directory is not empty.
+    - Story:
+      - Signature: `rmdir(path: PathLike): Promise<void>`
+      - Example: `await rmdir('/tmp/emptydir')`
+      - Details: Removes the directory at path and rejects with ENOENT if it does not exist, ENOTDIR if path is a file, and ENOTEMPTY if the directory is not empty.
   - [ ] (Implement importable functions) Implement `rm`
-    - [ ] (Implement importable functions > rm) Remove files and directories
+    - [ ] (Implement importable functions > rm) Remove a file or directory
       - Story:
-        - Signature: `rm(path: PathLike, options?: RmOptions): Promise<void>`
-        - Example: `await rm('/tmp/dir', { recursive: true, force: true }) // rm -rf equivalent`
-        - Details: Removes files and directories, supporting recursive deletion of directory trees and force mode that suppresses errors when path does not exist.
+        - Signature: `rm(path: PathLike): Promise<void>`
+        - Example: `await rm('/tmp/file.txt')`
+        - Details: Removes the file or directory at path. Rejects with an error if path does not exist.
+    - [ ] (Implement importable functions > rm) Support recursive option for directory tree deletion
+      - Story:
+        - Signature: `rm(path: PathLike, options: { recursive: true }): Promise<void>`
+        - Example: `await rm('/tmp/dir', { recursive: true })`
+        - Details: When recursive is true, removes the directory and all of its contents including nested files and subdirectories.
+    - [ ] (Implement importable functions > rm) Support force option to suppress errors for missing paths
+      - Story:
+        - Signature: `rm(path: PathLike, options: { force: true }): Promise<void>`
+        - Example: `await rm('/tmp/maybe-exists', { force: true }) // no error if missing`
+        - Details: When force is true, fulfills with undefined even if the path does not exist rather than rejecting with ENOENT.
   - [ ] (Implement importable functions) Implement `stat`
     - [ ] (Implement importable functions > stat) Return Stats object for a path
       - Story:
@@ -85,101 +112,108 @@
         - Signature: `lstat(path: PathLike, opts?: StatOptions & { bigint?: false }): Promise<Stats>`
         - Example: `const s = await lstat('link'); s.isSymbolicLink() // true if link is a symlink`
         - Details: Returns stats for the symbolic link itself rather than the file it points to.
+    - [ ] (Implement importable functions > lstat) Support bigint option returning BigIntStats
+      - Story:
+        - Signature: `lstat(path: PathLike, opts: StatOptions & { bigint: true }): Promise<BigIntStats>`
+        - Example: `const s = await lstat('link', { bigint: true }); typeof s.size // 'bigint'`
+        - Details: When bigint is true, returns a Stats object whose numeric fields are BigInt values for nanosecond-precision timestamps.
   - [ ] (Implement importable functions) Implement `statfs`
     - [ ] (Implement importable functions > statfs) Return filesystem statistics for a path
       - Story:
         - Signature: `statfs(path: PathLike, opts?: StatFsOptions & { bigint?: false }): Promise<StatsFs>`
         - Example: `const s = await statfs('/'); s.bfree; s.blocks`
         - Details: Returns an fs.StatsFs object with filesystem-level metrics including total blocks, free blocks, available blocks, and block size for the filesystem containing path.
+    - [ ] (Implement importable functions > statfs) Support bigint option returning BigInt field values
+      - Story:
+        - Signature: `statfs(path: PathLike, opts: StatFsOptions & { bigint: true }): Promise<BigIntStatsFs>`
+        - Example: `const s = await statfs('/', { bigint: true }); typeof s.bfree // 'bigint'`
+        - Details: When bigint is true, returns a StatsFs object whose numeric fields are BigInt values.
   - [ ] (Implement importable functions) Implement `access`
-    - [ ] (Implement importable functions > access) Test file or directory accessibility
-      - Story:
-        - Signature: `access(path: PathLike, mode?: number): Promise<void>`
-        - Example: `await access('/etc/passwd', constants.R_OK | constants.W_OK) // fulfills if accessible`
-        - Details: Tests the permissions specified by mode (F_OK, R_OK, W_OK, X_OK) and fulfills with undefined if the check passes or rejects with an Error if it fails.
+    - Story:
+      - Signature: `access(path: PathLike, mode?: number): Promise<void>`
+      - Example: `await access('/etc/passwd', constants.R_OK | constants.W_OK) // fulfills if accessible`
+      - Details: Tests the permissions specified by mode (F_OK, R_OK, W_OK, X_OK) and fulfills with undefined if the check passes or rejects with an Error if it fails.
   - [ ] (Implement importable functions) Implement `chmod`
-    - [ ] (Implement importable functions > chmod) Change file permissions
-      - Story:
-        - Signature: `chmod(path: PathLike, mode: Mode): Promise<void>`
-        - Example: `await chmod('script.sh', 0o755)`
-        - Details: Changes the permission bits of the file at path to mode and fulfills with undefined on success.
+    - Story:
+      - Signature: `chmod(path: PathLike, mode: Mode): Promise<void>`
+      - Example: `await chmod('script.sh', 0o755)`
+      - Details: Changes the permission bits of the file at path to mode and fulfills with undefined on success.
   - [ ] (Implement importable functions) Implement `lchmod` (macOS/BSD only)
-    - [ ] (Implement importable functions > lchmod) Change permissions of a symbolic link (macOS/BSD only)
-      - Story:
-        - Signature: `lchmod(path: PathLike, mode: Mode): Promise<void>`
-        - Example: `await lchmod('mylink', 0o755)`
-        - Details: Changes the permission bits of the symbolic link itself at path rather than the file it points to. macOS/BSD only — not available on Linux.
+    - Story:
+      - Signature: `lchmod(path: PathLike, mode: Mode): Promise<void>`
+      - Example: `await lchmod('mylink', 0o755)`
+      - Details: Changes the permission bits of the symbolic link itself at path rather than the file it points to. macOS/BSD only — not available on Linux.
   - [ ] (Implement importable functions) Implement `chown`
-    - [ ] (Implement importable functions > chown) Change file owner and group
-      - Story:
-        - Signature: `chown(path: PathLike, uid: number, gid: number): Promise<void>`
-        - Example: `await chown('file.txt', 1000, 1000)`
-        - Details: Changes the ownership of the file at path to the specified user ID and group ID and fulfills with undefined on success.
+    - Story:
+      - Signature: `chown(path: PathLike, uid: number, gid: number): Promise<void>`
+      - Example: `await chown('file.txt', 1000, 1000)`
+      - Details: Changes the ownership of the file at path to the specified user ID and group ID and fulfills with undefined on success.
   - [ ] (Implement importable functions) Implement `lchown`
-    - [ ] (Implement importable functions > lchown) Change ownership of a symbolic link
-      - Story:
-        - Signature: `lchown(path: PathLike, uid: number, gid: number): Promise<void>`
-        - Example: `await lchown('mylink', 1000, 1000)`
-        - Details: Changes ownership of the symbolic link itself at path rather than the file the link points to.
+    - Story:
+      - Signature: `lchown(path: PathLike, uid: number, gid: number): Promise<void>`
+      - Example: `await lchown('mylink', 1000, 1000)`
+      - Details: Changes ownership of the symbolic link itself at path rather than the file the link points to.
   - [ ] (Implement importable functions) Implement `utimes`
-    - [ ] (Implement importable functions > utimes) Change file access and modification timestamps
-      - Story:
-        - Signature: `utimes(path: PathLike, atime: TimeLike, mtime: TimeLike): Promise<void>`
-        - Example: `await utimes('file.txt', new Date(), new Date())`
-        - Details: Sets the atime and mtime of the file at path. Values may be Unix epoch numbers, Date objects, or numeric strings. Rejects with an Error if values are NaN or Infinity.
+    - Story:
+      - Signature: `utimes(path: PathLike, atime: TimeLike, mtime: TimeLike): Promise<void>`
+      - Example: `await utimes('file.txt', new Date(), new Date())`
+      - Details: Sets the atime and mtime of the file at path. Values may be Unix epoch numbers, Date objects, or numeric strings. Rejects with an Error if values are NaN or Infinity.
   - [ ] (Implement importable functions) Implement `lutimes`
-    - [ ] (Implement importable functions > lutimes) Change timestamps of a symbolic link without dereferencing
-      - Story:
-        - Signature: `lutimes(path: PathLike, atime: TimeLike, mtime: TimeLike): Promise<void>`
-        - Example: `await lutimes('mylink', new Date(), new Date()) // modifies the link's own timestamps`
-        - Details: Modifies the timestamps of the symbolic link itself rather than the target file.
+    - Story:
+      - Signature: `lutimes(path: PathLike, atime: TimeLike, mtime: TimeLike): Promise<void>`
+      - Example: `await lutimes('mylink', new Date(), new Date()) // modifies the link's own timestamps`
+      - Details: Modifies the timestamps of the symbolic link itself rather than the target file.
   - [ ] (Implement importable functions) Implement `rename`
-    - [ ] (Implement importable functions > rename) Rename or move a file or directory
-      - Story:
-        - Signature: `rename(oldPath: PathLike, newPath: PathLike): Promise<void>`
-        - Example: `await rename('old.txt', 'new.txt')`
-        - Details: Renames oldPath to newPath, overwriting newPath if it exists and is not a directory. Rejects if the operation crosses filesystem boundaries on platforms that do not support cross-device renames.
+    - Story:
+      - Signature: `rename(oldPath: PathLike, newPath: PathLike): Promise<void>`
+      - Example: `await rename('old.txt', 'new.txt')`
+      - Details: Renames oldPath to newPath, overwriting newPath if it exists and is not a directory. Rejects if the operation crosses filesystem boundaries on platforms that do not support cross-device renames.
   - [ ] (Implement importable functions) Implement `unlink`
-    - [ ] (Implement importable functions > unlink) Remove a file or symbolic link
-      - Story:
-        - Signature: `unlink(path: PathLike): Promise<void>`
-        - Example: `await unlink('file.txt') // removes the file`
-        - Details: Removes the file or symbolic link at path. If path is a symlink, removes the link without affecting its target. Rejects with ENOENT if path does not exist.
+    - Story:
+      - Signature: `unlink(path: PathLike): Promise<void>`
+      - Example: `await unlink('file.txt') // removes the file`
+      - Details: Removes the file or symbolic link at path. If path is a symlink, removes the link without affecting its target. Rejects with ENOENT if path does not exist.
   - [ ] (Implement importable functions) Implement `copyFile`
     - [ ] (Implement importable functions > copyFile) Copy a file to a destination
       - Story:
-        - Signature: `copyFile(src: PathLike, dest: PathLike, mode?: number): Promise<void>`
+        - Signature: `copyFile(src: PathLike, dest: PathLike): Promise<void>`
         - Example: `await copyFile('source.txt', 'dest.txt') // dest overwritten if exists`
-        - Details: Copies src to dest, overwriting dest by default. Supports mode flags including COPYFILE_EXCL to fail if dest exists, and COPYFILE_FICLONE for copy-on-write cloning where supported.
+        - Details: Copies src to dest, overwriting dest if it already exists.
     - [ ] (Implement importable functions > copyFile) Support COPYFILE_EXCL mode to prevent overwriting
       - Story:
         - Signature: `copyFile(src: PathLike, dest: PathLike, mode: typeof constants.COPYFILE_EXCL): Promise<void>`
         - Example: `await copyFile('source.txt', 'dest.txt', constants.COPYFILE_EXCL) // rejects if dest.txt exists`
         - Details: When COPYFILE_EXCL is specified, rejects with an error if the destination file already exists rather than overwriting it.
+    - [ ] (Implement importable functions > copyFile) Support COPYFILE_FICLONE for copy-on-write cloning
+      - Story:
+        - Signature: `copyFile(src: PathLike, dest: PathLike, mode: typeof constants.COPYFILE_FICLONE): Promise<void>`
+        - Example: `await copyFile('source.txt', 'dest.txt', constants.COPYFILE_FICLONE)`
+        - Details: Attempts to create a copy-on-write reflink. Falls back to a regular file copy if the underlying filesystem does not support reflinking.
+    - [ ] (Implement importable functions > copyFile) Support COPYFILE_FICLONE_FORCE to require copy-on-write cloning
+      - Story:
+        - Signature: `copyFile(src: PathLike, dest: PathLike, mode: typeof constants.COPYFILE_FICLONE_FORCE): Promise<void>`
+        - Example: `await copyFile('source.txt', 'dest.txt', constants.COPYFILE_FICLONE_FORCE)`
+        - Details: Requires a copy-on-write reflink and rejects with an error if the underlying filesystem does not support it.
   - [ ] (Implement importable functions) Implement `cp`
-    - [ ] (Implement importable functions > cp) Recursively copy a directory structure
-      - Story:
-        - Signature: `cp(source: string | URL, destination: string | URL, opts?: CopyOptions): Promise<void>`
-        - Example: `await cp('src/', 'dest/', { recursive: true })`
-        - Details: Copies the directory tree from source to destination, including subdirectories and files when recursive is enabled.
+    - Story:
+      - Signature: `cp(source: string | URL, destination: string | URL, opts?: CopyOptions): Promise<void>`
+      - Example: `await cp('src/', 'dest/', { recursive: true })`
+      - Details: Copies the directory tree from source to destination, including subdirectories and files when recursive is enabled.
   - [ ] (Implement importable functions) Implement `truncate`
-    - [ ] (Implement importable functions > truncate) Truncate a file to a specified length
-      - Story:
-        - Signature: `truncate(path: PathLike, len?: number): Promise<void>`
-        - Example: `await truncate('file.txt', 4) // keeps only first 4 bytes`
-        - Details: Shortens the file to len bytes if larger, or extends it with null bytes if smaller. len defaults to 0 if not provided.
+    - Story:
+      - Signature: `truncate(path: PathLike, len?: number): Promise<void>`
+      - Example: `await truncate('file.txt', 4) // keeps only first 4 bytes`
+      - Details: Shortens the file to len bytes if larger, or extends it with null bytes if smaller. len defaults to 0 if not provided.
   - [ ] (Implement importable functions) Implement `realpath`
-    - [ ] (Implement importable functions > realpath) Resolve the canonical absolute path
-      - Story:
-        - Signature: `realpath(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): Promise<string>`
-        - Example: `await realpath('./relative/../file.txt') // returns absolute path`
-        - Details: Resolves symlinks, '.', and '..' components and returns the canonicalized absolute pathname.
+    - Story:
+      - Signature: `realpath(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): Promise<string>`
+      - Example: `await realpath('./relative/../file.txt') // returns absolute path`
+      - Details: Resolves symlinks, '.', and '..' components and returns the canonicalized absolute pathname.
   - [ ] (Implement importable functions) Implement `exists`
-    - [ ] (Implement importable functions > exists) Check whether a path exists
-      - Story:
-        - Signature: `exists(path: PathLike): Promise<boolean>`
-        - Example: `await exists('file.txt') // true or false`
-        - Details: Fulfills with true if path exists on the filesystem and false otherwise, without throwing. Prefer access() for permission-aware existence checks.
+    - Story:
+      - Signature: `exists(path: PathLike): Promise<boolean>`
+      - Example: `await exists('file.txt') // true or false`
+      - Details: Fulfills with true if path exists on the filesystem and false otherwise, without throwing. Prefer access() for permission-aware existence checks.
   - [ ] (Implement importable functions) Implement `glob`
     - [ ] (Implement importable functions > glob) Match files using glob patterns
       - Story:
@@ -192,40 +226,51 @@
         - Example: `for await (const f of glob('**/*.ts', { exclude: 'node_modules' })) console.log(f)`
         - Details: Filters matching paths from the results using a string or array of glob patterns supplied through exclude.
   - [ ] (Implement importable functions) Implement `symlink`
-    - [ ] (Implement importable functions > symlink) Create a symbolic link
-      - Story:
-        - Signature: `symlink(target: PathLike, path: PathLike, type?: string | null): Promise<void>`
-        - Example: `await symlink('/etc/hosts', '/tmp/hosts_link')`
-        - Details: Creates a symbolic link at path pointing to target. The type argument ('file', 'dir', 'junction') is used only on Windows and is ignored on POSIX.
+    - Story:
+      - Signature: `symlink(target: PathLike, path: PathLike, type?: string | null): Promise<void>`
+      - Example: `await symlink('/etc/hosts', '/tmp/hosts_link')`
+      - Details: Creates a symbolic link at path pointing to target. The type argument ('file', 'dir', 'junction') is used only on Windows and is ignored on POSIX.
   - [ ] (Implement importable functions) Implement `readlink`
-    - [ ] (Implement importable functions > readlink) Read the target of a symbolic link
-      - Story:
-        - Signature: `readlink(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): Promise<string>`
-        - Example: `await readlink('/tmp/hosts_link') // '/etc/hosts'`
-        - Details: Returns the string value of the symbolic link at path without following the link.
+    - Story:
+      - Signature: `readlink(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): Promise<string>`
+      - Example: `await readlink('/tmp/hosts_link') // '/etc/hosts'`
+      - Details: Returns the string value of the symbolic link at path without following the link.
   - [ ] (Implement importable functions) Implement `link`
-    - [ ] (Implement importable functions > link) Create a hard link
-      - Story:
-        - Signature: `link(existingPath: PathLike, newPath: PathLike): Promise<void>`
-        - Example: `await link('file.txt', 'file_hardlink.txt')`
-        - Details: Creates a hard link at newPath pointing to the same inode as existingPath. Both paths must reside on the same filesystem.
+    - Story:
+      - Signature: `link(existingPath: PathLike, newPath: PathLike): Promise<void>`
+      - Example: `await link('file.txt', 'file_hardlink.txt')`
+      - Details: Creates a hard link at newPath pointing to the same inode as existingPath. Both paths must reside on the same filesystem.
   - [ ] (Implement importable functions) Implement `watch`
     - [ ] (Implement importable functions > watch) Watch a file or directory for changes via async iterator
       - Story:
-        - Signature: `watch(filename: PathLike, options?: BufferEncoding | WatchOptions): AsyncIterator<FileChangeInfo<string>>`
-        - Example: `const watcher = watch('file.txt', { signal: ac.signal }); for await (const event of watcher) console.log(event.eventType, event.filename)`
-        - Details: Returns an AsyncIterator yielding FileChangeInfo objects with eventType ('rename' or 'change') and filename. Supports AbortSignal, persistent, recursive, and encoding options.
+        - Signature: `watch(filename: PathLike, options?: WatchOptions): AsyncIterator<FileChangeInfo<string>>`
+        - Example: `const watcher = watch('file.txt'); for await (const event of watcher) console.log(event.eventType, event.filename)`
+        - Details: Returns an AsyncIterator yielding FileChangeInfo objects with eventType ('rename' or 'change') and filename.
+    - [ ] (Implement importable functions > watch) Support persistent option to keep the process alive
+      - Story:
+        - Signature: `watch(filename: PathLike, options: { persistent: boolean }): AsyncIterator<FileChangeInfo<string>>`
+        - Example: `watch('file.txt', { persistent: false }) // does not prevent process exit`
+        - Details: When persistent is true (the default), keeps the Node.js process alive as long as the watcher is active. Set to false to allow the process to exit naturally.
+    - [ ] (Implement importable functions > watch) Support recursive option to watch subdirectories
+      - Story:
+        - Signature: `watch(filename: PathLike, options: { recursive: boolean }): AsyncIterator<FileChangeInfo<string>>`
+        - Example: `watch('dir/', { recursive: true }) // events for nested file changes`
+        - Details: When recursive is true, watches all subdirectories and files within the given directory. Support varies by platform.
+    - [ ] (Implement importable functions > watch) Support encoding option for the filename in events
+      - Story:
+        - Signature: `watch(filename: PathLike, options: { encoding: BufferEncoding }): AsyncIterator<FileChangeInfo<string>>`
+        - Example: `watch('dir/', { encoding: 'utf8' })`
+        - Details: Specifies the character encoding used for the filename field in emitted FileChangeInfo objects.
     - [ ] (Implement importable functions > watch) Support AbortSignal to stop watching
       - Story:
         - Signature: `watch(filename: PathLike, options: { signal: AbortSignal }): AsyncIterator<FileChangeInfo<string>>`
         - Example: `const ac = new AbortController(); const w = watch('dir/', { signal: ac.signal }); setTimeout(() => ac.abort(), 5000)`
         - Details: Aborting the AbortController stops the watcher and causes the async iterator to terminate with the corresponding abort error.
   - [ ] (Implement importable functions) Implement `appendFile`
-    - [ ] (Implement importable functions > appendFile) Append data to a file, creating it if it does not exist
-      - Story:
-        - Signature: `appendFile(path: PathLike | FileHandle, data: string | ArrayBufferView, options?: BufferEncoding | ObjectEncodingOptions & FlagAndOpenMode & { flush?: boolean }): Promise<void>`
-        - Example: `await appendFile('log.txt', 'new line\n') // appends to log.txt or creates it`
-        - Details: Opens the file in append mode, writes the data, and fulfills with undefined. Creates the file with default permissions if it does not exist.
+    - Story:
+      - Signature: `appendFile(path: PathLike | FileHandle, data: string | ArrayBufferView, options?: BufferEncoding | ObjectEncodingOptions & FlagAndOpenMode & { flush?: boolean }): Promise<void>`
+      - Example: `await appendFile('log.txt', 'new line\n') // appends to log.txt or creates it`
+      - Details: Opens the file in append mode, writes the data, and fulfills with undefined. Creates the file with default permissions if it does not exist.
   - [ ] (Implement importable functions) Implement `writeFile`
     - [ ] (Implement importable functions > writeFile) Support path string, URL, or FileHandle as first argument
       - Story:
@@ -252,9 +297,19 @@
   - Methods
     - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.read`
       - Story:
-        - Signature: `filehandle.read(buffer: T, offset?: number, length?: number, position?: ReadPosition): Promise<FileReadResult<T>>`
+        - Signature: `filehandle.read(buffer: T, offset: number, length: number, position: ReadPosition): Promise<FileReadResult<T>>`
         - Example: `const buf = Buffer.alloc(1024); const { bytesRead } = await fh.read(buf, 0, 1024, 0)`
         - Details: Reads up to length bytes from position into the provided buffer starting at offset and fulfills with { bytesRead, buffer }.
+    - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.read` with offset option
+      - Story:
+        - Signature: `filehandle.read(buffer: T, offset: number, length?: number, position?: ReadPosition): Promise<FileReadResult<T>>`
+        - Example: `await fh.read(buf, 4) // reads into buf starting at byte offset 4`
+        - Details: The offset parameter specifies the position within the destination buffer at which to begin writing the data. Defaults to 0 if omitted.
+    - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.read` with position option
+      - Story:
+        - Signature: `filehandle.read(buffer: T, offset?: number, length?: number, position: ReadPosition): Promise<FileReadResult<T>>`
+        - Example: `await fh.read(buf, 0, buf.length, 512) // reads from file position 512`
+        - Details: The position parameter specifies the file offset from which to begin reading. When null, reads from the current file position and advances it.
     - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.readv`
       - Story:
         - Signature: `filehandle.readv(buffers: ArrayBufferView[], position?: number): Promise<ReadVResult>`
@@ -262,9 +317,19 @@
         - Details: Reads data from position into each buffer in order and fulfills with { bytesRead, buffers }.
     - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.write`
       - Story:
-        - Signature: `filehandle.write(buffer: TBuffer, offset?: number, length?: number, position?: number): Promise<{ bytesWritten: number; buffer: TBuffer }>`
+        - Signature: `filehandle.write(buffer: TBuffer, offset: number, length: number, position: number): Promise<{ bytesWritten: number; buffer: TBuffer }>`
         - Example: `const buf = Buffer.from('hello'); const { bytesWritten } = await fh.write(buf, 0, buf.length, 0)`
         - Details: Writes length bytes from the buffer starting at offset to the file at position and fulfills with { bytesWritten, buffer }.
+    - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.write` with offset option
+      - Story:
+        - Signature: `filehandle.write(buffer: TBuffer, offset: number, length?: number, position?: number): Promise<{ bytesWritten: number; buffer: TBuffer }>`
+        - Example: `await fh.write(buf, 2) // writes buf starting from byte 2`
+        - Details: The offset parameter specifies the position within the source buffer from which to begin reading data to write.
+    - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.write` with position option
+      - Story:
+        - Signature: `filehandle.write(buffer: TBuffer, offset?: number, length?: number, position: number): Promise<{ bytesWritten: number; buffer: TBuffer }>`
+        - Example: `await fh.write(buf, 0, buf.length, 1024) // writes at file position 1024`
+        - Details: The position parameter specifies the file offset at which to begin writing. When null, writes at the current file position and advances it.
     - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.write` string overload
       - Story:
         - Signature: `filehandle.write(data: string, position?: number, encoding?: BufferEncoding): Promise<{ bytesWritten: number; buffer: string }>`
@@ -322,9 +387,19 @@
         - Details: Creates a readline Interface backed by the FileHandle's read stream and yields one decoded line per iteration without loading the entire file into memory.
     - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.createReadStream`
       - Story:
-        - Signature: `filehandle.createReadStream(options?: CreateReadStreamOptions): ReadStream`
-        - Example: `const rs = fh.createReadStream({ encoding: 'utf8' }); rs.pipe(process.stdout)`
-        - Details: Returns a ReadStream with a default highWaterMark of 64 KiB and supports start/end byte ranges, encoding, and autoClose behavior.
+        - Signature: `filehandle.createReadStream(): ReadStream`
+        - Example: `const rs = fh.createReadStream(); rs.pipe(process.stdout)`
+        - Details: Returns a ReadStream with a default highWaterMark of 64 KiB that reads the entire file from the beginning.
+    - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.createReadStream` encoding option
+      - Story:
+        - Signature: `filehandle.createReadStream(options: { encoding: BufferEncoding }): ReadStream`
+        - Example: `fh.createReadStream({ encoding: 'utf8' })`
+        - Details: Decodes read chunks using the specified encoding and emits string data instead of Buffers.
+    - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.createReadStream` autoClose option
+      - Story:
+        - Signature: `filehandle.createReadStream(options: { autoClose: boolean }): ReadStream`
+        - Example: `fh.createReadStream({ autoClose: false }) // fd not released when stream ends`
+        - Details: When autoClose is true (the default), the underlying file descriptor is closed automatically when the stream ends or errors. Set to false to manage the FileHandle's lifecycle manually.
     - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.createReadStream` start and end byte range options
       - Story:
         - Signature: `filehandle.createReadStream(options: { start: number; end: number }): ReadStream`
@@ -332,9 +407,29 @@
         - Details: Uses zero-based, inclusive start and end offsets to restrict the stream to the specified byte range.
     - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.createWriteStream`
       - Story:
-        - Signature: `filehandle.createWriteStream(options?: CreateWriteStreamOptions): WriteStream`
+        - Signature: `filehandle.createWriteStream(): WriteStream`
         - Example: `const ws = fh.createWriteStream(); ws.write('hello'); ws.end()`
-        - Details: Returns a WriteStream supporting encoding, highWaterMark, autoClose, and an optional start offset for mid-file writes.
+        - Details: Returns a WriteStream that writes to the file from the beginning.
+    - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.createWriteStream` encoding option
+      - Story:
+        - Signature: `filehandle.createWriteStream(options: { encoding: BufferEncoding }): WriteStream`
+        - Example: `fh.createWriteStream({ encoding: 'utf8' })`
+        - Details: Encodes string chunks using the specified encoding before writing them to the file.
+    - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.createWriteStream` highWaterMark option
+      - Story:
+        - Signature: `filehandle.createWriteStream(options: { highWaterMark: number }): WriteStream`
+        - Example: `fh.createWriteStream({ highWaterMark: 1024 * 16 })`
+        - Details: Sets the internal buffer threshold in bytes. When the buffer exceeds this value, write() returns false to signal backpressure.
+    - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.createWriteStream` autoClose option
+      - Story:
+        - Signature: `filehandle.createWriteStream(options: { autoClose: boolean }): WriteStream`
+        - Example: `fh.createWriteStream({ autoClose: false }) // fd not released when stream ends`
+        - Details: When autoClose is true (the default), the underlying file descriptor is closed automatically when the stream finishes or errors. Set to false to manage the FileHandle's lifecycle manually.
+    - [ ] (Implement `FileHandle` > Methods) Implement `filehandle.createWriteStream` start option for mid-file writes
+      - Story:
+        - Signature: `filehandle.createWriteStream(options: { start: number }): WriteStream`
+        - Example: `fh.createWriteStream({ start: 512 }) // writes beginning at byte 512`
+        - Details: Specifies the byte offset within the file at which the stream begins writing, allowing data to be written at a position other than the start of the file.
     - [ ] (Implement `FileHandle` > Methods) Implement `filehandle[Symbol.asyncDispose]`
       - Story:
         - Signature: `filehandle[Symbol.asyncDispose](): Promise<void>`
