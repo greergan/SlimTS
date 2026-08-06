@@ -1,3 +1,4 @@
+#define ENABLE_LOGGING
 #include <filesystem>
 #include <format>
 #include <map>
@@ -5,12 +6,12 @@
 #include <set>
 #include <vector>
 #include <v8.h>
-#include <slim/common/exception.h>
 #include "config.h"
 #ifdef ENABLE_LOGGING
 #include <slim/common/log.h>
 #endif
 #include <slim/configuration_handler.h>
+#include <slim/exception.h>
 #include <slim/exception_handler.h>
 #include <slim/file/watcher.h>
 #include <slim/module/import_specifier.h>
@@ -84,95 +85,80 @@ v8::MaybeLocal<v8::Module> slim::module::resolver::module_call_back_resolver(v8:
 	log::debug({__func__, std::format("referrer hash_id => {}", referrer.IsEmpty() ? -1 : referrer->GetIdentityHash()), __FILE__, __LINE__});
 #endif
 	int current_module_hash_id = -1;
-	try {
-		if(plugins_set.contains(specifier_name_string)) {
+	if(plugins_set.contains(specifier_name_string)) {
 #ifdef ENABLE_LOGGING
-			log::debug({__func__, std::format("specifier is a plugin => {}", specifier_name_string), __FILE__, __LINE__});
+		log::debug({__func__, std::format("specifier is a plugin => {}", specifier_name_string), __FILE__, __LINE__});
 #endif
-			for(auto& [id, specifier] : cache) {
-				if(specifier.specifier_uri() == specifier_name_string) {
-					cache.erase(id);
-					break;
-				}
+		for(auto& [id, specifier] : cache) {
+			if(specifier.specifier_uri() == specifier_name_string) {
+				cache.erase(id);
+				break;
 			}
-			{
-				slim::plugin::loader::load_plugin(isolate, specifier_name_string, true);
-				if(try_catch.HasCaught()) {
-					slim::exception_handler::v8_try_catch_handler(&try_catch);
-				}
-				v8::Local<v8::String> v8_default_string = utilities::StringToV8String(isolate, "default");
-				std::vector<v8::Local<v8::String>> v8_string_exports_vector;
-				v8_string_exports_vector.push_back(v8_default_string);
-				v8::MemorySpan<const v8::Local<v8::String>> memory_span(v8_string_exports_vector.data(), v8_string_exports_vector.size());
-				import_specifier module_specifier(isolate, specifier_name_string, v8::Module::CreateSyntheticModule(isolate,
-									utilities::StringToV8String(isolate, specifier_name_string), memory_span, synthetic_module_evaluation_steps));
-				auto& mod = module_specifier.v8_module();
-				current_module_hash_id = mod->GetIdentityHash();
-				synthetic_module_plugin_names[current_module_hash_id] = specifier_name_string;
+		}
+		slim::plugin::loader::load_plugin(isolate, specifier_name_string, true);
+		if(try_catch.HasCaught()) {
+			slim::exception_handler::v8_try_catch_handler(&try_catch);
+		}
+		v8::Local<v8::String> v8_default_string = utilities::StringToV8String(isolate, "default");
+		std::vector<v8::Local<v8::String>> v8_string_exports_vector;
+		v8_string_exports_vector.push_back(v8_default_string);
+		v8::MemorySpan<const v8::Local<v8::String>> memory_span(v8_string_exports_vector.data(), v8_string_exports_vector.size());
+		import_specifier module_specifier(isolate, specifier_name_string, v8::Module::CreateSyntheticModule(isolate,
+							utilities::StringToV8String(isolate, specifier_name_string), memory_span, synthetic_module_evaluation_steps));
+		auto& mod = module_specifier.v8_module();
+		current_module_hash_id = mod->GetIdentityHash();
+		synthetic_module_plugin_names[current_module_hash_id] = specifier_name_string;
 #ifdef ENABLE_LOGGING
-				log::debug({__func__, std::format("synthetic module created with hash_id => {}", current_module_hash_id), __FILE__, __LINE__});
+		log::debug({__func__, std::format("synthetic module created with hash_id => {}", current_module_hash_id), __FILE__, __LINE__});
 #endif
-				cache_import_specifier(std::move(module_specifier), current_module_hash_id);
-				cache[current_module_hash_id].instantiate_module();
-				auto& cached_mod = cache[current_module_hash_id].v8_module();
-				if(cached_mod->GetStatus() == v8::Module::Status::kErrored) {
+		cache_import_specifier(std::move(module_specifier), current_module_hash_id);
+		cache[current_module_hash_id].instantiate_module();
+		auto& cached_mod = cache[current_module_hash_id].v8_module();
+		if(cached_mod->GetStatus() == v8::Module::Status::kErrored) {
 #ifdef ENABLE_LOGGING
-					log::debug({__func__, std::format("synthetic module errored for hash_id => {}", current_module_hash_id), __FILE__, __LINE__});
+			log::debug({__func__, std::format("synthetic module errored for hash_id => {}", current_module_hash_id), __FILE__, __LINE__});
 #endif
-					isolate->ThrowException(cached_mod->GetException());
-				}
-				if(try_catch.HasCaught()) {
-					slim::exception_handler::v8_try_catch_handler(&try_catch);
-				}
+			isolate->ThrowException(cached_mod->GetException());
+		}
+		if(try_catch.HasCaught()) {
+			slim::exception_handler::v8_try_catch_handler(&try_catch);
+		}
+	}
+	else {
+#ifdef ENABLE_LOGGING
+		log::debug({__func__, std::format("specifier is a file module => {}", specifier_name_string), __FILE__, __LINE__});
+#endif
+		import_specifier module_specifier(isolate, specifier_name_string, false, referrer);
+		if(slim::configuration_handler::is_watching()) {
+			std::string watch_path = module_specifier.specifier_uri();
+			if(watch_path.starts_with("file://")) {
+				watch_path = watch_path.substr(7);
 			}
+			slim::file::watcher::add(watch_path);
+		}
+		module_specifier.compile_module();
+		auto& mod = module_specifier.v8_module();
+		if(mod->GetStatus() == v8::Module::Status::kErrored) {
+#ifdef ENABLE_LOGGING
+			log::debug({__func__, std::format("file module compile errored for specifier => {}", specifier_name_string), __FILE__, __LINE__});
+#endif
+			isolate->ThrowException(mod->GetException());
 		}
 		else {
+			current_module_hash_id = mod->GetIdentityHash();
 #ifdef ENABLE_LOGGING
-			log::debug({__func__, std::format("specifier is a file module => {}", specifier_name_string), __FILE__, __LINE__});
+			log::debug({__func__, std::format("file module compiled with hash_id => {}", current_module_hash_id), __FILE__, __LINE__});
 #endif
-			import_specifier module_specifier(isolate, specifier_name_string, false, referrer);
-			if(slim::configuration_handler::is_watching()) {
-				std::string watch_path = module_specifier.specifier_uri();
-				if(watch_path.starts_with("file://")) {
-					watch_path = watch_path.substr(7);
-				}
-				slim::file::watcher::add(watch_path);
-			}
-			module_specifier.compile_module();
-			auto& mod = module_specifier.v8_module();
-			if(mod->GetStatus() == v8::Module::Status::kErrored) {
+			cache_import_specifier(std::move(module_specifier), current_module_hash_id);
+			cache[current_module_hash_id].instantiate_module();
+			auto& cached_mod = cache[current_module_hash_id].v8_module();
+			if(cached_mod->GetStatus() == v8::Module::Status::kErrored) {
 #ifdef ENABLE_LOGGING
-				log::debug({__func__, std::format("file module compile errored for specifier => {}", specifier_name_string), __FILE__, __LINE__});
+				log::debug({__func__, std::format("file module instantiate errored for hash_id => {}", current_module_hash_id), __FILE__, __LINE__});
 #endif
-				isolate->ThrowException(mod->GetException());
-			}
-			else {
-				current_module_hash_id = mod->GetIdentityHash();
-#ifdef ENABLE_LOGGING
-				log::debug({__func__, std::format("file module compiled with hash_id => {}", current_module_hash_id), __FILE__, __LINE__});
-#endif
-				cache_import_specifier(std::move(module_specifier), current_module_hash_id);
-				cache[current_module_hash_id].instantiate_module();
-				auto& cached_mod = cache[current_module_hash_id].v8_module();
-				if(cached_mod->GetStatus() == v8::Module::Status::kErrored) {
-#ifdef ENABLE_LOGGING
-					log::debug({__func__, std::format("file module instantiate errored for hash_id => {}", current_module_hash_id), __FILE__, __LINE__});
-#endif
-					isolate->ThrowException(cached_mod->GetException());
-				}
+				isolate->ThrowException(cached_mod->GetException());
 			}
 		}
-	}
-	catch(slim::common::SlimFileException& error) {
-#ifdef ENABLE_LOGGING
-		log::debug({__func__, std::format("SlimFileException => {}, path => {}", error.message, error.path), __FILE__, __LINE__});
-#endif
-		isolate->ThrowException(utilities::StringToV8String(isolate, std::format("Module not found: {}", specifier_name_string).c_str()));
-	}
-	catch (...) {
-#ifdef ENABLE_LOGGING
-		log::debug({__func__, "unknown exception caught", __FILE__, __LINE__});
-#endif
 	}
 	if(cache.contains(current_module_hash_id)) {
 #ifdef ENABLE_LOGGING
@@ -185,7 +171,6 @@ v8::MaybeLocal<v8::Module> slim::module::resolver::module_call_back_resolver(v8:
 #ifdef ENABLE_LOGGING
 	log::debug({__func__, std::format("module was empty, returning null for specifier => {}", specifier_name_string), __FILE__, __LINE__});
 #endif
-	isolate->ThrowError(utilities::StringToV8String(isolate, std::format("Module is empty: {}", specifier_name_string).c_str()));
 	isolate->ThrowException(utilities::StringToV8String(isolate, std::format("Module is empty: {}", specifier_name_string).c_str()));
 	if(try_catch.HasCaught()) {
 		slim::exception_handler::v8_try_catch_handler(&try_catch);
