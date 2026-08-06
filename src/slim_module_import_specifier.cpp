@@ -305,9 +305,26 @@ void slim::module::import_specifier::resolve_module_path(std::string_view specif
                 v8::Local<v8::Object> root_obj = slim::utilities::GetObject(isolate_, maybe_parsed.ToLocalChecked());
                 v8::Local<v8::Object> exports_obj = slim::utilities::GetObject(isolate_, "exports", root_obj);
                 v8::Local<v8::Object> dot_obj = slim::utilities::GetObject(isolate_, ".", exports_obj);
-                std::string import_value = slim::utilities::StringValue(isolate_, "import", dot_obj);
+
+                // GetValue returns JS undefined for missing keys; check IsString before converting
+                auto get_string_export = [&](v8::Local<v8::Object> obj, const char* key) -> std::string {
+                    v8::Local<v8::Value> val = slim::utilities::GetValue(isolate_, key, obj);
+                    if(val.IsEmpty() || !val->IsString()) return {};
+                    return slim::utilities::StringValue(isolate_, val);
+                };
+
+                // lookup order: exports[.][import] -> exports[.][default] -> main
+                std::string import_value = get_string_export(dot_obj, "import");
                 if(import_value.empty()) {
-                    isolate_->ThrowException(slim::utilities::StringToV8String(isolate_, std::format("exports[.][import] not found in package.json => {}", package_json_path.string()).c_str()));
+                    import_value = get_string_export(dot_obj, "default");
+                }
+                if(import_value.empty()) {
+                    // no exports["."] at all — fall back to "main"
+                    import_value = get_string_export(root_obj, "main");
+                }
+                if(import_value.empty()) {
+                    isolate_->ThrowException(slim::utilities::StringToV8String(isolate_,
+                        std::format("no resolvable export entry in package.json => {}", package_json_path.string()).c_str()));
                     return;
                 }
 #ifdef ENABLE_LOGGING
