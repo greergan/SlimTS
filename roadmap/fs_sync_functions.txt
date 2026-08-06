@@ -1,0 +1,92 @@
+fs Sync Functions
+
+fs.accessSync(path: PathLike, mode?: number): void
+fs.appendFileSync(path: PathLike | number, data: string | Uint8Array, options?: ObjectEncodingOptions | BufferEncoding | FlagAndOpenMode & { flush?: boolean }): void
+fs.chmodSync(path: PathLike, mode: Mode): void
+fs.chownSync(path: PathLike, uid: number, gid: number): void
+fs.closeSync(fd: number): void
+fs.copyFileSync(src: PathLike, dest: PathLike, mode?: number): void
+fs.cpSync(source: string | URL, destination: string | URL, options?: CopyOptions): void
+fs.existsSync(path: PathLike): boolean
+fs.fchmodSync(fd: number, mode: Mode): void
+fs.fchownSync(fd: number, uid: number, gid: number): void
+fs.fdatasyncSync(fd: number): void
+fs.fstatSync(fd: number, opts?: StatOptions & { bigint?: false }): Stats
+fs.fstatSync(fd: number, opts: StatOptions & { bigint: true }): BigIntStats
+fs.fsyncSync(fd: number): void
+fs.ftruncateSync(fd: number, len?: number): void
+fs.futimesSync(fd: number, atime: TimeLike, mtime: TimeLike): void
+fs.globSync(pattern: string | string[], options?: GlobOptions): string[] | Dirent[]
+fs.lchmodSync(path: PathLike, mode: Mode): void
+fs.lchownSync(path: PathLike, uid: number, gid: number): void
+fs.linkSync(existingPath: PathLike, newPath: PathLike): void
+fs.lstatSync(path: PathLike, opts?: StatOptions & { bigint?: false }): Stats
+fs.lstatSync(path: PathLike, opts: StatOptions & { bigint: true }): BigIntStats
+fs.lutimesSync(path: PathLike, atime: TimeLike, mtime: TimeLike): void
+fs.mkdirSync(path: PathLike, options?: Mode | MakeDirectoryOptions & { recursive?: false }): void
+fs.mkdirSync(path: PathLike, options: MakeDirectoryOptions & { recursive: true }): string | undefined
+fs.mkdtempSync(prefix: string | Buffer | URL, options?: BufferEncoding | ObjectEncodingOptions): string | Buffer
+fs.mkdtempDisposableSync(prefix: string | Buffer | URL, options?: BufferEncoding | ObjectEncodingOptions): DisposableDirectory
+fs.openSync(path: PathLike, flags: string | number, mode?: Mode): number
+fs.opendirSync(path: PathLike, options?: OpenDirOptions): Dir
+fs.readSync<TBuffer extends NodeJS.TypedArray | DataView>(fd: number, buffer: TBuffer, offset?: number, length?: number, position?: number | null): number
+fs.readSync<TBuffer extends NodeJS.TypedArray | DataView>(fd: number, buffer: TBuffer, options: ReadOptions<TBuffer>): number
+fs.readFileSync(path: PathLike | number, options?: BufferEncoding | ObjectEncodingOptions): Buffer | string
+fs.readlinkSync(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): string | Buffer
+fs.readvSync(fd: number, buffers: NodeJS.ArrayBufferView[], position?: number): number
+fs.readdirSync(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions & { recursive?: false; withFileTypes?: false }): string[] | Buffer[]
+fs.readdirSync(path: PathLike, options: ObjectEncodingOptions & { withFileTypes: true; recursive?: false }): Dirent[]
+fs.readdirSync(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions & { recursive: true; withFileTypes?: false }): string[] | Buffer[]
+fs.readdirSync(path: PathLike, options: ObjectEncodingOptions & { recursive: true; withFileTypes: true }): Dirent[]
+fs.realpathSync(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): string | Buffer
+fs.realpathSync.native(path: PathLike, options?: BufferEncoding | ObjectEncodingOptions): string | Buffer
+fs.renameSync(oldPath: PathLike, newPath: PathLike): void
+fs.rmSync(path: PathLike, options?: RmDirOptions): void
+fs.rmdirSync(path: PathLike, options?: RmDirOptions): void
+fs.statSync(path: PathLike, opts?: StatOptions & { bigint?: false; throwIfNoEntry?: true }): Stats
+fs.statSync(path: PathLike, opts: StatOptions & { bigint: true; throwIfNoEntry?: true }): BigIntStats
+fs.statSync(path: PathLike, opts: StatOptions & { throwIfNoEntry: false }): Stats | undefined
+fs.statfsSync(path: PathLike, opts?: StatFsOptions & { bigint?: false }): StatsFs
+fs.statfsSync(path: PathLike, opts: StatFsOptions & { bigint: true }): BigIntStatsFs
+fs.symlinkSync(target: PathLike, path: PathLike, type?: string | null): void
+fs.truncateSync(path: PathLike, len?: number): void
+fs.unlinkSync(path: PathLike): void
+fs.utimesSync(path: PathLike, atime: TimeLike, mtime: TimeLike): void
+fs.watchFile(filename: PathLike, options: WatchFileOptions, listener: (current: Stats, previous: Stats) => void): StatWatcher
+fs.watchFile(filename: PathLike, listener: (current: Stats, previous: Stats) => void): StatWatcher
+fs.unwatchFile(filename: PathLike, listener?: (current: Stats, previous: Stats) => void): void
+fs.writeSync<TBuffer extends NodeJS.TypedArray | DataView>(fd: number, buffer: TBuffer, offset?: number, length?: number, position?: number | null): number
+fs.writeSync<TBuffer extends NodeJS.TypedArray | DataView>(fd: number, buffer: TBuffer, options: WriteOptions<TBuffer>): number
+fs.writeSync(fd: number, data: string, position?: number | null, encoding?: BufferEncoding): number
+fs.writeFileSync(file: PathLike | number, data: string | NodeJS.ArrayBufferView | Iterable<NodeJS.ArrayBufferView | string> | AsyncIterable<NodeJS.ArrayBufferView | string>, options?: BufferEncoding | ObjectEncodingOptions | { flush?: boolean }): void
+fs.writevSync(fd: number, buffers: NodeJS.ArrayBufferView[], position?: number): number
+
+fs Sync Classes / Return Objects
+
+fs.Dir
+fs.Dirent
+fs.FileHandle
+fs.FSWatcher
+fs.StatWatcher
+fs.Stats
+fs.BigIntStats
+fs.StatsFs
+fs.BigIntStatsFs
+
+fs Sync Constants
+
+fs.constants
+fs.constants.UV_DIRENT_UNKNOWN
+fs.constants.UV_DIRENT_FILE
+fs.constants.UV_DIRENT_DIR
+fs.constants.UV_DIRENT_LINK
+fs.constants.UV_DIRENT_FIFO
+fs.constants.UV_DIRENT_SOCKET
+fs.constants.UV_DIRENT_CHAR
+fs.constants.UV_DIRENT_BLOCK
+
+fs Sync Special Properties / Functions
+
+fs.promises
+fs.realpathSync.native
+fs.constants

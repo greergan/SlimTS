@@ -1,0 +1,230 @@
+Process Functions
+
+process.abort(): never
+process.availableMemory(): number
+process.chdir(directory: string): void
+process.cpuUsage(previousValue?: CpuUsage): CpuUsage
+process.cwd(): string
+process.disconnect(): void | undefined
+process.dlopen(module: object, filename: string, flags?: number): void
+process.emitWarning(warning: string | Error, options?: EmitWarningOptions): void
+process.emitWarning(warning: string | Error, type?: string, code?: string, ctor?: Function): void
+process.execve(file: string, args?: string[], env?: ProcessEnv): never
+process.exit(code?: number): never
+process.exitCode: number
+process.getActiveResourcesInfo(): string[]
+process.getBuiltinModule(id: string): Module | undefined
+process.getegid(): number
+process.geteuid(): number
+process.getgid(): number
+process.getgroups(): number[]
+process.getuid(): number
+process.hasUncaughtExceptionCaptureCallback(): boolean
+process.hrtime(time?: [number, number]): [number, number]
+process.hrtime.bigint(): bigint
+process.initgroups(user: string | number, extraGroup: string | number): void
+process.kill(pid: number, signal?: number | NodeJS.Signals): boolean
+process.loadEnvFile(path?: string | URL | Buffer): void
+process.memoryUsage(): MemoryUsage
+process.nextTick(callback: (...args: any[]) => void, ...args: any[]): void
+process.openStdin(): ReadStream
+process.reallyExit(code?: number): never
+process.ref(maybeRefable: unknown): void
+process.resourceUsage(): ResourceUsage
+process.setSourceMapsEnabled(val: boolean): void
+process.setUncaughtExceptionCaptureCallback(fn: ((err: Error) => void) | null): void
+process.setegid(id: number | string): void
+process.seteuid(id: number | string): void
+process.setgid(id: number | string): void
+process.setgroups(groups: number[]): void
+process.setuid(id: number | string): void
+process.threadCpuUsage(previousValue?: CpuUsage): CpuUsage
+process.umask(mask?: number): number
+process.unref(maybeRefable: unknown): void
+process.uptime(): number
+process.version: string
+
+Process Properties
+
+process.arch: string
+process.argv: string[]
+process.argv0: string
+process.channel: Channel | undefined
+process.config: ProcessConfig
+process.connected: boolean
+process.debugPort: number
+process.env: ProcessEnv
+process.execArgv: string[]
+process.execPath: string
+process.exitCode: number | undefined
+process.features: ProcessFeatures
+process.pid: number
+process.platform: string
+process.ppid: number
+process.release: ProcessRelease
+process.report: ProcessReport
+process.stderr: WriteStream
+process.stdin: ReadStream
+process.stdout: WriteStream
+process.title: string
+process.version: string
+process.versions: ProcessVersions
+process.sourceMapsEnabled: boolean
+
+Process Environment
+
+process.env: ProcessEnv
+
+Process Environment Properties
+
+process.env[key: string]: string | undefined
+
+Process Standard Streams
+
+process.stdin: ReadStream
+process.stdin.fd: number
+
+process.stdout: WriteStream
+process.stdout.fd: number
+
+process.stderr: WriteStream
+process.stderr.fd: number
+
+Process Channel
+
+process.channel: Channel | undefined
+process.channel.ref(): void
+process.channel.unref(): void
+
+Process Permission
+
+process.permission: Permission | undefined
+process.permission.has(scope: string, reference?: string): boolean
+
+Process Finalization
+
+process.finalization: FinalizationRegistry
+process.finalization.register(ref: object | Function, callback: Function): void
+process.finalization.registerBeforeExit(ref: object | Function, callback: Function): void
+process.finalization.unregister(ref: object | Function): void
+
+Process Report
+
+process.report.compact: boolean
+process.report.directory: string
+process.report.filename: string
+process.report.excludeEnv: boolean
+process.report.getReport(err?: Error): Report
+process.report.writeReport(file?: string, err?: Error): string
+
+Process HRTime
+
+process.hrtime(time?: [number, number]): [number, number]
+process.hrtime.bigint(): bigint
+
+Process Versions
+
+process.versions.node: string
+process.versions.v8: string
+process.versions.modules: string
+process.versions.napi: string
+process.versions.uv: string
+process.versions.ares: string
+process.versions.brotli: string
+process.versions.cldr: string
+process.versions.icu: string
+process.versions.llhttp: string
+process.versions.openssl: string
+process.versions.tz: string
+process.versions.unicode: string
+process.versions.zlib: string
+
+Process Release
+
+process.release.name: string
+process.release.sourceUrl: string
+process.release.headersUrl: string
+process.release.libUrl: string | undefined
+
+Process Events
+
+process.on('beforeExit', listener)
+process.on('disconnect', listener)
+process.on('exit', listener)
+process.on('message', listener)
+process.on('rejectionHandled', listener)
+process.on('uncaughtException', listener)
+process.on('uncaughtExceptionMonitor', listener)
+process.on('unhandledRejection', listener)
+process.on('warning', listener)
+process.on('worker', listener)
+process.on('workerMessage', listener)
+
+Process Signal Events
+
+process.on('SIGABRT', listener)
+process.on('SIGALRM', listener)
+process.on('SIGBUS', listener)
+process.on('SIGCHLD', listener)
+process.on('SIGCONT', listener)
+process.on('SIGFPE', listener)
+process.on('SIGHUP', listener)
+process.on('SIGILL', listener)
+process.on('SIGINT', listener)
+process.on('SIGIO', listener)
+process.on('SIGIOT', listener)
+process.on('SIGPIPE', listener)
+process.on('SIGPOLL', listener)
+process.on('SIGPROF', listener)
+process.on('SIGPWR', listener)
+process.on('SIGQUIT', listener)
+process.on('SIGSEGV', listener)
+process.on('SIGSTKFLT', listener)
+process.on('SIGSTOP', listener)
+process.on('SIGSYS', listener)
+process.on('SIGTERM', listener)
+process.on('SIGTRAP', listener)
+process.on('SIGTSTP', listener)
+process.on('SIGTTIN', listener)
+process.on('SIGTTOU', listener)
+process.on('SIGURG', listener)
+process.on('SIGUSR1', listener)
+process.on('SIGUSR2', listener)
+process.on('SIGVTALRM', listener)
+process.on('SIGXCPU', listener)
+process.on('SIGXFSZ', listener)
+process.on('SIGWINCH', listener)
+
+Process Static / Module-Level Exports
+
+process.allowedNodeEnvironmentFlags: ReadonlySet<string>
+process.arch: string
+process.argv: string[]
+process.argv0: string
+process.config: ProcessConfig
+process.env: ProcessEnv
+process.execArgv: string[]
+process.execPath: string
+process.exitCode: number | undefined
+process.pid: number
+process.platform: string
+process.ppid: number
+process.release: ProcessRelease
+process.report: ProcessReport
+process.stdin: ReadStream
+process.stdout: WriteStream
+process.stderr: WriteStream
+process.title: string
+process.version: string
+process.versions: ProcessVersions
+
+Process Constants
+
+process.exitCode
+process.env
+process.platform
+process.arch
+process.pid
+process.ppid
+process.version
+process.versions

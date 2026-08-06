@@ -1,0 +1,69 @@
+EventEmitter Instance Methods
+
+EventEmitter.addListener(eventName: string | symbol, listener: (...args: any[]) => void): this
+EventEmitter.on(eventName: string | symbol, listener: (...args: any[]) => void): this
+EventEmitter.once(eventName: string | symbol, listener: (...args: any[]) => void): this
+EventEmitter.prependListener(eventName: string | symbol, listener: (...args: any[]) => void): this
+EventEmitter.prependOnceListener(eventName: string | symbol, listener: (...args: any[]) => void): this
+EventEmitter.removeListener(eventName: string | symbol, listener: (...args: any[]) => void): this
+EventEmitter.off(eventName: string | symbol, listener: (...args: any[]) => void): this
+EventEmitter.removeAllListeners(eventName?: string | symbol): this
+EventEmitter.listeners(eventName: string | symbol): Function[]
+EventEmitter.rawListeners(eventName: string | symbol): Function[]
+EventEmitter.listenerCount(eventName: string | symbol): number
+EventEmitter.eventNames(): Array<string | symbol>
+EventEmitter.emit(eventName: string | symbol, ...args: any[]): boolean
+EventEmitter.getMaxListeners(): number
+EventEmitter.setMaxListeners(n: number): this
+
+EventEmitter Static Methods
+
+EventEmitter.listenerCount(emitter: EventEmitter, eventName: string | symbol): number
+EventEmitter.getEventListeners(emitterOrTarget: EventEmitter | EventTarget, eventName: string | symbol): Function[]
+EventEmitter.getMaxListeners(emitterOrTarget: EventEmitter | EventTarget): number
+EventEmitter.setMaxListeners(n: number, ...eventTargets: Array<EventEmitter | EventTarget>): void
+EventEmitter.addAbortListener(signal: AbortSignal, resource: (...args: any[]) => void): Disposable
+EventEmitter.once(emitter: EventEmitter, eventName: string | symbol): Promise<any[]>
+EventEmitter.on(emitter: EventEmitter, eventName: string | symbol, options?: StaticEventEmitterOptions): AsyncIterator<any[]>
+
+EventEmitter Static Properties
+
+EventEmitter.captureRejections: boolean
+EventEmitter.captureRejectionSymbol: symbol
+EventEmitter.defaultMaxListeners: number
+EventEmitter.errorMonitor: symbol
+
+EventEmitter Instance Properties
+
+EventEmitter._events: EventMap | undefined
+EventEmitter._eventsCount: number
+EventEmitter._maxListeners: number | undefined
+
+EventEmitter Special Events
+
+newListener
+removeListener
+error
+
+EventEmitter Special Symbols
+
+EventEmitter.errorMonitor: symbol
+EventEmitter.captureRejectionSymbol: symbol
+Symbol.for('nodejs.rejection')
+
+EventEmitter Behavior
+
+EventEmitter emits 'newListener' before a listener is added
+EventEmitter emits 'removeListener' after a listener is removed
+EventEmitter emits 'error' when an 'error' event is emitted without a listener
+EventEmitter supports listener context through this
+EventEmitter supports multiple listeners for the same event
+EventEmitter preserves listener registration order
+EventEmitter.once() removes its listener after the first invocation
+EventEmitter supports Symbol event names
+EventEmitter supports listener-count limits
+EventEmitter supports Promise-based once()
+EventEmitter supports async iteration through EventEmitter.on()
+EventEmitter supports AbortSignal cancellation through EventEmitter.addAbortListener()
+EventEmitter supports captureRejections
+EventEmitter supports EventTarget interoperability for applicable static methods
