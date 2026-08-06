@@ -1,1 +1,1 @@
-SUBDIRS = console http module path require
+SUBDIRS = assert console http module path require

@@ -146,6 +146,7 @@ AC_CONFIG_FILES([
     Makefile
     src/Makefile
     src/plugins/Makefile
+    src/plugins/assert/Makefile
     src/plugins/console/Makefile
     src/plugins/color-console/Makefile
     src/plugins/fs/Makefile
