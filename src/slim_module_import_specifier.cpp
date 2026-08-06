@@ -115,7 +115,32 @@ slim::module::import_specifier::import_specifier(v8::Isolate* isolate, std::stri
 #ifdef ENABLE_LOGGING
         log::debug({__func__, std::format("transpiled_source_ size => {}", transpiled_source_.view().size()), __FILE__, __LINE__});
 #endif
-    } else {
+    }
+    else if(specifier_uri_.ends_with(".js")) {
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, "taking cjs path, calling fetch", __FILE__, __LINE__});
+#endif
+        fetched_mjs_source_ = slim::fetch::fetch_file(specifier_uri_).get();
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, std::format("fetched_mjs_source_.code => {}", fetched_mjs_source_.code), __FILE__, __LINE__});
+        log::debug({__func__, std::format("fetched_mjs_source_.body.size => {}", fetched_mjs_source_.body.size()), __FILE__, __LINE__});
+#endif
+        if(fetched_mjs_source_.code != 200) {
+            std::string error_string = std::format("fetch failed: {}, error: {}, text: {}", specifier_uri_,
+                fetched_mjs_source_.code, fetched_mjs_source_.code_text);
+#ifdef ENABLE_LOGGING
+            log::debug({__func__, std::format("fetch failed => {}", error_string), __FILE__, __LINE__});
+#endif
+            isolate_->ThrowException(slim::utilities::StringToV8String(isolate_, error_string.data()));
+            return;
+        }
+        is_cjs_ = true;
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, "is_cjs_ set true, calling evaluate_as_cjs", __FILE__, __LINE__});
+#endif
+        evaluate_as_cjs();
+    }
+    else {
 #ifdef ENABLE_LOGGING
         log::debug({__func__, "calling fetch", __FILE__, __LINE__});
 #endif
@@ -138,12 +163,155 @@ slim::module::import_specifier::import_specifier(v8::Isolate* isolate, std::stri
 #endif
 }
 
+void slim::module::import_specifier::evaluate_as_cjs() {
+#ifdef ENABLE_LOGGING
+    log::trace({__func__, "begins", __FILE__, __LINE__});
+    log::debug({__func__, std::format("specifier_uri_ => {}", specifier_uri_), __FILE__, __LINE__});
+#endif
+    v8::TryCatch try_catch(isolate_);
+
+    // build module object with exports property
+    v8::Local<v8::Object> cjs_module_obj = v8::Object::New(isolate_);
+    v8::Local<v8::Object> cjs_exports_obj = v8::Object::New(isolate_);
+    cjs_module_obj->Set(context_, slim::utilities::StringToV8String(isolate_, "exports"), cjs_exports_obj).Check();
+
+    // wrap source in CJS IIFE
+    std::string_view body(reinterpret_cast<const char*>(fetched_mjs_source_.body.data()), fetched_mjs_source_.body.size());
+    std::string wrapped = std::format("(function(module, exports) {{\n{}\n}})(cjs_module_, cjs_module_.exports);", body);
+#ifdef ENABLE_LOGGING
+    log::debug({__func__, std::format("wrapped source size => {}", wrapped.size()), __FILE__, __LINE__});
+#endif
+
+    // inject module object into context as cjs_module_
+    context_->Global()->Set(context_, slim::utilities::StringToV8String(isolate_, "cjs_module_"), cjs_module_obj).Check();
+
+    v8::Local<v8::String> source_string = v8::String::NewFromUtf8(
+        isolate_,
+        wrapped.data(),
+        v8::NewStringType::kNormal,
+        static_cast<int>(wrapped.size())
+    ).ToLocalChecked();
+
+    v8::ScriptOrigin origin(slim::utilities::StringToV8Value(isolate_, specifier_uri_.data()), 0, 0, false, -1,
+        slim::utilities::StringToV8Value(isolate_, ""), false, false, false);
+    v8::ScriptCompiler::Source script_source(source_string, origin);
+    v8::MaybeLocal<v8::Script> maybe_script = v8::ScriptCompiler::Compile(context_, &script_source);
+    if(maybe_script.IsEmpty()) {
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, "script compile failed", __FILE__, __LINE__});
+#endif
+        if(try_catch.HasCaught()) {
+            slim::exception_handler::v8_try_catch_handler(&try_catch);
+        }
+        return;
+    }
+
+    v8::MaybeLocal<v8::Value> run_result = maybe_script.ToLocalChecked()->Run(context_);
+    if(run_result.IsEmpty()) {
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, "script run failed", __FILE__, __LINE__});
+#endif
+        if(try_catch.HasCaught()) {
+            slim::exception_handler::v8_try_catch_handler(&try_catch);
+        }
+        return;
+    }
+
+    // pull module.exports back out — CJS bundle may have reassigned it via module.exports = ...
+    v8::Local<v8::Value> exports_val = cjs_module_obj->Get(context_,
+        slim::utilities::StringToV8String(isolate_, "exports")).ToLocalChecked();
+    if(!exports_val->IsObject()) {
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, "module.exports is not an object", __FILE__, __LINE__});
+#endif
+        isolate_->ThrowException(slim::utilities::StringToV8String(isolate_,
+            std::format("cjs module.exports is not an object => {}", specifier_uri_).c_str()));
+        return;
+    }
+    cjs_exports_ = exports_val.As<v8::Object>();
+
+    // synthetic module exposes only default = module.exports
+    // named export detection from CJS static analysis is deferred until a concrete use case requires it
+    v8::Local<v8::String> default_name = slim::utilities::StringToV8String(isolate_, "default");
+    std::vector<v8::Local<v8::String>> export_names = { default_name };
+    v8::MemorySpan<const v8::Local<v8::String>> memory_span(export_names.data(), export_names.size());
+    v8_module_ = v8::Module::CreateSyntheticModule(isolate_,
+        slim::utilities::StringToV8String(isolate_, specifier_uri_),
+        memory_span,
+        slim::module::import_specifier::cjs_evaluation_steps);
+    is_synthetic_module_ = true;
+#ifdef ENABLE_LOGGING
+    log::debug({__func__, std::format("synthetic module created, hash_id => {}", v8_module_->GetIdentityHash()), __FILE__, __LINE__});
+    log::trace({__func__, "ends", __FILE__, __LINE__});
+#endif
+    if(try_catch.HasCaught()) {
+        slim::exception_handler::v8_try_catch_handler(&try_catch);
+    }
+}
+
+v8::MaybeLocal<v8::Value> slim::module::import_specifier::cjs_evaluation_steps(
+        v8::Local<v8::Context> context, v8::Local<v8::Module> module) {
+#ifdef ENABLE_LOGGING
+    log::trace({__func__, "begins", __FILE__, __LINE__});
+#endif
+    auto isolate = context->GetIsolate();
+    v8::TryCatch try_catch(isolate);
+    int hash_id = module->GetIdentityHash();
+#ifdef ENABLE_LOGGING
+    log::debug({__func__, std::format("hash_id => {}", hash_id), __FILE__, __LINE__});
+#endif
+    auto maybe_specifier = slim::module::resolver::get_import_specifier_by_hash_id(hash_id);
+    if(!maybe_specifier.has_value()) {
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, std::format("no import_specifier found for hash_id => {}", hash_id), __FILE__, __LINE__});
+#endif
+        isolate->ThrowException(slim::utilities::StringToV8String(isolate,
+            std::format("cjs_evaluation_steps: no specifier for hash_id => {}", hash_id).c_str()));
+        return v8::MaybeLocal<v8::Value>();
+    }
+    import_specifier& spec = maybe_specifier.value().get();
+    // set default export to the full module.exports object
+    // property access on it at runtime will invoke lazy getters naturally
+    auto default_result = module->SetSyntheticModuleExport(isolate,
+        slim::utilities::StringToV8String(isolate, "default"), spec.cjs_exports_);
+    if(default_result.IsNothing()) {
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, "SetSyntheticModuleExport returned Nothing for => default", __FILE__, __LINE__});
+#endif
+    }
+#ifdef ENABLE_LOGGING
+    else {
+        log::debug({__func__, "SetSyntheticModuleExport ok => default", __FILE__, __LINE__});
+    }
+#endif
+    if(try_catch.HasCaught()) {
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, "exception caught", __FILE__, __LINE__});
+#endif
+        slim::exception_handler::v8_try_catch_handler(&try_catch);
+        return v8::MaybeLocal<v8::Value>();
+    }
+#ifdef ENABLE_LOGGING
+    log::trace({__func__, "ends", __FILE__, __LINE__});
+#endif
+    return v8::MaybeLocal<v8::Value>(v8::True(isolate));
+}
+
 void slim::module::import_specifier::compile_module() {
 #ifdef ENABLE_LOGGING
     log::trace({__func__, "begins", __FILE__, __LINE__});
     log::debug({__func__, std::format("specifier_uri_ => {}", specifier_uri_), __FILE__, __LINE__});
     log::debug({__func__, std::format("is_src_transpiled => {}", is_src_transpiled ? "true" : "false"), __FILE__, __LINE__});
+    log::debug({__func__, std::format("is_cjs_ => {}", is_cjs_ ? "true" : "false"), __FILE__, __LINE__});
 #endif
+    // CJS modules are already compiled and wrapped as synthetic modules in evaluate_as_cjs()
+    if(is_cjs_) {
+#ifdef ENABLE_LOGGING
+        log::debug({__func__, "is_cjs_ true, skipping compile", __FILE__, __LINE__});
+        log::trace({__func__, "ends", __FILE__, __LINE__});
+#endif
+        return;
+    }
     v8::TryCatch try_catch(isolate_);
     std::string_view origin_string = specifier_uri_;
     std::string_view src;
@@ -249,28 +417,51 @@ void slim::module::import_specifier::resolve_module_path(std::string_view specif
                 }
             }
             else {
-                std::unordered_set<std::string> possible_module_names = {
-                    current_working_search_path.string(),
-                    current_working_search_path.string() + "/index"
-                };
-                for(auto& possible_module_name : possible_module_names) {
-                    for(auto& file_extension : file_extensions) {
-                        std::filesystem::path possible_module_file_path = possible_module_name + file_extension;
 #ifdef ENABLE_LOGGING
-                        log::debug({__func__, std::format("trying => {}", possible_module_file_path.string()), __FILE__, __LINE__});
+                log::debug({__func__, std::format("trying package.json in => {}", current_working_search_path.string()), __FILE__, __LINE__});
 #endif
-                        if(std::filesystem::exists(possible_module_file_path)) {
-                            module_file_found = true;
-                            specifier_path_ = std::filesystem::canonical(possible_module_file_path);
-                            specifier_uri(specifier_path_.string());
+                std::filesystem::path package_json_path = current_working_search_path / "package.json";
+                auto package_json_result = slim::fetch::fetch_file("file://" + package_json_path.string()).get();
+                if(package_json_result.code != 200) {
 #ifdef ENABLE_LOGGING
-                            log::debug({__func__, std::format("found => {}", specifier_path_.string()), __FILE__, __LINE__});
+                    log::debug({__func__, std::format("package.json not found, skipping => {}", package_json_path.string()), __FILE__, __LINE__});
 #endif
-                            break;
-                        }
-                    }
-                    if(module_file_found) { break; }
+                    continue;
                 }
+#ifdef ENABLE_LOGGING
+                log::debug({__func__, std::format("package.json fetched => {}", package_json_path.string()), __FILE__, __LINE__});
+#endif
+                std::string_view package_json_body(reinterpret_cast<const char*>(package_json_result.body.data()), package_json_result.body.size());
+                v8::MaybeLocal<v8::Value> maybe_parsed = v8::JSON::Parse(context_, slim::utilities::StringViewToV8String(isolate_, package_json_body));
+                if(maybe_parsed.IsEmpty()) {
+                    isolate_->ThrowException(slim::utilities::StringToV8String(isolate_, std::format("failed to parse package.json => {}", package_json_path.string()).c_str()));
+                    return;
+                }
+#ifdef ENABLE_LOGGING
+                log::debug({__func__, "package.json parsed", __FILE__, __LINE__});
+#endif
+                v8::Local<v8::Object> root_obj = slim::utilities::GetObject(isolate_, maybe_parsed.ToLocalChecked());
+                v8::Local<v8::Object> exports_obj = slim::utilities::GetObject(isolate_, "exports", root_obj);
+                v8::Local<v8::Object> dot_obj = slim::utilities::GetObject(isolate_, ".", exports_obj);
+                std::string import_value = slim::utilities::StringValue(isolate_, "import", dot_obj);
+                if(import_value.empty()) {
+                    isolate_->ThrowException(slim::utilities::StringToV8String(isolate_, std::format("exports[.][import] not found in package.json => {}", package_json_path.string()).c_str()));
+                    return;
+                }
+#ifdef ENABLE_LOGGING
+                log::debug({__func__, std::format("import_value => {}", import_value), __FILE__, __LINE__});
+#endif
+                std::filesystem::path import_path = current_working_search_path / import_value;
+                if(!std::filesystem::exists(import_path)) {
+                    isolate_->ThrowException(slim::utilities::StringToV8String(isolate_, std::format("import file not found => {}", import_path.string()).c_str()));
+                    return;
+                }
+                module_file_found = true;
+                specifier_path_ = std::filesystem::canonical(import_path);
+                specifier_uri(specifier_path_.string());
+#ifdef ENABLE_LOGGING
+                log::debug({__func__, std::format("found via package.json => {}", specifier_path_.string()), __FILE__, __LINE__});
+#endif
             }
             if(module_file_found) { break; }
         }
